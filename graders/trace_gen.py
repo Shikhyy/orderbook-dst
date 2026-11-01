@@ -63,6 +63,7 @@ def generate_trace(
 
     # Track order IDs placed for cancel and replace generation
     active_order_ids: list[int] = []
+    order_prices: dict[int, int] = {}
     next_sim_order_id = 1
     current_mark = BASE_MARK
     fix_seq = 1
@@ -136,10 +137,27 @@ def generate_trace(
             if action < 4 and active_order_ids:
                 # 40% REPLACE events (trigger)
                 oid = rng.choice(active_order_ids)
-                new_price = BASE_MARK + rng.next_int(-5, 5) * TICK
-                if new_price <= 0:
-                    new_price = BASE_MARK
-                new_qty = rng.next_int(2, 15)
+                cur_price = order_prices.get(oid, BASE_MARK)
+                replace_branch = rng.next_int(0, 2)
+                if replace_branch == 0:
+                    # Same price, quantity decrease (tests priority retention)
+                    new_price = cur_price
+                    new_qty = rng.next_int(1, 3)
+                elif replace_branch == 1:
+                    # Same price, quantity increase (tests priority loss)
+                    new_price = cur_price
+                    new_qty = rng.next_int(8, 16)
+                else:
+                    # Price change (tests priority loss)
+                    new_price = BASE_MARK + rng.next_int(-5, 5) * TICK
+                    if new_price <= 0:
+                        new_price = BASE_MARK
+                    new_qty = rng.next_int(2, 10)
+
+                if rng.prob_pct(5):
+                    new_qty = 100_000
+
+                order_prices[oid] = new_price
                 event = Event(kind="REPLACE", order_id=oid, new_price=new_price, new_qty=new_qty)
                 is_trigger = True
             elif action == 4:
@@ -153,9 +171,10 @@ def generate_trace(
                 price = BASE_MARK + rng.next_int(-5, 5) * TICK
                 if price <= 0:
                     price = BASE_MARK
-                qty = rng.next_int(1, 8)
+                qty = rng.next_int(2, 8)
                 event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
                 active_order_ids.append(next_sim_order_id)
+                order_prices[next_sim_order_id] = price
                 next_sim_order_id += 1
             else:
                 oid = rng.choice(active_order_ids) if active_order_ids else 1

@@ -1,0 +1,8 @@
+id = "f2_replace_a"
+family = "F2"
+variant = "A"
+target_files = ["exchange_core/rules/replace_rule.py"]
+rules = ["R-P1", "R-P2", "R-P3"]
+profile = "replace_heavy"
+timeout_s = 60
+difficulty_reason = "The rule keeps priority only on a pure quantity decrease. It compares the new quantity with cum_qty and not with leaves."

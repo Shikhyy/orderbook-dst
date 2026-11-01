@@ -1,0 +1,5 @@
+[expect]
+t1_min = 0.5
+t3_max = 0.5
+violated = ["I3", "D1"]
+passed = false

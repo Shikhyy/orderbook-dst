@@ -14,30 +14,41 @@ README.md
 CHANGELOG.md
 HYPOTHESES.md
 AI_USE.md
+conftest.py
 
 # Allowed docs
 docs/04_RULEBOOK.md
 docs/05_INVARIANTS_AND_DATA.md
 
 # Source packages
+exchange_core/*.py
 exchange_core/**/*.py
+graders/*.py
 graders/**/*.py
+harness/*.py
 harness/**/*.py
+tools/*.py
 tools/**/*.py
 tools/publish_allowlist.txt
 
 # Tasks (no workspace/)
 tasks/*/instruction.md
 tasks/*/task.toml
-tasks/*/public_tests/**
+tasks/*/tier2_trace.json
+tasks/*/public_tests/*.py
+tasks/*/public_tests/**/*.py
 
 # Reference solutions and mutants
+reference/*.py
 reference/**/*.py
+reference_alt/*.py
 reference_alt/**/*.py
+mutants/*.py
 mutants/**/*.py
 mutants/**/expect.toml
 
 # Tests
+tests/*.py
 tests/**/*.py
 
 # CI
