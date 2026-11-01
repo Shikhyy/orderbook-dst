@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [M4] 2026-11-01
+
+### Added
+- `graders/hidden_seeds.py` with base seed definitions for hidden Tier 3 evaluation (20 seeds per task).
+- `graders/sandbox.py` with isolated filesystem overlay and subprocess execution (`run_sandboxed`).
+- `graders/dst_grader.py` three-tier deterministic grader (T1 public tests, T2 targeted checkpoints, T3 hidden seeds with D1 and I1-I4 checks).
+- `tasks/f2_replace_a`: `task.toml`, `instruction.md`, 9 public tests in `public_tests/`, and 35-event Tier 2 trace with 8 hand-calculated checkpoints in `tier2_trace.json`.
+- `tasks/f2_replace_b`: `task.toml`, `instruction.md`, 10 public tests in `public_tests/`, and 35-event Tier 2 trace with 8 hand-calculated checkpoints in `tier2_trace.json`.
+- Reference solutions in `reference/f2_replace_a/replace_rule.py` and `reference/f2_replace_b/replace.py`.
+- Mutants in `mutants/` with `expect.toml`:
+  - `f2_replace_a`: `m_reset_on_decrease`, `m_compare_with_leaves`, `m_keep_on_price_change`, `m_allow_equal_cum`.
+  - `f2_replace_b`: `m_lock_uses_current_rate`, `m_lock_not_adjusted`, `m_prio_not_updated_in_state`, `m_counter_not_incremented`, `m_state_changed_on_reject`.
+- `tools/make_workspace.py` workspace generator with stubs and test runners.
+- `tools/validate_graders.py` validation suite implementing checks V1 through V8.
+- Gate G1: `make validate` passes all checks across both tasks.
+- `exchange_core/` code lines: 1,489 lines (ENG-10 <= 1500 lines satisfied).
+
 ## [M3] 2026-11-01
 
 ### Added

@@ -9,3 +9,4 @@ models.toml
 *.mp4
 *.mov
 node_modules/
+tasks/**/workspace/

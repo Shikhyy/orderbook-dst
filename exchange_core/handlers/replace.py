@@ -4,6 +4,7 @@ Rules R-P1 to R-P4. Target for task f2_replace_b.
 """
 from exchange_core.book import best_ask, best_bid, get_order
 from exchange_core.intmath import ceil_div
+from exchange_core.rules.replace_rule import decide_replace
 from exchange_core.types import Event, Report
 
 
@@ -25,13 +26,10 @@ def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ign
     if order is None or order.leaves <= 0:
         return [Report.rejected("UNKNOWN_ORDER")]
 
-    # Rule R-P2 step 2: validate new price
-    if event.new_price <= 0 or event.new_price % cfg.tick != 0:
-        return [Report.rejected("INVALID_ORDER")]
-
-    # Rule R-P2 step 3: validate new quantity vs cum_qty
-    if event.new_qty <= order.cum_qty:
-        return [Report.rejected("INVALID_REPLACE")]
+    # Rules R-P2 steps 2, 3 and R-P3: decide via replace rule
+    dec = decide_replace(order, event.new_price, event.new_qty, cfg)
+    if not dec.ok:
+        return [Report.rejected(dec.reason)]
 
     # Rule R-P2 step 4: crossing check against opposite book
     if order.side == "BUY":
@@ -44,7 +42,7 @@ def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ign
             return [Report.rejected("REPLACE_WOULD_CROSS")]
 
     # Rule R-P2 step 5 & R-P4: margin check using stored order.margin_bps
-    new_leaves = event.new_qty - order.cum_qty
+    new_leaves = dec.new_leaves
     new_lock = ceil_div(new_leaves * event.new_price * order.margin_bps, 10_000)
     acc = state.accounts[order.account]
 
@@ -54,14 +52,7 @@ def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ign
             return [Report.rejected("INSUFFICIENT_MARGIN")]
 
     # Rule R-P3: priority update
-    if event.new_price == order.price and event.new_qty < order.qty:
-        # Quantity decrease: keep priority
-        pass
-    elif event.new_price == order.price and event.new_qty == order.qty:
-        # No-op: nothing changes
-        pass
-    else:
-        # Price change or quantity increase: new priority from counter
+    if not dec.keep_priority:
         order.prio_seq = state.next_prio_seq
         state.next_prio_seq += 1
 
