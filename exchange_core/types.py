@@ -93,67 +93,39 @@ class Report:
     leg_index: int = 0
 
     @classmethod
-    def accepted(cls, order_id: int) -> "Report":
-        return cls(kind="ACCEPTED", order_id=order_id)
-
+    def accepted(cls, order_id: int) -> "Report": return cls(kind="ACCEPTED", order_id=order_id)
     @classmethod
-    def rejected(cls, reason: str) -> "Report":
-        return cls(kind="REJECTED", reason=reason)
-
+    def rejected(cls, reason: str) -> "Report": return cls(kind="REJECTED", reason=reason)
     @classmethod
     def fill(
-        cls,
-        buy_order_id: int,
-        sell_order_id: int,
-        price: int,
-        qty: int,
-        taker_order_id: int,
+        cls, buy_order_id: int, sell_order_id: int, price: int, qty: int, taker_order_id: int
     ) -> "Report":
         return cls(
-            kind="FILL",
-            buy_order_id=buy_order_id,
-            sell_order_id=sell_order_id,
-            price=price,
-            qty=qty,
-            taker_order_id=taker_order_id,
+            kind="FILL", buy_order_id=buy_order_id, sell_order_id=sell_order_id,
+            price=price, qty=qty, taker_order_id=taker_order_id,
         )
-
     @classmethod
     def cancelled(cls, order_id: int, reason: str) -> "Report":
         return cls(kind="CANCELLED", order_id=order_id, reason=reason)
-
     @classmethod
-    def replaced(cls, order_id: int) -> "Report":
-        return cls(kind="REPLACED", order_id=order_id)
-
+    def replaced(cls, order_id: int) -> "Report": return cls(kind="REPLACED", order_id=order_id)
     @classmethod
-    def buffered(cls) -> "Report":
-        return cls(kind="BUFFERED")
-
+    def buffered(cls) -> "Report": return cls(kind="BUFFERED")
     @classmethod
-    def discarded(cls, reason: str) -> "Report":
-        return cls(kind="DISCARDED", reason=reason)
-
+    def discarded(cls, reason: str) -> "Report": return cls(kind="DISCARDED", reason=reason)
     @classmethod
     def liquidated(cls, account: str, qty: int) -> "Report":
         return cls(kind="LIQUIDATED", account=account, qty=qty)
-
     @classmethod
     def mark_set(cls, mark_price: int) -> "Report":
         return cls(kind="MARK_SET", mark_price=mark_price)
-
     @classmethod
-    def margin_rate_set(cls, bps: int) -> "Report":
-        return cls(kind="MARGIN_RATE_SET", bps=bps)
-
+    def margin_rate_set(cls, bps: int) -> "Report": return cls(kind="MARGIN_RATE_SET", bps=bps)
     @classmethod
     def session_reset_done(cls, session: str) -> "Report":
         return cls(kind="SESSION_RESET_DONE", session=session)
-
     @classmethod
-    def basket_committed(cls) -> "Report":
-        return cls(kind="BASKET_COMMITTED")
-
+    def basket_committed(cls) -> "Report": return cls(kind="BASKET_COMMITTED")
     @classmethod
     def basket_rolled_back(cls, leg_index: int) -> "Report":
         return cls(kind="BASKET_ROLLED_BACK", leg_index=leg_index)

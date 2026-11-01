@@ -22,33 +22,18 @@ class EngineConfig:
 
     # Aliases matching uppercase notation in docs/04_RULEBOOK.md
     @property
-    def TICK(self) -> int:
-        return self.tick
-
+    def TICK(self) -> int: return self.tick
     @property
-    def MARGIN_BPS_DEFAULT(self) -> int:
-        return self.margin_bps_default
-
+    def MARGIN_BPS_DEFAULT(self) -> int: return self.margin_bps_default
     @property
-    def MAINT_BPS(self) -> int:
-        return self.maint_bps
-
+    def MAINT_BPS(self) -> int: return self.maint_bps
     @property
-    def PPM(self) -> int:
-        return self.ppm
-
+    def PPM(self) -> int: return self.ppm
     @property
-    def TAKER_PPM_T0(self) -> int:
-        return self.taker_ppm_t0
-
+    def TAKER_PPM_T0(self) -> int: return self.taker_ppm_t0
     @property
-    def TAKER_PPM_T1(self) -> int:
-        return self.taker_ppm_t1
-
+    def TAKER_PPM_T1(self) -> int: return self.taker_ppm_t1
     @property
-    def MAKER_REBATE_PPM(self) -> int:
-        return self.maker_rebate_ppm
-
+    def MAKER_REBATE_PPM(self) -> int: return self.maker_rebate_ppm
     @property
-    def TIER_THRESHOLD(self) -> int:
-        return self.tier_threshold
+    def TIER_THRESHOLD(self) -> int: return self.tier_threshold
