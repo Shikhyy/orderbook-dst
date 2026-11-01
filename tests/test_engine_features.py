@@ -2,11 +2,10 @@
 # Tests for Self-Trade Prevention (R-M3), FIX Session (R-S), Basket (R-A), and Invariants (I1-I3).
 # Written before implementation (TDD).
 
-import pytest
 from exchange_core.config import EngineConfig
-from exchange_core.types import Event, Report, BasketLeg
 from exchange_core.engine import Engine
 from exchange_core.invariants import check_invariants
+from exchange_core.types import BasketLeg, Event, Report
 
 
 class TestSTP:
@@ -28,7 +27,9 @@ class TestSTP:
         # A1 places incoming BUY order at 100_000_000 for 5 units
         # Order 1 (same account A1) is cancelled with reason STP.
         # Order 2 (account A2) fills!
-        reps = engine.process(Event(kind="NEW_LIMIT", account="A1", side="BUY", price=100_000_000, qty=5))
+        reps = engine.process(
+            Event(kind="NEW_LIMIT", account="A1", side="BUY", price=100_000_000, qty=5)
+        )
 
         assert Report.accepted(3) in reps
         assert Report.cancelled(1, "STP") in reps
@@ -53,20 +54,28 @@ class TestFixSession:
         body3 = Event(kind="NEW_LIMIT", account="A1", side="BUY", price=100_000_000, qty=3)
 
         # Send seq 1: processed immediately
-        reps1 = engine.process(Event(kind="FIX_MSG", session="S1", epoch=0, seq=1, poss_dup=False, body=body1))
+        reps1 = engine.process(
+            Event(kind="FIX_MSG", session="S1", epoch=0, seq=1, poss_dup=False, body=body1)
+        )
         assert Report.accepted(1) in reps1
 
         # Send seq 3: out of order (gap at seq 2) -> BUFFERED
-        reps3 = engine.process(Event(kind="FIX_MSG", session="S1", epoch=0, seq=3, poss_dup=False, body=body3))
+        reps3 = engine.process(
+            Event(kind="FIX_MSG", session="S1", epoch=0, seq=3, poss_dup=False, body=body3)
+        )
         assert reps3 == [Report.buffered()]
         assert 3 in engine.state.sessions["S1"].buffer
 
         # Send duplicate seq 1 (poss_dup=True) -> DISCARDED(DUPLICATE)
-        reps_dup = engine.process(Event(kind="FIX_MSG", session="S1", epoch=0, seq=1, poss_dup=True, body=body1))
+        reps_dup = engine.process(
+            Event(kind="FIX_MSG", session="S1", epoch=0, seq=1, poss_dup=True, body=body1)
+        )
         assert reps_dup == [Report.discarded("DUPLICATE")]
 
         # Send seq 2: fills gap, processes seq 2, then drains seq 3
-        reps2 = engine.process(Event(kind="FIX_MSG", session="S1", epoch=0, seq=2, poss_dup=False, body=body2))
+        reps2 = engine.process(
+            Event(kind="FIX_MSG", session="S1", epoch=0, seq=2, poss_dup=False, body=body2)
+        )
         assert Report.accepted(2) in reps2
         assert Report.accepted(3) in reps2
         assert len(engine.state.sessions["S1"].buffer) == 0
@@ -113,9 +122,9 @@ class TestBasket:
 
         h_before = engine.state_hash()
 
-        # Basket where leg 0 would succeed (IOC buy 2 units), but leg 1 fails (POST_ONLY buy at 100M crosses)
+        # Basket where leg 0 would succeed, but leg 1 fails (crosses resting sell)
         leg0 = BasketLeg(side="BUY", price=100_000_000, qty=2, flag="IOC")
-        leg1 = BasketLeg(side="BUY", price=100_000_000, qty=2, flag="POST_ONLY")  # crosses resting sell at 100M
+        leg1 = BasketLeg(side="BUY", price=100_000_000, qty=2, flag="POST_ONLY")
 
         reps = engine.process(Event(kind="BASKET", account="A1", legs=(leg0, leg1)))
         assert reps == [Report.basket_rolled_back(1)]  # 0-based index of failing leg

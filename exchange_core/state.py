@@ -65,21 +65,7 @@ class EngineState:
         """Produce an independent deep snapshot of the engine state."""
         return EngineState(
             accounts={k: v.clone() for k, v in self.accounts.items()},
-            orders={
-                k: Order(
-                    order_id=v.order_id,
-                    account=v.account,
-                    side=v.side,
-                    price=v.price,
-                    qty=v.qty,
-                    cum_qty=v.cum_qty,
-                    prio_seq=v.prio_seq,
-                    margin_bps=v.margin_bps,
-                    lock=v.lock,
-                    flag=v.flag,
-                )
-                for k, v in self.orders.items()
-            },
+            orders={k: Order(**v.__dict__) for k, v in self.orders.items()},
             fee_vault=self.fee_vault,
             next_order_id=self.next_order_id,
             next_prio_seq=self.next_prio_seq,
@@ -92,21 +78,7 @@ class EngineState:
     def restore(self, snap: "EngineState") -> None:
         """Restore all state in-place from an earlier snapshot (Rule R-A4, ENG-08)."""
         self.accounts = {k: v.clone() for k, v in snap.accounts.items()}
-        self.orders = {
-            k: Order(
-                order_id=v.order_id,
-                account=v.account,
-                side=v.side,
-                price=v.price,
-                qty=v.qty,
-                cum_qty=v.cum_qty,
-                prio_seq=v.prio_seq,
-                margin_bps=v.margin_bps,
-                lock=v.lock,
-                flag=v.flag,
-            )
-            for k, v in snap.orders.items()
-        }
+        self.orders = {k: Order(**v.__dict__) for k, v in snap.orders.items()}
         self.fee_vault = snap.fee_vault
         self.next_order_id = snap.next_order_id
         self.next_prio_seq = snap.next_prio_seq

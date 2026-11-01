@@ -20,18 +20,11 @@ def _account_to_dict(acc: Account) -> dict[str, int]:
 
 
 def _order_to_dict(order: Order) -> dict[str, Any]:
-    return {
-        "order_id": order.order_id,
-        "account": order.account,
-        "side": order.side,
-        "price": order.price,
-        "qty": order.qty,
-        "cum_qty": order.cum_qty,
-        "prio_seq": order.prio_seq,
-        "margin_bps": order.margin_bps,
-        "lock": order.lock,
-        "flag": order.flag,
-    }
+    fields = (
+        "order_id", "account", "side", "price", "qty", "cum_qty",
+        "prio_seq", "margin_bps", "lock", "flag",
+    )
+    return {k: getattr(order, k) for k in fields}
 
 
 def _msg_to_dict(msg: Any) -> dict[str, Any]:

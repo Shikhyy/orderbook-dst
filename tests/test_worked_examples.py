@@ -2,11 +2,10 @@
 # Unit tests for each worked example in docs/04_RULEBOOK.md.
 # Written before implementation (TDD).
 
-import pytest
 from exchange_core.config import EngineConfig
-from exchange_core.types import Event, Report
 from exchange_core.engine import Engine
 from exchange_core.invariants import check_invariants
+from exchange_core.types import Event, Report
 
 
 class TestWorkedExamples:
@@ -53,8 +52,8 @@ class TestWorkedExamples:
 
     def test_r_p4_replace_worked_example(self):
         """R-P4 Example:
-        Resting BUY order has qty 10, cum_qty 4, price 100,000,000, margin_bps 2,000, lock 120,000,000.
-        - REPLACE new_qty 8, same price: keeps priority. New leaves 4. New lock 80,000,000. Release 40,000,000.
+        Resting BUY order has qty 10, cum_qty 4, price 100M, rate 2000, lock 120M.
+        - REPLACE new_qty 8, same price: keeps priority. Leaves 4. Lock 80M. Release 40M.
         - REPLACE new_qty 4: reject with INVALID_REPLACE.
         - REPLACE new_price 101,000,000, new_qty 10: gets a new prio_seq.
         """
@@ -63,9 +62,13 @@ class TestWorkedExamples:
         engine = Engine(cfg, accounts, mark_price=100_000_000)
 
         # Place BUY order: qty 10, price 100_000_000
-        engine.process(Event(kind="NEW_LIMIT", account="A1", side="BUY", price=100_000_000, qty=10))
+        engine.process(
+            Event(kind="NEW_LIMIT", account="A1", side="BUY", price=100_000_000, qty=10)
+        )
         # Place SELL order to partially fill 4 units: qty 4, price 100_000_000
-        engine.process(Event(kind="NEW_LIMIT", account="A2", side="SELL", price=100_000_000, qty=4))
+        engine.process(
+            Event(kind="NEW_LIMIT", account="A2", side="SELL", price=100_000_000, qty=4)
+        )
 
         order = engine.state.orders[1]
         assert order.qty == 10
@@ -76,7 +79,9 @@ class TestWorkedExamples:
 
         # Case 1: REPLACE new_qty 8, same price
         free_before = engine.state.accounts["A1"].free_cash
-        reps_rep1 = engine.process(Event(kind="REPLACE", order_id=1, new_price=100_000_000, new_qty=8))
+        reps_rep1 = engine.process(
+            Event(kind="REPLACE", order_id=1, new_price=100_000_000, new_qty=8)
+        )
         assert reps_rep1 == [Report.replaced(1)]
         assert order.leaves == 4
         assert order.lock == 80_000_000
@@ -84,13 +89,17 @@ class TestWorkedExamples:
         assert engine.state.accounts["A1"].free_cash == free_before + 40_000_000
 
         # Case 2: REPLACE new_qty 4 (which is == cum_qty) -> REJECTED(INVALID_REPLACE)
-        reps_rep2 = engine.process(Event(kind="REPLACE", order_id=1, new_price=100_000_000, new_qty=4))
+        reps_rep2 = engine.process(
+            Event(kind="REPLACE", order_id=1, new_price=100_000_000, new_qty=4)
+        )
         assert reps_rep2 == [Report.rejected("INVALID_REPLACE")]
         assert order.qty == 8
         assert order.lock == 80_000_000
 
         # Case 3: REPLACE new_price 101,000,000, new_qty 10 -> new prio_seq
-        reps_rep3 = engine.process(Event(kind="REPLACE", order_id=1, new_price=101_000_000, new_qty=10))
+        reps_rep3 = engine.process(
+            Event(kind="REPLACE", order_id=1, new_price=101_000_000, new_qty=10)
+        )
         assert reps_rep3 == [Report.replaced(1)]
         assert order.price == 101_000_000
         assert order.qty == 10
@@ -115,14 +124,18 @@ class TestWorkedExamples:
         engine.state.accounts["TAKER"].volume = 4_999_980_000
 
         # Maker places SELL limit order: qty 3, price 100,000,000
-        engine.process(Event(kind="NEW_LIMIT", account="MAKER", side="SELL", price=100_000_000, qty=3))
+        engine.process(
+            Event(kind="NEW_LIMIT", account="MAKER", side="SELL", price=100_000_000, qty=3)
+        )
 
         maker_cash_before = engine.state.accounts["MAKER"].free_cash
         taker_cash_before = engine.state.accounts["TAKER"].free_cash
         vault_before = engine.state.fee_vault
 
         # Taker buys 3 units at 100,000,000
-        reps = engine.process(Event(kind="NEW_LIMIT", account="TAKER", side="BUY", price=100_000_000, qty=3))
+        reps = engine.process(
+            Event(kind="NEW_LIMIT", account="TAKER", side="BUY", price=100_000_000, qty=3)
+        )
         assert any(r.kind == "FILL" for r in reps)
 
         # Check fees
@@ -131,10 +144,9 @@ class TestWorkedExamples:
         notional = 300_000_000
 
         # Maker receives notional + rebate
-        # (plus order lock adjustment: maker locked 60,000,000 which is released)
-        # Net maker cash increase: notional + rebate
+        # plus order lock of 60,000,000 released from locked_margin to free_cash
         maker_cash_after = engine.state.accounts["MAKER"].free_cash
-        assert maker_cash_after - maker_cash_before == notional + expected_rebate
+        assert maker_cash_after - maker_cash_before == notional + expected_rebate + 60_000_000
 
         # Taker pays notional + fee
         taker_cash_after = engine.state.accounts["TAKER"].free_cash
@@ -157,20 +169,15 @@ class TestWorkedExamples:
         No liquidation.
         """
         cfg = EngineConfig()
-        accounts = {"A": 1_050_000_000, "LIQ": 10_000_000_000}
+        accounts = {"A": 1_070_000_000, "LIQ": 10_000_000_000}
         engine = Engine(cfg, accounts, mark_price=100_000_000)
 
         # Set up short position of -10
         engine.state.accounts["A"].position = -10
 
-        # Resting BUY order with lock 20,000,000 (qty 1, price 100,000,000, rate 2000)
-        # Note: lock = 1 * 100M * 2000 / 10000 = 20,000,000
-        # Deduct from free cash and add to locked_margin manually to match the exact scenario
-        engine.state.accounts["A"].free_cash = 1_050_000_000 - 20_000_000
+        # Resting order with lock 20,000,000; free_cash = 1,050,000,000
+        engine.state.accounts["A"].free_cash = 1_050_000_000
         engine.state.accounts["A"].locked_margin = 20_000_000
-        engine.state.orders[1] = Event(
-            kind="NEW_LIMIT", account="A", side="BUY", price=100_000_000, qty=1
-        )  # will be formal Order
         from exchange_core.types import Order
         engine.state.orders[1] = Order(
             order_id=1,
@@ -184,7 +191,7 @@ class TestWorkedExamples:
             lock=20_000_000,
             flag="NONE",
         )
-        engine.state.initial_total = 1_050_000_000 + 10_000_000_000
+        engine.state.initial_total = 1_070_000_000 + 10_000_000_000
 
         # Shock to 101,000,000
         reps = engine.process(Event(kind="PRICE_SHOCK", mark_price=101_000_000))
@@ -194,8 +201,8 @@ class TestWorkedExamples:
         assert not any(r.kind == "LIQUIDATED" for r in reps)
         # Position unchanged
         assert engine.state.accounts["A"].position == -10
-        # Lock released to free cash
-        assert engine.state.accounts["A"].free_cash == 1_050_000_000
+        # Lock released to free cash: 1,050,000,000 + 20,000,000 = 1,070,000,000
+        assert engine.state.accounts["A"].free_cash == 1_070_000_000
         assert engine.state.accounts["A"].locked_margin == 0
 
         violations = check_invariants(engine.state, 1)
@@ -209,12 +216,12 @@ class TestWorkedExamples:
         """
         from exchange_core.types import Order
         cfg = EngineConfig()
-        accounts = {"A": 1_050_000_000, "LIQ": 10_000_000_000}
+        accounts = {"A": 1_055_000_000, "LIQ": 10_000_000_000}
         engine = Engine(cfg, accounts, mark_price=100_000_000)
 
         # Set up short position of -10
         engine.state.accounts["A"].position = -10
-        engine.state.accounts["A"].free_cash = 1_050_000_000 - 5_000_000
+        engine.state.accounts["A"].free_cash = 1_050_000_000
         engine.state.accounts["A"].locked_margin = 5_000_000
         engine.state.orders[1] = Order(
             order_id=1,
@@ -228,7 +235,7 @@ class TestWorkedExamples:
             lock=5_000_000,
             flag="NONE",
         )
-        engine.state.initial_total = 1_050_000_000 + 10_000_000_000
+        engine.state.initial_total = 1_055_000_000 + 10_000_000_000
 
         reps = engine.process(Event(kind="PRICE_SHOCK", mark_price=101_000_000))
         assert Report.mark_set(101_000_000) in reps
@@ -237,8 +244,11 @@ class TestWorkedExamples:
         assert Report.liquidated("A", -10) in reps
         assert engine.state.accounts["A"].position == 0
         assert engine.state.accounts["LIQ"].position == -10
-        # Cash transferred at mark_price: 10 * 101_000_000 = 1_010_000_000
-        assert engine.state.accounts["A"].free_cash == 1_050_000_000 - 1_010_000_000
+        # Cash transferred at mark_price:
+        # After stage 1 cancel: free_cash was 1,050,000,000 + 5,000,000 = 1,055,000,000
+        # Paid for 10 units at 101,000,000 = 1,010,000,000
+        # Remaining free cash = 1,055,000,000 - 1,010,000,000 = 45,000,000
+        assert engine.state.accounts["A"].free_cash == 1_055_000_000 - 1_010_000_000
         assert engine.state.accounts["LIQ"].free_cash == 10_000_000_000 + 1_010_000_000
 
         violations = check_invariants(engine.state, 1)
