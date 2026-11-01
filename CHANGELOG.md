@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [M5] 2026-11-01
+
+### Added
+- `harness/prompt.py` prompt builder constructing fixed system message, task instruction, target stubs, read-only context files, and SHA-256 prompt hash.
+- `harness/extract.py` code extraction parser handling `### FILE: <path>` code blocks, checking expected files, and detecting `MISSING_FILE` and `FORMAT_ERROR`.
+- `harness/adapters/` multi-provider model adapters adhering to the <= 30-line constraint:
+  - `base.py`: `ModelReply` dataclass and `ModelAdapter` protocol.
+  - `anthropic.py`: Anthropic Claude API adapter.
+  - `openai.py`: OpenAI API adapter.
+  - `openai_compat.py`: OpenAI-compatible API adapter for local/hosted models.
+  - `mock.py`: Offline mock adapter for testing and dry runs.
+- `harness/run_eval.py` evaluation harness CLI:
+  - Supports `--models`, `--mode single_turn`, `--trials`, `--out`, `--tasks`, `--dry-run`, and `--regrade`.
+  - Resume capability skipping already-evaluated trials.
+  - Generates `run_meta.json`, `trials.jsonl`, and per-trial raw prompt, reply, files, and `score.json`.
+- `tests/test_harness_extract.py` test suite covering prompt generation, valid extraction, format error handling, missing file detection, and mock generation.
+- Gate G2: `make test` passes (103 passed in 0.20s).
+
 ## [M4] 2026-11-01
 
 ### Added
