@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [M2] 2026-11-01
+
+### Added
+- `exchange_core/book.py` with order book priority and queue primitives.
+- `exchange_core/ledger.py` with cash, lock, position, and fee ledger primitives.
+- `exchange_core/invariants.py` with Violation dataclass and checks for I1, I2, I3.
+- `exchange_core/rules/` pure functions: `fee_rule.py`, `replace_rule.py`, `session_rule.py`, `waterfall_rule.py`.
+- `exchange_core/handlers/` stateful handlers: `new_limit.py`, `cancel.py`, `replace.py`, `margin_rate.py`, `shock.py`, `fix.py`, `basket.py`, `settle.py`.
+- `exchange_core/engine.py` Engine class with `dispatch`, `process`, and `state_hash`.
+- Unit tests for all rulebook worked examples, STP, FIX, basket rollback, invariant sensitivity, and pure rules (69 tests total).
+- Engine codebase line count under 1,500 lines (Rule ENG-10: 1,498 lines).
+- Gate: `make test` passes.
+
 ## [M1] 2026-11-01
 
 ### Added
