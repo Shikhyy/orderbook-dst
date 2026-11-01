@@ -2,7 +2,6 @@
 # Tests for R-U2 (round_half_even) and R-U3 (ceil_div).
 # Written before the implementation (TDD).
 
-import pytest
 from exchange_core.intmath import ceil_div, round_half_even
 
 

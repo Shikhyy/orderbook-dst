@@ -2,21 +2,14 @@
 # Tests for EngineConfig, types, EngineState, snapshot/restore, and canonical state hash.
 # Written before implementation (TDD).
 
-import pytest
+from exchange_core.canonical import canonical_json, canonical_state_hash
 from exchange_core.config import EngineConfig
+from exchange_core.state import Account, EngineState, SessionState
 from exchange_core.types import (
     Event,
-    Report,
     Order,
-    BasketLeg,
-    Fill,
-    ReplaceDecision,
-    SessionOutcome,
-    AccountView,
-    WaterfallPlan,
+    Report,
 )
-from exchange_core.state import Account, SessionState, EngineState
-from exchange_core.canonical import canonical_json, canonical_state_hash
 
 
 class TestEngineConfig:
