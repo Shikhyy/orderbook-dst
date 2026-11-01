@@ -1,8 +1,8 @@
 # tests/test_scaffold.py
 # Gate G0: This test verifies the scaffold is in place.
 # It passes when the package tree exists and Python 3.11+ is running.
-import sys
 import importlib
+import sys
 
 
 def test_python_version():
