@@ -2,7 +2,6 @@
 # Tests for graders/detrng.py (xorshift64* deterministic RNG).
 # Written before implementation (TDD).
 
-import pytest
 from graders.detrng import DetRng
 
 

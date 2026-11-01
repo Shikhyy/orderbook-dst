@@ -3,14 +3,17 @@
 # Written before implementation (TDD).
 
 import pytest
-from graders.trace_gen import generate_trace, PROFILES, TraceResult
+
+from graders.trace_gen import PROFILES, TraceResult, generate_trace
 
 
 class TestTraceGen:
     """Trace generator and profile validation."""
 
     def test_all_profiles_supported(self):
-        expected_profiles = {"fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy"}
+        expected_profiles = {
+            "fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy"
+        }
         assert set(PROFILES) == expected_profiles
 
     @pytest.mark.parametrize("profile", PROFILES)

@@ -3,6 +3,7 @@
 # Written before implementation (TDD).
 
 import pytest
+
 from exchange_core.config import EngineConfig
 from exchange_core.engine import Engine
 from exchange_core.invariants import check_invariants
@@ -36,7 +37,9 @@ class TestPropertyM3:
     def test_i4_replay_property(self):
         """Property 2 (I4): Replay of noisy FIX trace gives identical state hash as clean trace."""
         for seed in (201, 202, 203):
-            clean_trace = generate_trace(seed=seed, profile="fix_noisy", num_events=60, clean_fix=True)
+            clean_trace = generate_trace(
+                seed=seed, profile="fix_noisy", num_events=60, clean_fix=True
+            )
             noisy_trace = make_noisy_fix_trace(clean_trace, seed=seed)
 
             cfg = EngineConfig()
@@ -47,7 +50,7 @@ class TestPropertyM3:
 
             # Run noisy trace
             engine_noisy = Engine(cfg, clean_trace.accounts, clean_trace.mark_price)
-            for event in noisy_trace.events:
+            for event in noisy_trace:
                 engine_noisy.process(event)
 
             assert engine_clean.state_hash() == engine_noisy.state_hash(), (
