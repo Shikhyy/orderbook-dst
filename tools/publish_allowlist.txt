@@ -1,0 +1,44 @@
+# publish_allowlist.txt
+# Each line is a glob pattern. Only files that match at least one pattern are allowed in the repository.
+# The check-publish command rejects any tracked file that does not match.
+
+# Root files
+Makefile
+pyproject.toml
+requirements.txt
+Dockerfile
+.gitignore
+.env.example
+models.example.toml
+README.md
+CHANGELOG.md
+HYPOTHESES.md
+AI_USE.md
+
+# Allowed docs
+docs/04_RULEBOOK.md
+docs/05_INVARIANTS_AND_DATA.md
+
+# Source packages
+exchange_core/**/*.py
+graders/**/*.py
+harness/**/*.py
+tools/**/*.py
+tools/publish_allowlist.txt
+
+# Tasks (no workspace/)
+tasks/*/instruction.md
+tasks/*/task.toml
+tasks/*/public_tests/**
+
+# Reference solutions and mutants
+reference/**/*.py
+reference_alt/**/*.py
+mutants/**/*.py
+mutants/**/expect.toml
+
+# Tests
+tests/**/*.py
+
+# CI
+.github/workflows/*.yml

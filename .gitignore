@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.env
+models.toml
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+*.mp4
+*.mov
+node_modules/

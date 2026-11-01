@@ -1,0 +1,9 @@
+# Pin exact versions after the first successful install. Run: pip freeze
+pytest
+hypothesis
+mutmut
+ruff
+mypy
+anthropic
+openai
+rich

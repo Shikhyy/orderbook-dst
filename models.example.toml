@@ -1,0 +1,25 @@
+# Copy to models.toml. Write the exact model IDs from the provider documentation.
+[[model]]
+label = "frontier_a"
+adapter = "anthropic"
+model_id = "FILL_WITH_EXACT_MODEL_ID"
+trials = 5
+[model.settings]
+max_tokens = 8000
+
+[[model]]
+label = "frontier_b"
+adapter = "openai"
+model_id = "FILL_WITH_EXACT_MODEL_ID"
+trials = 5
+[model.settings]
+max_tokens = 8000
+
+[[model]]
+label = "small_open"
+adapter = "openai_compat"
+model_id = "FILL_WITH_EXACT_MODEL_ID"
+base_url = "http://localhost:11434/v1"
+trials = 5
+[model.settings]
+max_tokens = 8000
