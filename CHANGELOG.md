@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [M1] 2026-11-01
+
+### Added
+- `exchange_core/intmath.py` with `round_half_even` (R-U2) and `ceil_div` (R-U3).
+- `exchange_core/config.py` with `EngineConfig` constants.
+- `exchange_core/types.py` with `Order`, `Event`, `Report`, `Fill`, `ReplaceDecision`, `SessionOutcome`, `AccountView`, `WaterfallPlan`.
+- `exchange_core/state.py` with `Account`, `SessionState`, and `EngineState` with `snapshot()` and `restore()`.
+- `exchange_core/canonical.py` with `canonical_dict`, `canonical_json`, and `canonical_state_hash` (SHA-256).
+- Unit tests in `tests/test_intmath.py` and `tests/test_core_types.py` (33 tests total).
+- Gate: `make test` passes.
+
 ## [M0] 2026-11-01
 
 ### Added
