@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [M3] 2026-11-01
+
+### Added
+- `graders/detrng.py` with 64-bit deterministic RNG implementing xorshift64*.
+- `graders/trace_gen.py` supporting five task profiles (`fee_heavy`, `replace_heavy`, `fix_noisy`, `shock_heavy`, `basket_heavy`), ~3% invalid events, and trigger coverage calculation.
+- `make_noisy_fix_trace` helper for I4 replay property verification.
+- Unit and property tests in `tests/test_detrng.py`, `tests/test_trace_gen.py`, and `tests/test_property_m3.py` (94 tests total).
+- Property tests verify I1, I2, I3 on generated traces, I4 replay law, and basket rollback law.
+- Gate: `make test` passes.
+
 ## [M2] 2026-11-01
 
 ### Added
