@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- Clarification `R-A6 [Declared]`: Basket rollback 0-based leg indexing in R-A4 (decision OQ-01).
+- Clarification `R-A7 [Declared]`: Basket IOC leg success check runs before remainder cancel in R-A3 and R-B5 (decision OQ-02).
+- Clarification `R-W7 [Declared]`: Account iteration order in R-W1 and R-W6 is lexicographic string order (decision OQ-03).
+- Clarification `R-M5 [Declared]`: Explicit lock release to free_cash on complete order fill in R-M4 (decision OQ-04).
+- Clarification `R-P5 [Declared]`: Raw best opposite price checked in R-P2 without filtering same-account orders (decision OQ-05).
+- Clarification `R-X1 [Declared]`: Environment execution convention applying skill intent when skills are missing (decision OQ-06).
+- Clarification `R-X2 [Declared]`: Missing policy files scaffolding during initial setup (decision OQ-07).
+- Clarification `R-F4 [Declared]`: Inclusive boundary condition for T0 tier threshold in R-F2 (decision OQ-08).
+
 ## [M7] 2026-11-02
 
 ### Added

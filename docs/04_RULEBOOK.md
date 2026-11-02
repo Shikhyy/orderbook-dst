@@ -80,6 +80,8 @@ A rejected order changes no state. A rejected order does not use a counter value
 A fill can make `free_cash` negative. This is allowed.
 A filled order (leaves 0) leaves the book.
 
+**R-M5 [Declared].** Explicit lock release on full fill (OQ-04). When a fill results in `leaves == 0` for an order (including a fully filled taker order), `new_lock` is 0. In R-M4 step 4, the engine explicitly moves `old_lock` from `locked_margin` to `free_cash`.
+
 ## 5. Cancel and replace
 
 **R-C1 [Common].** A CANCEL event for a resting order removes the order. It releases the full lock. It reports `CANCELLED(order_id, USER)`.
@@ -108,6 +110,8 @@ A rejected REPLACE changes no state.
 - The engine moves the difference between the old lock and the new lock between `free_cash` and `locked_margin`.
 - The engine reports `REPLACED(order_id)`.
 
+**R-P5 [Declared].** Replace crossing validation (OQ-05). In R-P2 check 4, the engine checks the raw best price on the opposite side of the book without filtering orders that belong to the same account. Self-trade prevention (R-M3) applies during order matching only, not during replace validation.
+
 Example: A resting BUY order has `qty 10`, `cum_qty 4`, `price 100,000,000`, `margin_bps 2,000`, lock 120,000,000.
 - REPLACE `new_qty 8`, same price: the order keeps priority. New leaves is 4. New lock is 80,000,000. The engine releases 40,000,000.
 - REPLACE `new_qty 4`: reject with `INVALID_REPLACE`.
@@ -132,6 +136,8 @@ Example: An order with `qty 10`, `price 100,000,000`, and rate 2,000 has lock 20
   - `fee = round_half_even(below * TAKER_PPM_T0, PPM) + round_half_even(above * TAKER_PPM_T1, PPM)`
 
 The engine rounds each part on its own. It does not round the sum.
+
+**R-F4 [Declared].** Fee threshold inclusive boundary (OQ-08). The tier threshold condition `volume_before + notional <= TIER_THRESHOLD` in R-F2 is inclusive. When `volume_before + notional == TIER_THRESHOLD`, the entire fill is evaluated under tier T0, and the split branch is not entered.
 
 **R-F3 [Declared].** The maker rebate for a fill is `round_half_even(notional * MAKER_REBATE_PPM, PPM)`. The maker receives the rebate in `free_cash`. The taker pays the fee from `free_cash`. The `fee_vault` receives the fee and pays the rebate. The `fee_vault` can be negative.
 
@@ -170,6 +176,8 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 
 **R-W6 [Declared].** The report order for PRICE_SHOCK is: `MARK_SET`, then for each account in ascending order the stage 1 cancels, then the `LIQUIDATED` report if it occurs.
 
+**R-W7 [Declared].** Account iteration order (OQ-03). The ascending account-id order in R-W1 and R-W6 is lexicographic (standard string sorting order). For example, account `"10"` precedes account `"2"`.
+
 ## 9. FIX session sequence
 
 **R-S1 [Common].** A FIX_MSG event carries `session`, `epoch`, `seq`, `poss_dup` (true or false), and `body`. The body is a NEW_LIMIT, CANCEL, or REPLACE event.
@@ -202,6 +210,10 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 
 **R-A5 [Declared].** If all legs succeed, the engine reports the reports of all legs in order, then `BASKET_COMMITTED`.
 
+**R-A6 [Declared].** Basket rollback leg indexing (OQ-01). `BASKET_ROLLED_BACK(leg_index)` uses 0-based indexing (Python list convention). The first leg has index 0.
+
+**R-A7 [Declared].** Basket IOC leg evaluation timing (OQ-02). For an `IOC` basket leg, the success check (`leaves == 0`) runs immediately after matching (R-M1 to R-M4) and before the R-B5 step 6 IOC remainder cancellation. If `leaves > 0` after matching, the leg fails and triggers rollback.
+
 ## 11. Report reference
 
 | Report | Fields |
@@ -219,3 +231,9 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 | `SESSION_RESET_DONE` | `session` |
 | `BASKET_COMMITTED` | none |
 | `BASKET_ROLLED_BACK` | `leg_index` |
+
+## 12. Development and operational conventions
+
+**R-X1 [Declared].** Environment and skill intent (OQ-06). When external development skills are not installed in the execution environment, their requirements are fulfilled by applying their underlying intent directly: write plans in ASD-STE100 prose, write tests first, and verify gate commands by hand.
+
+**R-X2 [Declared].** Missing policy files scaffolding (OQ-07). Development policy files referenced in user instructions but omitted from initial bundles are created during M0 scaffolding with contents matching repository specifications, confirmed before merge.
