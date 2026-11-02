@@ -12,6 +12,9 @@
 - Clarification `R-X2 [Declared]`: Missing policy files scaffolding during initial setup (decision OQ-07).
 - Clarification `R-F4 [Declared]`: Inclusive boundary condition for T0 tier threshold in R-F2 (decision OQ-08).
 
+### Corrected
+- Checkpoint provenance disclosure: Corrected historical descriptions characterizing Tier 2 trace checkpoints as "hand-calculated" in prior milestones. All 51 checkpoints across all 8 tasks are designated with `source: engine` because their values were generated via reference engine execution. Hand calculations are documented separately in audit worksheets.
+
 ## [M7] 2026-11-02
 
 ### Added
