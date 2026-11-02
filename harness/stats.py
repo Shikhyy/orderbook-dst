@@ -33,19 +33,23 @@ def compute_pass_pow_k(n: int, c: int, k: int) -> float:
     return num / denom
 
 
-def compute_mttif(trials: list[dict[str, Any]]) -> Optional[float]:
+def compute_mttif(items: list[Any]) -> Optional[float]:
     """Compute Mean Time To Invariant Failure (MTTIF):
-
-    Average event index of the first invariant violation over failed trials.
-    Returns None if no trial has a recorded first failure event index.
+    The mean event index of the first violation over failed seeds.
+    Returns None if no failed seeds exist.
     """
     indices: list[int] = []
-    for t in trials:
-        first_fail = t.get("first_failure")
-        if first_fail and isinstance(first_fail, dict) and "event_index" in first_fail:
-            idx = first_fail["event_index"]
-            if idx is not None and isinstance(idx, (int, float)):
-                indices.append(int(idx))
+    for item in items:
+        if isinstance(item, (int, float)):
+            indices.append(int(item))
+        elif isinstance(item, dict):
+            # Check for direct event_index or nested first_failure
+            if "event_index" in item and isinstance(item["event_index"], (int, float)):
+                indices.append(int(item["event_index"]))
+            elif "first_failure" in item and isinstance(item["first_failure"], dict):
+                ff = item["first_failure"]
+                if "event_index" in ff and isinstance(ff["event_index"], (int, float)):
+                    indices.append(int(ff["event_index"]))
     if not indices:
         return None
     return sum(indices) / len(indices)
