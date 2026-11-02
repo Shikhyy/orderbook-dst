@@ -5,4 +5,4 @@ target_files = ["exchange_core/handlers/basket.py"]
 rules = ["R-A1", "R-A2", "R-A3", "R-A4", "R-A5"]
 profile = "basket_heavy"
 timeout_s = 60
-difficulty_reason = "Atomic execution requires snapshot before leg 1 and clean rollback on any leg failure. Rollback must restore all accounts, volume, fee vault, counters, and book, discarding all intermediate reports."
+difficulty_reason = "AUTHOR TO WRITE"

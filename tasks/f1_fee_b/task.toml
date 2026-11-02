@@ -5,4 +5,4 @@ target_files = ["exchange_core/handlers/settle.py"]
 rules = ["R-M4", "R-F1", "R-F2", "R-F3", "R-U2"]
 profile = "fee_heavy"
 timeout_s = 60
-difficulty_reason = "The handler must transfer cash, update positions, compute taker fee with threshold split, pay maker rebate, update the fee vault, and update volume after the fee is computed."
+difficulty_reason = "AUTHOR TO WRITE"

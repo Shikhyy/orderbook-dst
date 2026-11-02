@@ -5,4 +5,4 @@ target_files = ["exchange_core/handlers/replace.py"]
 rules = ["R-P1", "R-P2", "R-P3", "R-P4", "R-U3"]
 profile = "replace_heavy"
 timeout_s = 60
-difficulty_reason = "The rule recomputes the lock with the rate stored in the order, adjusts free_cash and locked_margin atomically, and advances the priority counter on price changes and quantity increases."
+difficulty_reason = "AUTHOR TO WRITE"
