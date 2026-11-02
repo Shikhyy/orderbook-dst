@@ -16,6 +16,7 @@ HYPOTHESES.md
 EXPERT_REVIEW.md
 AI_USE.md
 conftest.py
+.pre-commit-config.yaml
 
 # Allowed docs
 docs/04_RULEBOOK.md

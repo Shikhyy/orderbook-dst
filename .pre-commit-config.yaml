@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-commit-msg
+        name: Check Conventional Commit Message
+        entry: .venv/bin/python tools/check_commit_msg.py
+        language: system
+        stages: [commit-msg]
+
+      - id: ruff-check
+        name: Ruff Lint Check
+        entry: .venv/bin/ruff check
+        language: system
+        types: [python]
+        stages: [pre-commit]
