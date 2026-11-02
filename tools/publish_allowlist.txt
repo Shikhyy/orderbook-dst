@@ -52,5 +52,9 @@ mutants/**/expect.toml
 tests/*.py
 tests/**/*.py
 
+# Evaluation Results (main and feedback runs)
+results/main/**
+results/feedback/**
+
 # CI
 .github/workflows/*.yml
