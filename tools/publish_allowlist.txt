@@ -13,6 +13,7 @@ models.example.toml
 README.md
 CHANGELOG.md
 HYPOTHESES.md
+EXPERT_REVIEW.md
 AI_USE.md
 conftest.py
 
