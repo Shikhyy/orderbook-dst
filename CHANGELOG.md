@@ -14,6 +14,7 @@
 
 ### Corrected
 - Checkpoint provenance disclosure: Corrected historical descriptions characterizing Tier 2 trace checkpoints as "hand-calculated" in prior milestones. All 51 checkpoints across all 8 tasks are designated with `source: engine` because their values were generated via reference engine execution. Hand calculations are documented separately in audit worksheets.
+- Audit worksheet methodology: Noted that current Tier 2 audit worksheets in scratch/ re-derive some checkpoint transitions starting from engine-provided pre-states rather than computing the entire trace strictly end-to-end from event 0 by hand; full independent blind verification from scratch without engine pre-states is currently pending. Also clarified that the total count of checkpoints across all 8 tasks is 59 (not 51), all of which carry `source: engine`.
 
 ## [M7] 2026-11-02
 
