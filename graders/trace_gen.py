@@ -184,8 +184,8 @@ def generate_trace(
             # Profile 3: fix_noisy (F3 target).
             # Trigger event: A FIX_MSG or SESSION_RESET event.
             is_trigger = True
-            if not clean_fix and rng.prob_pct(5) and fix_seq > 10:
-                # Reset event
+            if idx == 100:
+                # Reset event at event 100
                 event = Event(kind="SESSION_RESET", session="S1")
                 fix_seq = 1
                 fix_epoch += 1
@@ -293,23 +293,77 @@ def make_noisy_fix_trace(clean_trace: TraceResult, seed: int) -> list[Event]:
     Must deliver all clean messages eventually, with duplicates and gaps introduced.
     """
     rng = DetRng(seed ^ 0xABCDEF12)
-    clean_events = [e for e in clean_trace.events if e.kind == "FIX_MSG"]
-    if not clean_events:
-        return list(clean_trace.events)
-
     noisy: list[Event] = []
     pending_buffer: list[Event] = []
+    current_epoch = 0
 
-    for ev in clean_events:
+    for ev in clean_trace.events:
+        if ev.kind == "SESSION_RESET":
+            # Flush pending buffer from prior epoch
+            while pending_buffer:
+                buf_ev = pending_buffer.pop(0)
+                noisy.append(buf_ev)
+            # Send an unfillable gap before reset to populate buffer (Rule R-S8)
+            noisy.append(
+                Event(
+                    kind="FIX_MSG",
+                    session=ev.session,
+                    epoch=current_epoch,
+                    seq=9999,
+                    poss_dup=False,
+                    body=Event(
+                        kind="NEW_LIMIT",
+                        account="A1",
+                        side="BUY",
+                        price=BASE_MARK,
+                        qty=1,
+                    ),
+                )
+            )
+            noisy.append(ev)
+            current_epoch += 1
+            continue
+
+        if ev.kind != "FIX_MSG":
+            noisy.append(ev)
+            continue
+
         # Occasionally delay a message into a pending buffer (creating a gap)
         if rng.prob_pct(25) and len(pending_buffer) < 2:
             pending_buffer.append(ev)
             continue
 
-        # Deliver current message
-        noisy.append(ev)
+        # Occasionally send in-sequence message with poss_dup=True (Rule R-S4)
+        if rng.prob_pct(15):
+            ev_to_send = Event(
+                kind=ev.kind,
+                session=ev.session,
+                epoch=ev.epoch,
+                seq=ev.seq,
+                poss_dup=True,
+                body=ev.body,
+            )
+        else:
+            ev_to_send = ev
 
-        # Occasionally send a duplicate with poss_dup=True or False
+        # Deliver current message
+        noisy.append(ev_to_send)
+
+        # If earlier messages are pending in network, ev_to_send was buffered by the engine.
+        # Send a duplicate of the buffered message with body=None (Rule R-S5 / tests buffer overwrite)
+        if pending_buffer and rng.prob_pct(35):
+            noisy.append(
+                Event(
+                    kind=ev_to_send.kind,
+                    session=ev_to_send.session,
+                    epoch=ev_to_send.epoch,
+                    seq=ev_to_send.seq,
+                    poss_dup=True,
+                    body=None,
+                )
+            )
+
+        # Occasionally send a duplicate with poss_dup=True or False (seq < next_seq)
         if rng.prob_pct(20):
             dup = Event(
                 kind=ev.kind,

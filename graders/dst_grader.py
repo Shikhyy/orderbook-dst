@@ -19,12 +19,23 @@ except ImportError:
 from exchange_core.config import EngineConfig
 from exchange_core.engine import Engine
 from exchange_core.invariants import check_invariants
-from exchange_core.types import Event
+from exchange_core.types import BasketLeg, Event
 from graders.hidden_seeds import get_task_seeds
 from graders.sandbox import prepare_overlay
 from graders.trace_gen import generate_trace, make_noisy_fix_trace
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _event_from_dict(d: dict[str, Any]) -> Event:
+    d_copy = dict(d)
+    if isinstance(d_copy.get("body"), dict):
+        d_copy["body"] = _event_from_dict(d_copy["body"])
+    if isinstance(d_copy.get("legs"), (list, tuple)):
+        d_copy["legs"] = tuple(
+            BasketLeg(**leg) if isinstance(leg, dict) else leg for leg in d_copy["legs"]
+        )
+    return Event(**d_copy)
 
 
 @dataclass
@@ -143,7 +154,7 @@ def grade_tier2(
         chk_by_idx = {chk["event_index"]: chk for chk in checkpoints}
 
         for idx, ev_dict in enumerate(events_raw):
-            ev = Event(**ev_dict)
+            ev = _event_from_dict(ev_dict)
             try:
                 cand_reports = cand.process(ev)
             except Exception as e:
@@ -235,8 +246,9 @@ def grade_tier3(
     first_failure: Optional[FailureDetail] = None
     min_triggers = 9999
 
+    is_f3 = (meta.get("family") == "F3")
     for seed in seeds:
-        trace = generate_trace(seed=seed, profile=profile, num_events=200)
+        trace = generate_trace(seed=seed, profile=profile, num_events=200, clean_fix=is_f3)
         min_triggers = min(min_triggers, trace.trigger_count)
 
         ref_engine = Engine(cfg, trace.accounts, trace.mark_price)
