@@ -55,6 +55,13 @@ def generate_trace(
 
     rng = DetRng(seed)
     accounts = _build_accounts()
+    if profile == "shock_heavy":
+        accounts = {
+            "A1": 1_000_000_000,
+            "A2": 1_000_000_000,
+            "A3": 1_000_000_000,
+            "LIQ": 50_000_000_000,
+        }
     trading_accs = ["A1", "A2", "A3"]
 
     events: list[Event] = []
@@ -221,8 +228,11 @@ def generate_trace(
             action = rng.next_int(0, 9)
             if action < 3:
                 # 30% PRICE_SHOCK events (trigger)
-                shift = rng.choice([-10, -5, 5, 10, 15]) * TICK * 100
-                current_mark = max(10_000_000, current_mark + shift)
+                if rng.prob_pct(25):
+                    current_mark = rng.choice([20_000_000, 500_000_000, 600_000_000])
+                else:
+                    shift = rng.choice([-70, -50, -30, 30, 50, 70]) * TICK * 100
+                    current_mark = max(10_000_000, current_mark + shift)
                 event = Event(kind="PRICE_SHOCK", mark_price=current_mark)
                 is_trigger = True
             else:
@@ -230,8 +240,8 @@ def generate_trace(
                 side = rng.choice(["BUY", "SELL"])
                 acc = rng.choice(trading_accs)
                 # Cross spread often to ensure position buildup
-                price = current_mark + (10 * TICK if side == "BUY" else -10 * TICK)
-                qty = rng.next_int(1, 6)
+                price = current_mark + (5 * TICK if side == "BUY" else -5 * TICK)
+                qty = rng.next_int(2, 6)
                 event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
                 active_order_ids.append(next_sim_order_id)
                 next_sim_order_id += 1

@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+## [M7] 2026-11-02
+
+### Added
+- Tasks `f4_waterfall_b` (Family F4, Liquidation waterfall and margin shock) and `f5_basket_b` (Family F5, Multi-leg basket all-or-nothing execution):
+  - `tasks/f4_waterfall_b`: `task.toml`, `instruction.md`, 9 public tests in `public_tests/`, and 35-event Tier 2 trace with 8 checkpoints in `tier2_trace.json`.
+  - `tasks/f5_basket_b`: `task.toml`, `instruction.md`, 9 public tests in `public_tests/`, and 35-event Tier 2 trace with 8 checkpoints in `tier2_trace.json`.
+  - Reference solutions in `reference/f4_waterfall_b/shock.py` and `reference/f5_basket_b/basket.py`.
+  - Mutants in `mutants/f4_waterfall_b/` (`m_liq_account_not_updated`, `m_liquidate_first`, `m_locks_not_released_to_cash`, `m_no_recheck_after_cancel`, `m_wrong_account_order`) with `expect.toml`.
+  - Mutants in `mutants/f5_basket_b/` (`m_forgot_counter_restore`, `m_forgot_volume_restore`, `m_partial_commit`, `m_reports_not_discarded`, `m_restore_book_only`) with `expect.toml`.
+  - Alternative reference solutions in `reference_alt/f4_waterfall_b/shock.py` and `reference_alt/f5_basket_b/basket.py`.
+- Statistics and analysis module `harness/stats.py`:
+  - `compute_pass_at_k`: unbiased estimator for pass@k given n samples and c correct.
+  - `compute_pass_pow_k`: pass^k reliability estimator (c/n)^k.
+  - `compute_mttif`: mean trials to first invariant failure.
+  - `bootstrap_ci`: hierarchical cluster bootstrap (resampling tasks then seeds) for 95% confidence intervals with 10,000 resamples.
+  - `mcnemar_exact_pvalue`: two-sided exact McNemar test for paired binary comparison.
+  - `paired_comparison_a_vs_b`: pairwise statistical comparison report.
+- Report generation CLI `harness/report.py`:
+  - Generates Markdown tables and summary JSON from evaluation run results.
+  - Formats pass@k, pass^k, and invariant failure rates across tasks and models.
+- Unit test suite `tests/test_stats.py`:
+  - 7 unit tests verifying hand-calculated pass@k, pass^k, McNemar exact p-values, bootstrap repeatability, MTTIF, and report generation pipeline (135 total tests passing).
+- Gate G3: `make validate` passes all checks V1 to V8 across all 8 tasks (`f1_fee_a`, `f1_fee_b`, `f2_replace_a`, `f2_replace_b`, `f3_fix_a`, `f3_fix_b`, `f4_waterfall_b`, `f5_basket_b`).
+- Scope freeze in effect: no additional tasks, rules, or families to be added.
+
 ## [M6] 2026-11-02
 
 ### Added

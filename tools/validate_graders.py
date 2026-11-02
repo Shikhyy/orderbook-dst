@@ -82,6 +82,18 @@ def get_hardcoded_files(task_id: str, meta: dict[str, Any]) -> dict[str, str]:
                 "def handle_fix(engine, event):\n"
                 "    return []\n"
             )
+        elif task_id == "f4_waterfall_b":
+            files[rel_path] = (
+                "from exchange_core.types import Report\n"
+                "def handle_shock(engine, event):\n"
+                "    return [Report.mark_set(event.mark_price)]\n"
+            )
+        elif task_id == "f5_basket_b":
+            files[rel_path] = (
+                "from exchange_core.types import Report\n"
+                "def handle_basket(engine, event):\n"
+                "    return [Report.basket_committed()]\n"
+            )
         else:
             files[rel_path] = "def dummy(*args, **kwargs):\n    return []\n"
     return files
