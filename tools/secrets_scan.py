@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Patterns that indicate a secret or private data.
 SECRET_PATTERNS = [
-    re.compile(r"(?i)(api[_-]?key|secret|password|token)\s*=\s*['\"][^'\"]{8,}['\"]"),
+    re.compile(r"(?i)['\"]?(api[_-]?key|secret|password|token)['\"]?\s*[:=]\s*['\"][^'\"]{8,}['\"]"),
     re.compile(r"sk-[A-Za-z0-9]{20,}"),          # OpenAI style key
     re.compile(r"sk-ant-[A-Za-z0-9\-]{20,}"),    # Anthropic style key
     re.compile(r"-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----"),
