@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+## [M6] 2026-11-02
+
+### Added
+- Tasks `f1_fee_a` and `f1_fee_b` (Family F1, Volume-tiered fee and rebate):
+  - `tasks/f1_fee_a`: `task.toml`, `instruction.md`, 8 public tests, 40-event Tier 2 trace with 6 checkpoints.
+  - `tasks/f1_fee_b`: `task.toml`, `instruction.md`, 9 public tests, 40-event Tier 2 trace with 6 checkpoints.
+  - Reference solutions in `reference/f1_fee_a/fee_rule.py` and `reference/f1_fee_b/settle.py`.
+  - Mutants in `mutants/f1_fee_a/` (`m_float_math`, `m_off_by_one_boundary`, `m_round_half_up`, `m_whole_fill_new_rate`) with `expect.toml`.
+  - Mutants in `mutants/f1_fee_b/` (`m_rebate_not_paid_from_vault`, `m_vault_not_updated`, `m_volume_before_fee`, `m_whole_fill_new_rate`) with `expect.toml`.
+- Tasks `f3_fix_a` and `f3_fix_b` (Family F3, FIX session sequencing and replay):
+  - `tasks/f3_fix_a`: `task.toml`, `instruction.md`, 9 public tests, 35-event Tier 2 trace with 8 checkpoints.
+  - `tasks/f3_fix_b`: `task.toml`, `instruction.md`, 9 public tests, 35-event Tier 2 trace with 8 checkpoints.
+  - Reference solutions in `reference/f3_fix_a/session_rule.py` and `reference/f3_fix_b/fix.py`.
+  - Mutants in `mutants/f3_fix_a/` (`m_buffer_overwrite`, `m_no_drain`, `m_process_out_of_order`, `m_skip_possdup`) with `expect.toml`.
+  - Mutants in `mutants/f3_fix_b/` (`m_double_dispatch_on_drain`, `m_process_out_of_order`, `m_reset_keeps_buffer`, `m_skip_possdup`) with `expect.toml`.
+- Second independent implementation in `reference_alt/`:
+  - Clean-room implementation authored in isolated worktree with reference solutions removed.
+  - All rules in `reference_alt/rules/` (`fee_rule.py`, `replace_rule.py`, `session_rule.py`, `waterfall_rule.py`).
+  - All handlers in `reference_alt/handlers/` (`new_limit.py`, `cancel.py`, `replace.py`, `margin_rate.py`, `shock.py`, `fix.py`, `basket.py`, `settle.py`).
+  - Task-specific implementations in `reference_alt/` for all 6 tasks (`f1_fee_a`, `f1_fee_b`, `f2_replace_a`, `f2_replace_b`, `f3_fix_a`, `f3_fix_b`).
+  - Check V2 (Alt Reference Check) verified and passing with score 1.00 across all 6 tasks.
+- Differential test suite:
+  - `tests/test_differential.py` verifying exact report stream and state hash equivalence between reference and alternative implementations across all 5 trace profiles.
+- Gate: `make validate` passes all checks V1 to V8 across all 6 tasks (`f1_fee_a`, `f1_fee_b`, `f2_replace_a`, `f2_replace_b`, `f3_fix_a`, `f3_fix_b`).
+
+
 ## [M5] 2026-11-01
 
 ### Added

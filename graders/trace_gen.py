@@ -350,7 +350,7 @@ def make_noisy_fix_trace(clean_trace: TraceResult, seed: int) -> list[Event]:
         noisy.append(ev_to_send)
 
         # If earlier messages are pending in network, ev_to_send was buffered by the engine.
-        # Send a duplicate of the buffered message with body=None (Rule R-S5 / tests buffer overwrite)
+        # Send a duplicate of the buffered message with body=None (Rule R-S5 / buffer overwrite)
         if pending_buffer and rng.prob_pct(35):
             noisy.append(
                 Event(

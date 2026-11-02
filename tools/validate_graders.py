@@ -60,7 +60,9 @@ def get_hardcoded_files(task_id: str, meta: dict[str, Any]) -> dict[str, str]:
                 "from exchange_core.types import ReplaceDecision\n"
                 "def decide_replace(order, new_price, new_qty, cfg):\n"
                 "    leaves = new_qty - order.cum_qty\n"
-                "    return ReplaceDecision(ok=True, reason='', keep_priority=True, new_leaves=leaves)\n"
+                "    return ReplaceDecision(\n"
+                "        ok=True, reason='', keep_priority=True, new_leaves=leaves\n"
+                "    )\n"
             )
         elif task_id == "f2_replace_b":
             files[rel_path] = (

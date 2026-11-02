@@ -15,7 +15,9 @@ def compute_taker_fee(volume_before: int, notional: int, cfg: EngineConfig) -> i
         return _round_half_up(notional * cfg.taker_ppm_t0, cfg.ppm)
     below = cfg.tier_threshold - volume_before
     above = notional - below
-    return _round_half_up(below * cfg.taker_ppm_t0, cfg.ppm) + _round_half_up(above * cfg.taker_ppm_t1, cfg.ppm)
+    fee0 = _round_half_up(below * cfg.taker_ppm_t0, cfg.ppm)
+    fee1 = _round_half_up(above * cfg.taker_ppm_t1, cfg.ppm)
+    return fee0 + fee1
 
 
 def compute_maker_rebate(notional: int, cfg: EngineConfig) -> int:
