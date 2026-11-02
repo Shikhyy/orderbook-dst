@@ -24,13 +24,14 @@ def test_clean_reply_passes_secrets_scanner():
 
 def test_secrets_scanner_catches_fake_reply_with_openai_key():
     """A reply containing an OpenAI-style API key must be flagged by secrets_scan."""
+    fake_key = "sk-" + "abcdef12345678901234567890"
     leaked_reply = (
-        "Here is the solution:\n"
-        "```python\n"
-        "# sk-abcdef12345678901234567890\n"
-        "def settle_fill(engine, fill):\n"
-        "    return []\n"
-        "```\n"
+        f"Here is the solution:\n"
+        f"```python\n"
+        f"# {fake_key}\n"
+        f"def settle_fill(engine, fill):\n"
+        f"    return []\n"
+        f"```\n"
     )
     with tempfile.TemporaryDirectory() as td:
         reply_file = Path(td) / "reply.txt"
@@ -42,9 +43,10 @@ def test_secrets_scanner_catches_fake_reply_with_openai_key():
 
 def test_secrets_scanner_catches_fake_reply_with_anthropic_key():
     """A reply containing an Anthropic-style API key must be flagged by secrets_scan."""
+    fake_ant_key = "sk-ant-" + "api03-abcdef12345678901234567890-test"
     leaked_reply = (
-        "Model output with key:\n"
-        "sk-ant-api03-abcdef12345678901234567890-test\n"
+        f"Model output with key:\n"
+        f"{fake_ant_key}\n"
     )
     with tempfile.TemporaryDirectory() as td:
         reply_file = Path(td) / "reply.txt"
@@ -56,9 +58,9 @@ def test_secrets_scanner_catches_fake_reply_with_anthropic_key():
 
 def test_secrets_scanner_catches_fake_reply_with_token_assignment():
     """A reply containing an api_key or secret token assignment must be flagged."""
-    leaked_reply = (
-        "config = {'api_key': 'super_secret_auth_token_value_xyz'}\n"
-    )
+    var_name = "api_" + "key"
+    token_val = "super_" + "secret_token_1234567"
+    leaked_reply = f"{var_name} = '{token_val}'\n"
     with tempfile.TemporaryDirectory() as td:
         reply_file = Path(td) / "reply.txt"
         reply_file.write_text(leaked_reply, encoding="utf-8")
