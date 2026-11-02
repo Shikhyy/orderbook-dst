@@ -1,0 +1,8 @@
+id = "f4_waterfall_b"
+family = "F4"
+variant = "B"
+target_files = ["exchange_core/handlers/shock.py"]
+rules = ["R-W1", "R-W2", "R-W3", "R-W4", "R-W5", "R-W6"]
+profile = "shock_heavy"
+timeout_s = 60
+difficulty_reason = "The waterfall has two stages. Stage 1 must cancel orders in priority order and re-test before stage 2 liquidates. The LIQ account is excluded from the breach test and receives the opposite position."

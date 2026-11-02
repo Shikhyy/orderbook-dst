@@ -264,6 +264,10 @@ def grade_tier3(
 
         seed_ok = True
         for idx, event in enumerate(trace.events):
+            hash_before_basket = None
+            if meta.get("family") == "F5" and event.kind == "BASKET":
+                hash_before_basket = cand_engine.state_hash()
+
             ref_reps = ref_engine.process(event)
             try:
                 cand_reps = cand_engine.process(event)
@@ -275,6 +279,20 @@ def grade_tier3(
                         plain_name="Engine crash", message=str(e), diff={},
                     )
                 break
+
+            # F5 rollback law check: state hash after rollback must equal state hash before
+            is_rolled_back = any(r.kind == "BASKET_ROLLED_BACK" for r in cand_reps)
+            if hash_before_basket is not None and is_rolled_back:
+                if cand_engine.state_hash() != hash_before_basket:
+                    seed_ok = False
+                    if not first_failure:
+                        first_failure = FailureDetail(
+                            seed=seed, event_index=idx, invariant="I1",
+                            plain_name="Rollback restores complete state",
+                            message=f"state hash after rolled-back basket at event {idx} differs",
+                            diff={"before": hash_before_basket, "after": cand_engine.state_hash()},
+                        )
+                    break
 
             # Differential check D1: same list of reports
             if not _reports_equal(ref_reps, cand_reps):
