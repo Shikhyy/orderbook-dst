@@ -44,6 +44,8 @@ reference/*.py
 reference/**/*.py
 reference_alt/*.py
 reference_alt/**/*.py
+reference_alt_v2/*.py
+reference_alt_v2/**/*.py
 mutants/*.py
 mutants/**/*.py
 mutants/**/expect.toml
