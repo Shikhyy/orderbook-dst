@@ -670,6 +670,82 @@
       "poss_dup": false,
       "body": null,
       "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 5,
+      "flag": "NONE",
+      "mark_price": 0,
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 101000000,
+      "qty": 5,
+      "flag": "NONE",
+      "mark_price": 0,
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "REPLACE",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "mark_price": 0,
+      "order_id": 14,
+      "new_price": 101000000,
+      "new_qty": 4,
+      "bps": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 101000000,
+      "qty": 4,
+      "flag": "NONE",
+      "mark_price": 0,
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
     }
   ],
   "checkpoints": [
@@ -814,6 +890,28 @@
           "reason": "REPLACE_WOULD_CROSS"
         }
       ]
+    },
+    {
+      "event_index": 38,
+      "name": "chk_buy_price_change_matches_behind",
+      "expected_reports": [
+        {
+          "kind": "FILL",
+          "buy_order_id": 15,
+          "qty": 4,
+          "price": 101000000
+        }
+      ],
+      "expected_orders": {
+        "15": {
+          "leaves": 1,
+          "cum_qty": 4
+        },
+        "14": {
+          "leaves": 4,
+          "cum_qty": 0
+        }
+      }
     }
   ]
 }

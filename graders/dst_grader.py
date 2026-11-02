@@ -165,9 +165,12 @@ def grade_tier2(
                 chk_ok = True
 
                 if "expected_reports" in chk:
+                    c_idx = 0
                     for exp_r in chk["expected_reports"]:
                         matched = False
-                        for cr in cand_reports:
+                        while c_idx < len(cand_reports):
+                            cr = cand_reports[c_idx]
+                            c_idx += 1
                             if cr.kind == exp_r.get("kind"):
                                 fields_match = True
                                 for k, v in exp_r.items():

@@ -71,6 +71,7 @@ def generate_trace(
     # Track order IDs placed for cancel and replace generation
     active_order_ids: list[int] = []
     order_prices: dict[int, int] = {}
+    order_sides: dict[int, str] = {}
     next_sim_order_id = 1
     current_mark = BASE_MARK
     fix_seq = 1
@@ -155,11 +156,13 @@ def generate_trace(
                     new_price = cur_price
                     new_qty = rng.next_int(8, 16)
                 else:
-                    # Price change (tests priority loss)
-                    new_price = BASE_MARK + rng.next_int(-5, 5) * TICK
-                    if new_price <= 0:
-                        new_price = BASE_MARK
-                    new_qty = rng.next_int(2, 10)
+                    # Price change without crossing (tests priority loss on passive side)
+                    side = order_sides.get(oid, "BUY")
+                    if side == "BUY":
+                        new_price = BASE_MARK - rng.next_int(0, 3) * TICK
+                    else:
+                        new_price = BASE_MARK + rng.next_int(1, 4) * TICK
+                    new_qty = rng.next_int(1, 4)
 
                 if rng.prob_pct(5):
                     new_qty = 100_000
@@ -172,16 +175,20 @@ def generate_trace(
                 bps = rng.choice([1500, 2000, 2500, 3000])
                 event = Event(kind="SET_MARGIN_RATE", bps=bps)
             elif action < 8:
-                # New orders
+                # New orders: 60% passive resting, 40% sweeping
                 side = rng.choice(["BUY", "SELL"])
                 acc = rng.choice(trading_accs)
-                price = BASE_MARK + rng.next_int(-5, 5) * TICK
-                if price <= 0:
-                    price = BASE_MARK
-                qty = rng.next_int(2, 8)
+                if rng.prob_pct(40):
+                    price = BASE_MARK + 5 * TICK if side == "BUY" else BASE_MARK - 5 * TICK
+                    qty = rng.next_int(2, 6)
+                else:
+                    shift = rng.next_int(0, 3) if side == "BUY" else rng.next_int(1, 4)
+                    price = BASE_MARK - shift * TICK if side == "BUY" else BASE_MARK + shift * TICK
+                    qty = rng.next_int(4, 10)
                 event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
                 active_order_ids.append(next_sim_order_id)
                 order_prices[next_sim_order_id] = price
+                order_sides[next_sim_order_id] = side
                 next_sim_order_id += 1
             else:
                 oid = rng.choice(active_order_ids) if active_order_ids else 1
@@ -236,12 +243,17 @@ def generate_trace(
                 event = Event(kind="PRICE_SHOCK", mark_price=current_mark)
                 is_trigger = True
             else:
-                # 70% trading orders to build short/long positions and orders
+                # 70% trading orders: mix of passive resting orders and crossing fills
                 side = rng.choice(["BUY", "SELL"])
                 acc = rng.choice(trading_accs)
-                # Cross spread often to ensure position buildup
-                price = current_mark + (5 * TICK if side == "BUY" else -5 * TICK)
-                qty = rng.next_int(2, 6)
+                if rng.prob_pct(45):
+                    # Passive resting limit order: locks margin so stage 1 cancels have locks to release
+                    price = current_mark - 5 * TICK if side == "BUY" else current_mark + 5 * TICK
+                    qty = rng.next_int(3, 8)
+                else:
+                    # Crossing order to build position
+                    price = current_mark + (5 * TICK if side == "BUY" else -5 * TICK)
+                    qty = rng.next_int(3, 8)
                 event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
                 active_order_ids.append(next_sim_order_id)
                 next_sim_order_id += 1
