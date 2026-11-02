@@ -1,0 +1,40 @@
+"""mutants/f3_fix_a/m_skip_possdup/session_rule.py
+Mutant that discards all poss_dup messages even when in sequence.
+"""
+from exchange_core.state import SessionState
+from exchange_core.types import FixMsg, Report, SessionOutcome
+
+
+def on_message(session: SessionState, msg: FixMsg) -> SessionOutcome:
+    to_process: list[FixMsg] = []
+    reports: list[Report] = []
+
+    if msg.epoch != session.epoch:
+        reports.append(Report.discarded("EPOCH"))
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    # Mutant bug: discards any poss_dup message regardless of sequence number
+    if msg.poss_dup:
+        reports.append(Report.discarded("DUPLICATE"))
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    if msg.seq < session.next_seq:
+        reports.append(Report.discarded("SEQ_TOO_LOW"))
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    if msg.seq == session.next_seq:
+        to_process.append(msg)
+        session.next_seq += 1
+        while session.next_seq in session.buffer:
+            buffered_msg = session.buffer.pop(session.next_seq)
+            to_process.append(buffered_msg)
+            session.next_seq += 1
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    if msg.seq in session.buffer:
+        reports.append(Report.discarded("DUPLICATE_BUFFERED"))
+    else:
+        session.buffer[msg.seq] = msg
+        reports.append(Report.buffered())
+
+    return SessionOutcome(to_process=to_process, reports=reports)

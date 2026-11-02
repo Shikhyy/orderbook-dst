@@ -41,20 +41,49 @@ def get_stub_files(meta: dict[str, Any]) -> dict[str, str]:
 def get_hardcoded_files(task_id: str, meta: dict[str, Any]) -> dict[str, str]:
     files = {}
     for rel_path in meta.get("target_files", []):
-        if "rules/" in rel_path:
-            # Hard-coded pure rule returning static ReplaceDecision
-            files[rel_path] = """from exchange_core.types import ReplaceDecision
-def decide_replace(order, new_price, new_qty, cfg):
-    leaves = new_qty - order.cum_qty
-    return ReplaceDecision(ok=True, reason="", keep_priority=True, new_leaves=leaves)
-"""
+        if task_id == "f1_fee_a":
+            files[rel_path] = (
+                "def compute_taker_fee(volume_before, notional, cfg):\n"
+                "    return 5500000\n"
+                "def compute_maker_rebate(notional, cfg):\n"
+                "    return 500000\n"
+            )
+        elif task_id == "f1_fee_b":
+            files[rel_path] = (
+                "from exchange_core.types import Report\n"
+                "def settle_fill(engine, fill):\n"
+                "    return [Report.fill(fill.buy_order_id, fill.sell_order_id, "
+                "fill.price, fill.qty, fill.taker_order_id)]\n"
+            )
+        elif task_id == "f2_replace_a":
+            files[rel_path] = (
+                "from exchange_core.types import ReplaceDecision\n"
+                "def decide_replace(order, new_price, new_qty, cfg):\n"
+                "    leaves = new_qty - order.cum_qty\n"
+                "    return ReplaceDecision(\n"
+                "        ok=True, reason='', keep_priority=True, new_leaves=leaves\n"
+                "    )\n"
+            )
+        elif task_id == "f2_replace_b":
+            files[rel_path] = (
+                "from exchange_core.types import Report\n"
+                "def handle_replace(engine, event):\n"
+                "    return [Report.replaced(event.order_id)]\n"
+            )
+        elif task_id == "f3_fix_a":
+            files[rel_path] = (
+                "from exchange_core.types import SessionOutcome\n"
+                "def on_message(session, msg):\n"
+                "    return SessionOutcome(to_process=[msg], reports=[])\n"
+            )
+        elif task_id == "f3_fix_b":
+            files[rel_path] = (
+                "from exchange_core.types import Report\n"
+                "def handle_fix(engine, event):\n"
+                "    return []\n"
+            )
         else:
-            # Hard-coded handler returning static Report
-            files[rel_path] = '''from exchange_core.types import Report
-def handle_replace(engine, event):
-    # Hardcoded dummy report
-    return [Report.replaced(event.order_id)]
-'''
+            files[rel_path] = "def dummy(*args, **kwargs):\n    return []\n"
     return files
 
 
