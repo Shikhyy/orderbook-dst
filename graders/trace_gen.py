@@ -247,7 +247,8 @@ def generate_trace(
                 side = rng.choice(["BUY", "SELL"])
                 acc = rng.choice(trading_accs)
                 if rng.prob_pct(45):
-                    # Passive resting limit order: locks margin so stage 1 cancels have locks to release
+                    # Passive resting limit order: locks margin so stage 1 cancels
+                    # have locks to release
                     price = current_mark - 5 * TICK if side == "BUY" else current_mark + 5 * TICK
                     qty = rng.next_int(3, 8)
                 else:

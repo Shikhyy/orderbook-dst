@@ -3,8 +3,9 @@ Verify that evaluation result files preserve raw replies and that
 tools/secrets_scan.py detects keys or tokens if they appear in replies.
 See Milestone M8-prep item 12.
 """
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
 from tools.secrets_scan import scan_file
 
 

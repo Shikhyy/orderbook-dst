@@ -2,7 +2,9 @@
 Tests for Docker grading sandbox security and network isolation.
 """
 from pathlib import Path
+
 import pytest
+
 from graders.sandbox import is_docker_available, run_sandboxed_docker
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -31,4 +33,5 @@ def test_docker_network_socket_fails():
     )
     # The socket connection must fail with non-zero exit code
     assert ret != 0
-    assert "Network is unreachable" in stderr or "Connection refused" in stderr or "OSError" in stderr
+    err_msg = stderr.lower()
+    assert "network is unreachable" in err_msg or "refused" in err_msg or "oserror" in err_msg

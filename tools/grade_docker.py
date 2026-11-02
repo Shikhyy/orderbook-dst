@@ -19,7 +19,9 @@ def main() -> int:
     print("=" * 80)
 
     if not is_docker_available():
-        print("SKIP: Docker is not installed or the Docker daemon is not running in this environment.")
+        print(
+            "SKIP: Docker is not installed or the Docker daemon is not running in this environment."
+        )
         print("Please start the Docker daemon to enable containerized grading.")
         return 0
 
