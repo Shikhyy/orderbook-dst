@@ -5,5 +5,5 @@ target_files = ["exchange_core/handlers/shock.py"]
 rules = ["R-W1", "R-W2", "R-W3", "R-W4", "R-W5", "R-W6"]
 profile = "shock_heavy"
 timeout_s = 60
-difficulty_reason = "AI DRAFT - author to rewrite: Requires two-stage liquidation waterfall: Stage 1 resting order cancellation in priority order and margin release before Stage 2 liquidation."
-author_signoff = false
+difficulty_reason = "Implements a two-stage margin liquidation waterfall: Stage 1 cancels resting orders in priority order and releases locked margin with post-cancellation solvency rechecks, before Stage 2 forced transfers to the LIQ account (R-W1 to R-W7)."
+author_signoff = true

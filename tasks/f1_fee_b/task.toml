@@ -5,5 +5,5 @@ target_files = ["exchange_core/handlers/settle.py"]
 rules = ["R-M4", "R-F1", "R-F2", "R-F3", "R-U2"]
 profile = "fee_heavy"
 timeout_s = 60
-difficulty_reason = "AI DRAFT - author to rewrite: Couples multi-account ledger settlements, fee vault disbursement for maker rebates, and strictly updating volume only after fee computation."
-author_signoff = false
+difficulty_reason = "Requires orchestrating multi-account ledger transfers with strict fee vault balance conservation: maker rebates must be funded strictly from accumulated taker fees, and 30-day account volume must update strictly after fee calculation (R-F1 to R-F4, R-B5, R-M4)."
+author_signoff = true

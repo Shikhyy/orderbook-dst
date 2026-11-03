@@ -1,0 +1,131 @@
+{
+  "task_id": "f2_replace_b",
+  "t1": 0.8,
+  "t2": 0.375,
+  "t3": 0.4,
+  "score": 0.4725,
+  "passed": false,
+  "first_failure": {
+    "seed": 4000,
+    "event_index": 194,
+    "invariant": "D1",
+    "plain_name": "Report mismatch",
+    "message": "event 194 report differs from reference",
+    "diff": {
+      "expected": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 60,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 21,
+          "reason": "STP",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "FILL",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 60,
+          "sell_order_id": 53,
+          "price": 100020000,
+          "qty": 1,
+          "taker_order_id": 60,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "FILL",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 60,
+          "sell_order_id": 28,
+          "price": 100020000,
+          "qty": 2,
+          "taker_order_id": 60,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ],
+      "actual": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 60,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 21,
+          "reason": "STP",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "FILL",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 60,
+          "sell_order_id": 28,
+          "price": 100020000,
+          "qty": 3,
+          "taker_order_id": 60,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 64
+  },
+  "error": null,
+  "public_test_output": ".FF.......                                                               [100%]\n=================================== FAILURES ===================================\n________________________ test_2_increase_loses_priority ________________________\n\nengine = <exchange_core.engine.Engine object at 0x10bc10410>\n\n    def test_2_increase_loses_priority(engine: Engine) -> None:\n        engine.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=100_000_000, qty=10))\n        prio_before = engine.state.orders[1].prio_seq\n        ev = Event(kind=\"REPLACE\", order_id=1, new_price=100_000_000, new_qty=12)\n        reps = handle_replace(engine, ev)\n        assert [r.kind for r in reps] == [\"REPLACED\"]\n>       assert engine.state.orders[1].prio_seq > prio_before\nE       AssertionError: assert 1 > 1\nE        +  where 1 = Order(order_id=1, account='A1', side='BUY', price=100000000, qty=12, cum_qty=0, prio_seq=1, margin_bps=2000, lock=240000000, flag='NONE').prio_seq\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_5ka5c9_s/tests/test_f2_replace_b.py:45: AssertionError\n______________________ test_3_price_change_loses_priority ______________________\n\nengine = <exchange_core.engine.Engine object at 0x10bac6fd0>\n\n    def test_3_price_change_loses_priority(engine: Engine) -> None:\n        engine.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=100_000_000, qty=10))\n        prio_before = engine.state.orders[1].prio_seq\n        ev = Event(kind=\"REPLACE\", order_id=1, new_price=99_000_000, new_qty=8)\n        reps = handle_replace(engine, ev)\n        assert [r.kind for r in reps] == [\"REPLACED\"]\n>       assert engine.state.orders[1].prio_seq > prio_before\nE       AssertionError: assert 1 > 1\nE        +  where 1 = Order(order_id=1, account='A1', side='BUY', price=99000000, qty=8, cum_qty=0, prio_seq=1, margin_bps=2000, lock=158400000, flag='NONE').prio_seq\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_5ka5c9_s/tests/test_f2_replace_b.py:55: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_5ka5c9_s/tests/test_f2_replace_b.py::test_2_increase_loses_priority\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_5ka5c9_s/tests/test_f2_replace_b.py::test_3_price_change_loses_priority\n2 failed, 8 passed in 0.15s"
+}

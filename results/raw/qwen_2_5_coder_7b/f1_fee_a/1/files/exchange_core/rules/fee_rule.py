@@ -1,0 +1,20 @@
+"""mutants/f1_fee_a/m_float_math/fee_rule.py
+Mutant using float math without integer round-half-even.
+"""
+from exchange_core.config import EngineConfig
+
+
+def compute_taker_fee(volume_before: int, notional: int, cfg: EngineConfig) -> int:
+    rate_t0 = cfg.taker_ppm_t0 / float(cfg.ppm)
+    rate_t1 = cfg.taker_ppm_t1 / float(cfg.ppm)
+    if volume_before >= cfg.tier_threshold:
+        return int(notional * rate_t1)
+    if volume_before + notional <= cfg.tier_threshold:
+        return int(notional * rate_t0)
+    below = float(cfg.tier_threshold - volume_before)
+    above = float(notional) - below
+    return int(below * rate_t0) + int(above * rate_t1)
+
+
+def compute_maker_rebate(notional: int, cfg: EngineConfig) -> int:
+    return int(notional * (cfg.maker_rebate_ppm / float(cfg.ppm)))

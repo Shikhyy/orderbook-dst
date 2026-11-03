@@ -1,0 +1,21 @@
+{
+  "task_id": "f3_fix_a",
+  "t1": 0.8888888888888888,
+  "t2": 0.875,
+  "t3": 0.0,
+  "score": 0.4403,
+  "passed": false,
+  "first_failure": {
+    "seed": 5000,
+    "event_index": 200,
+    "invariant": "I4",
+    "plain_name": "Replay gives the same state",
+    "message": "noisy trace produced different state hash",
+    "diff": {}
+  },
+  "coverage": {
+    "min_trigger_events": 191
+  },
+  "error": null,
+  "public_test_output": "......F..                                                                [100%]\n=================================== FAILURES ===================================\n___________________________ test_duplicate_in_buffer ___________________________\n\n    def test_duplicate_in_buffer():\n        session = SessionState(epoch=1, next_seq=1, buffer={})\n        msg3_a = Event(kind=\"FIX_MSG\", session=\"S1\", epoch=1, seq=3, poss_dup=False)\n        out_a = on_message(session, msg3_a)\n        assert out_a.reports == [Report.buffered()]\n    \n        msg3_b = Event(kind=\"FIX_MSG\", session=\"S1\", epoch=1, seq=3, poss_dup=True)\n        out_b = on_message(session, msg3_b)\n>       assert out_b.reports == [Report.discarded(\"DUPLICATE_BUFFERED\")]\nE       AssertionError: assert [Report(kind=... leg_index=0)] == [Report(kind=... leg_index=0)]\nE         \nE         At index 0 diff: Report(kind='BUFFERED', order_id=0, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=0) != Report(kind='DISCARDED', order_id=0, reason='DUPLICATE_BUFFERED', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=0)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f3_fix_a_ogb6whf0/tests/test_f3_fix_a.py:91: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f3_fix_a_ogb6whf0/tests/test_f3_fix_a.py::test_duplicate_in_buffer\n1 failed, 8 passed in 0.13s"
+}

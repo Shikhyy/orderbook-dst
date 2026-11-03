@@ -1,0 +1,14 @@
+{
+  "task_id": "f3_fix_a",
+  "t1": 1.0,
+  "t2": 1.0,
+  "t3": 1.0,
+  "score": 1.0,
+  "passed": true,
+  "first_failure": null,
+  "coverage": {
+    "min_trigger_events": 191
+  },
+  "error": null,
+  "public_test_output": ".........                                                                [100%]\n9 passed in 0.14s"
+}

@@ -15,6 +15,8 @@ CHANGELOG.md
 HYPOTHESES.md
 EXPERT_REVIEW.md
 AI_USE.md
+VIDEO_SCRIPT.md
+SUBMISSION_DESCRIPTION.md
 conftest.py
 .pre-commit-config.yaml
 
@@ -55,9 +57,9 @@ mutants/**/expect.toml
 tests/*.py
 tests/**/*.py
 
-# Evaluation Results (main and feedback runs)
-results/main/**
-results/feedback/**
+# Evaluation Results and Transcripts
+results/**
+transcripts/**
 
 # CI
 .github/workflows/*.yml

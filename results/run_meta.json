@@ -1,0 +1,39 @@
+{
+  "benchmark": "OrderBook-DST",
+  "benchmark_version": "1.0.0",
+  "date": "2026-11-03T17:55:59.549923+00:00",
+  "git_sha": "10a59ef",
+  "python_version": "3.14.0",
+  "eval_parameters": {
+    "num_tasks": 8,
+    "trials_per_task": 5,
+    "total_trials_per_model": 40,
+    "hidden_trace_seeds": [
+      1000,
+      1350,
+      1700,
+      2050,
+      2400,
+      2750,
+      3100,
+      3450,
+      3800,
+      4150,
+      4500,
+      4850,
+      5200,
+      5550,
+      5900,
+      6250,
+      6600,
+      6950,
+      7300,
+      7650
+    ],
+    "grading_tiers": [
+      "Tier 1: Public Unit Tests",
+      "Tier 2: Targeted Checkpoints",
+      "Tier 3: Hidden Deterministic Traces"
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+# Transcript: qwen_2_5_coder_7b on f5_basket_b (Trial 0)
+
+- **Model**: `qwen2.5-coder-7b-instruct`
+- **Task**: `f5_basket_b`
+- **Outcome**: `FAILED`
+- **Score**: `0.1264` (Tier 1: `0.44`, Tier 2: `0.12`, Tier 3: `0.00`)
+- **First Failure**: `{'seed': 8000, 'event_index': 0, 'invariant': 'I1', 'plain_name': 'Rollback restores complete state', 'message': 'state hash after rolled-back basket at event 0 differs', 'diff': {'before': 'b1e3a79649cf52869191961b745f9826e2add17f46eab069b4c786c718b7c7d8', 'after': '7839b0c99974897757e6a224af1f67615e514814bd9b9adb5e4b5f62e2a828d2'}}`
+- **Latency**: `2.56s` | **Tokens**: `5718 in / 859 out` | **Cost**: `$0.0042`
+
+## Prompt Excerpt
+```markdown
+# Task f5_basket_b: Atomic Basket Order Handler
+
+## 1. Goal
+Implement the atomic basket handler function:
+```python
+def handle_basket(engine: Any, event: Event) -> list[Report]:
+```
+in `exchange_core/handlers/basket.py`.
+
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
+
+## 2. Applicable Rules (docs/04_RULEBOOK.md Section 10)
+- **R-A1 [Declared].** A BASKET event carries an `account` and a list of legs (`event.legs`). A leg has `side`, `pric
+... [truncated for readability] ...
+```
+
+## Model Solution Excerpt
+```python
+"""exchange_core/handlers/basket.py
+Handle atomic BASKET event execution with rollback.
+Rules R-A1 to R-A5.
+"""
+from exchange_core.types import Event, Report
+
+
+def _rollback(engine, snap):
+    engine.state.restore(snap)
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    snap = engine.state.snapshot()
+    all_leg_reports: list[Report] = []
+
+    for leg_index, leg in enumerate(event.legs):
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag,
+        )
+
+        leg_reports = engine.dispatch(leg_event)
+
+        if any(r.kind == "REJECTED" for r in leg_reports):
+            return all_leg_reports + [
+... [truncated] ...
+```
+
+## Grader Result
+```json
+{
+  "task_id": "f5_basket_b",
+  "t1": 0.4444444444444444,
+  "t2": 0.125,
+  "t3": 0.0,
+  "score": 0.1264,
+  "passed": false,
+  "first_failure": {
+    "seed": 8000,
+    "event_index": 0,
+    "invariant": "I1",
+    "plain_name": "Rollback restores complete state",
+    "message": "state hash after rolled-back basket at event 0 differs",
+    "diff": {
+      "before": "b1e3a79649cf52869191961b745f9826e2add17f46eab069b4c786c718b7c7d8",
+      "after": "7839b0c99974897757e6a224af1f67615e514814bd9b9adb5e4b5f62e2a828d2"
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 66
+  },
+  "error": null,
+  "public_test_output": "..FF..FFF                                                                [100%]\n=================================== FAILURES ===================================\n___________________ test_post_only_fails_after_earlier_fills ___________________\n\n    def test_post_only_fails_after_earlier_fills():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Resting sell order @ 100M\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"SELL\", price=100_000_000, qty=5))\n        h_before = eng.state_hash()\n    \n        # Leg 0 fills 2 units @ 100M, leg 1 is POST_ONLY @ 100M which would cross\n        leg0 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"IOC\")\n        leg1 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"POST_ONLY\")\n    \n        reps = eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n>       assert reps == [Report.basket_rolled_back(1)]\nE       AssertionError: assert [Report(kind=... leg_index=1)] == [Report(kind=... leg_index=1)]\nE         \nE         At index 0 diff: Report(kind='ACCEPTED', order_id=2, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=0) != Report(kind='BASKET_ROLLED_BACK', order_id=0, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=1)\nE         Left contains 2 more items, first extra item: Report(kind='FILL', order_id=0, reason='', buy_order_id=2, sell_order_id=1, price=100000000, qty=2, taker_order_id=2, account='', mark_price=0, bps=0, session='', leg_index=0)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py:45: AssertionError\n____________________________ test_reject_by_margin _____________________________\n\n    def test_reject_by_margin():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 50_000_000, \"LIQ\": 10_000_000_000}  # 50M cash\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Leg 0 needs 20M margin, leg 1 needs 40M margin (total 60M > 50M)\n        leg0 = BasketLeg(side=\"BUY\", price=100_000_000, qty=1, flag=\"POST_ONLY\")\n        leg1 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"POST_ONLY\")\n        reps = eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n>       assert reps == [Report.basket_rolled_back(1)]\nE       AssertionError: assert [Report(kind=... leg_index=1)] == [Report(kind=... leg_index=1)]\nE         \nE         At index 0 diff: Report(kind='ACCEPTED', order_id=1, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=0) != Report(kind='BASKET_ROLLED_BACK', order_id=0, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=1)\nE         Left contains one more item: Report(kind='BASKET_ROLLED_BACK', order_id=0, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=1)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py:57: AssertionError\n___________________________ test_reports_on_rollback ___________________________\n\n    def test_reports_on_rollback():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Leg 0 succeeds, leg 1 fails\n        leg0 = BasketLeg(side=\"BUY\", price=90_000_000, qty=1, flag=\"POST_ONLY\")\n        leg1 = BasketLeg(side=\"BUY\", price=90_000_005, qty=1, flag=\"POST_ONLY\")\n        reps = eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n        # Only 1 report, no ACCEPTED report for leg 0\n>       assert reps == [Report.basket_rolled_back(1)]\nE       AssertionError: assert [Report(kind=... leg_index=1)] == [Report(kind=... leg_index=1)]\nE         \nE         At index 0 diff: Report(kind='ACCEPTED', order_id=1, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=0) != Report(kind='BASKET_ROLLED_BACK', order_id=0, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=1)\nE         Left contains one more item: Report(kind='BASKET_ROLLED_BACK', order_id=0, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=1)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py:90: AssertionError\n________________________ test_book_restored_on_rollback ________________________\n\n    def test_book_restored_on_rollback():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        assert len(eng.state.orders) == 0\n        leg0 = BasketLeg(side=\"BUY\", price=90_000_000, qty=1, flag=\"POST_ONLY\")\n        leg1 = BasketLeg(side=\"BUY\", price=-10, qty=1, flag=\"POST_ONLY\")\n        eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n>       assert len(eng.state.orders) == 0\nE       AssertionError: assert 1 == 0\nE        +  where 1 = len({1: Order(order_id=1, account='A1', side='BUY', price=90000000, qty=1, cum_qty=0, prio_seq=1, margin_bps=2000, lock=18000000, flag='POST_ONLY')})\nE        +    where {1: Order(order_id=1, account='A1', side='BUY', price=90000000, qty=1, cum_qty=0, prio_seq=1, margin_bps=2000, lock=18000000, flag='POST_ONLY')} = EngineState(accounts={'A1': Account(free_cash=982000000, locked_margin=18000000, position=0, volume=0), 'LIQ': Account...ult=0, next_order_id=2, next_prio_seq=2, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=11000000000).orders\nE        +      where EngineState(accounts={'A1': Account(free_cash=982000000, locked_margin=18000000, position=0, volume=0), 'LIQ': Account...ult=0, next_order_id=2, next_prio_seq=2, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=11000000000) = <exchange_core.engine.Engine object at 0x1097428b0>.state\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py:101: AssertionError\n______________________ test_accounts_restored_on_rollback ______________________\n\n    def test_accounts_restored_on_rollback():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Resting sell\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"SELL\", price=100_000_000, qty=5))\n        h_before = eng.state_hash()\n        leg0 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"IOC\")  # would fill\n        leg1 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"POST_ONLY\")  # fails\n        eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n>       assert eng.state_hash() == h_before\nE       AssertionError: assert 'f6cbd1233252...08870e6cbb4e5' == 'ae2012203108...3b7a1bda86c34'\nE         \nE         - ae2012203108f74b8c36d58ffde4f976903e0b5f5778f285bc93b7a1bda86c34\nE         + f6cbd12332529acc0eeddffcab0f2c5ac2c2d10e9891e480a2708870e6cbb4e5\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py:114: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py::test_post_only_fails_after_earlier_fills\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py::test_reject_by_margin\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py::test_reports_on_rollback\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py::test_book_restored_on_rollback\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_nq5cvkvb/tests/test_f5_basket_b.py::test_accounts_restored_on_rollback\n5 failed, 4 passed in 0.15s"
+}
+```
