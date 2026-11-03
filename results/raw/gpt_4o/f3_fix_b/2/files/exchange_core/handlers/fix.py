@@ -1,0 +1,42 @@
+"""mutants/f3_fix_b/m_process_out_of_order/fix.py
+Mutant that dispatches gap messages immediately without buffering.
+"""
+from exchange_core.state import SessionState
+from exchange_core.types import Event, Report
+
+
+def handle_fix(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    state = engine.state
+
+    if event.kind == "SESSION_RESET":
+        session_id = event.session
+        if session_id not in state.sessions:
+            state.sessions[session_id] = SessionState(epoch=1, next_seq=1, buffer={})
+        else:
+            session = state.sessions[session_id]
+            session.epoch += 1
+            session.next_seq = 1
+            session.buffer.clear()
+        return [Report.session_reset_done(session_id)]
+
+    session_id = event.session
+    if session_id not in state.sessions:
+        state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+
+    session = state.sessions[session_id]
+
+    if event.epoch != session.epoch:
+        return [Report.discarded("EPOCH")]
+
+    if event.seq < session.next_seq:
+        if event.poss_dup:
+            return [Report.discarded("DUPLICATE")]
+        return [Report.discarded("SEQ_TOO_LOW")]
+
+    # Mutant bug: dispatches out of order without buffering
+    if event.seq >= session.next_seq:
+        session.next_seq = event.seq + 1
+
+    if event.body is not None:
+        return engine.dispatch(event.body)
+    return []

@@ -1,0 +1,21 @@
+{
+  "task_id": "f1_fee_a",
+  "t1": 0.875,
+  "t2": 0.14285714285714285,
+  "t3": 0.0,
+  "score": 0.2179,
+  "passed": false,
+  "first_failure": {
+    "seed": 1000,
+    "event_index": 200,
+    "invariant": "D1",
+    "plain_name": "Final account state mismatch",
+    "message": "account A1 final balance differs",
+    "diff": {}
+  },
+  "coverage": {
+    "min_trigger_events": 99
+  },
+  "error": null,
+  "public_test_output": "......F.                                                                 [100%]\n=================================== FAILURES ===================================\n_____________________________ test_tie_rounding_up _____________________________\n\n    def test_tie_rounding_up():\n        cfg = EngineConfig()\n        # 2000 * 2750 = 5_500_000 / 1_000_000 = 5.5 -> 6 (even)\n        fee = compute_taker_fee(0, 2000, cfg)\n>       assert fee == 6\nE       assert 5 == 6\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_a_41i5rx1d/tests/test_f1_fee_a.py:65: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_a_41i5rx1d/tests/test_f1_fee_a.py::test_tie_rounding_up\n1 failed, 7 passed in 0.13s"
+}

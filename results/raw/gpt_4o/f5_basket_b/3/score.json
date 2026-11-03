@@ -1,0 +1,24 @@
+{
+  "task_id": "f5_basket_b",
+  "t1": 0.7777777777777778,
+  "t2": 0.75,
+  "t3": 0.0,
+  "score": 0.3806,
+  "passed": false,
+  "first_failure": {
+    "seed": 8000,
+    "event_index": 0,
+    "invariant": "I1",
+    "plain_name": "Rollback restores complete state",
+    "message": "state hash after rolled-back basket at event 0 differs",
+    "diff": {
+      "before": "b1e3a79649cf52869191961b745f9826e2add17f46eab069b4c786c718b7c7d8",
+      "after": "2a675bad5e0e2d3fe2d2ca7bd239270858295677184a8491c0bafb9ecf1fe41e"
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 66
+  },
+  "error": null,
+  "public_test_output": "..F.....F                                                                [100%]\n=================================== FAILURES ===================================\n___________________ test_post_only_fails_after_earlier_fills ___________________\n\n    def test_post_only_fails_after_earlier_fills():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Resting sell order @ 100M\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"SELL\", price=100_000_000, qty=5))\n        h_before = eng.state_hash()\n    \n        # Leg 0 fills 2 units @ 100M, leg 1 is POST_ONLY @ 100M which would cross\n        leg0 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"IOC\")\n        leg1 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"POST_ONLY\")\n    \n        reps = eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n        assert reps == [Report.basket_rolled_back(1)]\n>       assert eng.state_hash() == h_before\nE       AssertionError: assert '271d32435fce...73d0a258e6608' == 'ae2012203108...3b7a1bda86c34'\nE         \nE         - ae2012203108f74b8c36d58ffde4f976903e0b5f5778f285bc93b7a1bda86c34\nE         + 271d32435fcee578e4ba9d319728870e2dfa862e462d5064da473d0a258e6608\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_axzu5z5z/tests/test_f5_basket_b.py:46: AssertionError\n______________________ test_accounts_restored_on_rollback ______________________\n\n    def test_accounts_restored_on_rollback():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Resting sell\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"SELL\", price=100_000_000, qty=5))\n        h_before = eng.state_hash()\n        leg0 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"IOC\")  # would fill\n        leg1 = BasketLeg(side=\"BUY\", price=100_000_000, qty=2, flag=\"POST_ONLY\")  # fails\n        eng.process(Event(kind=\"BASKET\", account=\"A1\", legs=(leg0, leg1)))\n>       assert eng.state_hash() == h_before\nE       AssertionError: assert '271d32435fce...73d0a258e6608' == 'ae2012203108...3b7a1bda86c34'\nE         \nE         - ae2012203108f74b8c36d58ffde4f976903e0b5f5778f285bc93b7a1bda86c34\nE         + 271d32435fcee578e4ba9d319728870e2dfa862e462d5064da473d0a258e6608\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_axzu5z5z/tests/test_f5_basket_b.py:114: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_axzu5z5z/tests/test_f5_basket_b.py::test_post_only_fails_after_earlier_fills\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f5_basket_b_axzu5z5z/tests/test_f5_basket_b.py::test_accounts_restored_on_rollback\n2 failed, 7 passed in 0.14s"
+}
