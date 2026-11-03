@@ -7,6 +7,7 @@ Rules:
 - R-F3: Maker rebate calculation.
 - R-F4: Fee threshold inclusive boundary.
 """
+
 from typing import Any
 
 from exchange_core.ledger import (
@@ -35,7 +36,7 @@ def settle_fill(engine: Any, fill: Fill) -> list[Report]:
         - pay_fee: taker pays fee from free_cash to fee_vault
         - pay_rebate: maker receives rebate in free_cash from fee_vault
         - add_volume: add notional to both buyer volume and seller volume
-    - Returns empty report list.
+    - Returns FILL report list.
     """
     notional = fill.notional
 
@@ -64,4 +65,12 @@ def settle_fill(engine: Any, fill: Fill) -> list[Report]:
     add_volume(engine.state, fill.buyer, notional)
     add_volume(engine.state, fill.seller, notional)
 
-    return []
+    return [
+        Report.fill(
+            buy_order_id=fill.buy_order_id,
+            sell_order_id=fill.sell_order_id,
+            price=fill.price,
+            qty=fill.qty,
+            taker_order_id=fill.taker_order_id,
+        )
+    ]

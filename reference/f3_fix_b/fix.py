@@ -2,6 +2,7 @@
 Reference solution for task f3_fix_b.
 Rules R-S1 to R-S9.
 """
+
 from exchange_core.rules.session_rule import on_message
 from exchange_core.state import SessionState
 from exchange_core.types import Event, Report
@@ -18,12 +19,11 @@ def handle_fix(engine: "Engine", event: Event) -> list[Report]:  # type: ignore 
     if event.kind == "SESSION_RESET":
         session_id = event.session
         if session_id not in state.sessions:
-            state.sessions[session_id] = SessionState(epoch=1, next_seq=1, buffer={})
-        else:
-            session = state.sessions[session_id]
-            session.epoch += 1
-            session.next_seq = 1
-            session.buffer.clear()
+            state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+        session = state.sessions[session_id]
+        session.epoch += 1
+        session.next_seq = 1
+        session.buffer.clear()
         return [Report.session_reset_done(session_id)]
 
     # Rule R-S1 to R-S7: FIX_MSG
