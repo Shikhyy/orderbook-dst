@@ -10,9 +10,7 @@ The functions calculate the fee and rebate for a fill using tier threshold volum
 Target file to write:
 - `exchange_core/rules/fee_rule.py`
 
-Workspace structure:
-- `exchange_core/`: Core exchange modules.
-- `tests/`: Public tests for this task. Run with `pytest tests/`.
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
 
 ## 3. Interface
 
@@ -64,8 +62,8 @@ Do not edit or return other files.
 ## 6. What the grader checks
 
 The grader checks your code against three tiers:
-- **Tier 1 (Public tests)**: 8 unit tests in `tests/`.
-- **Tier 2 (Targeted trace)**: 40 events with 5 threshold-crossing fill checkpoints.
+- **Tier 1 (Public tests)**: 8 unit tests shown in the prompt.
+- **Tier 2 (Targeted trace)**: 42 events with 7 fill checkpoints (including round-half-even tie break).
 - **Tier 3 (Hidden seeds)**: 20 traces of 200 events each under the `fee_heavy` profile.
   Checks invariant I1 (conservation of cash and vault), I2 (margin locks), I3 (order queue integrity), and D1 (differential matching against reference reports).
 

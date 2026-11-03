@@ -163,6 +163,12 @@ def build_prompt_for_task(task_id: str) -> BuiltPrompt:
     # 1. Instruction
     parts.append(instruction_text.strip())
 
+    # 1b. Public tests (visible)
+    public_test_file = task_dir / "public_tests" / f"test_{task_id}.py"
+    if public_test_file.exists():
+        test_content = public_test_file.read_text(encoding="utf-8")
+        parts.append(f"\n## Public Tests (Visible)\n```python\n{test_content.strip()}\n```")
+
     # 2. Target file stubs
     parts.append("\n## Target Files to Implement\n")
     target_files = meta.get("target_files", [])

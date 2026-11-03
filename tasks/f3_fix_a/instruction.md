@@ -10,9 +10,7 @@ The function processes incoming FIX messages, handles gap filling, drains buffer
 Target file to write:
 - `exchange_core/rules/session_rule.py`
 
-Workspace structure:
-- `exchange_core/`: Core exchange modules.
-- `tests/`: Public tests for this task. Run with `pytest tests/`.
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
 
 ## 3. Interface
 
@@ -68,7 +66,7 @@ Do not edit or return other files.
 ## 6. What the grader checks
 
 The grader checks your code against three tiers:
-- **Tier 1 (Public tests)**: 9 unit tests in `tests/`.
+- **Tier 1 (Public tests)**: 9 unit tests shown in the prompt.
 - **Tier 2 (Targeted trace)**: Targeted trace with message gaps, duplicates, buffer drain, and reset checkpoints.
 - **Tier 3 (Hidden seeds)**: 20 traces of 200 events each under the `fix_noisy` profile, including the Invariant I4 replay law check.
   Checks invariants I1, I2, I3, I4, and D1.
