@@ -36,7 +36,10 @@ grade-docker:
 preflight:
 	$(BIN)/python tools/preflight.py
 
+audit:
+	$(BIN)/python tools/human_audit.py
+
 check-publish:
 	$(BIN)/python tools/check_publish.py
 
-.PHONY: setup test lint validate demo run regrade package secrets-scan check-publish grade-docker preflight
+.PHONY: setup test lint validate demo run regrade package secrets-scan check-publish grade-docker preflight audit
