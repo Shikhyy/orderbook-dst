@@ -137,10 +137,18 @@ def check_adapter_env_vars() -> tuple[bool, str]:
     return all_set, details
 
 
+def get_python_bin() -> str:
+    venv_py = REPO_ROOT / ".venv" / "bin" / "python"
+    if venv_py.exists():
+        return str(venv_py)
+    return sys.executable
+
+
 def check_make_targets() -> tuple[bool, str]:
+    py_bin = get_python_bin()
     # Run make validate
     res_val = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "tools" / "validate_graders.py")],
+        [py_bin, str(REPO_ROOT / "tools" / "validate_graders.py")],
         capture_output=True,
         text=True,
     )
@@ -149,7 +157,7 @@ def check_make_targets() -> tuple[bool, str]:
 
     # Run secrets scan
     res_sec = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "tools" / "secrets_scan.py")],
+        [py_bin, str(REPO_ROOT / "tools" / "secrets_scan.py")],
         capture_output=True,
         text=True,
     )
@@ -158,7 +166,7 @@ def check_make_targets() -> tuple[bool, str]:
 
     # Run check publish
     res_pub = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "tools" / "check_publish.py")],
+        [py_bin, str(REPO_ROOT / "tools" / "check_publish.py")],
         capture_output=True,
         text=True,
     )
