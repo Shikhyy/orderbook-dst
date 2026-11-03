@@ -11,6 +11,12 @@
 - Clarification `R-X1 [Declared]`: Environment execution convention applying skill intent when skills are missing (decision OQ-06).
 - Clarification `R-X2 [Declared]`: Missing policy files scaffolding during initial setup (decision OQ-07).
 - Clarification `R-F4 [Declared]`: Inclusive boundary condition for T0 tier threshold in R-F2 (decision OQ-08).
+- Milestone M8-prep evaluation runner and human audit tools:
+  - Evaluation runner `tools/run_all.sh`: Verifies preflight checks, runs dry-run cost estimation, supports pilot and main evaluation runs with confirmation prompts.
+  - Human audit tool `tools/human_audit.py`: Selects 20 stored trials with fixed seed (10 pass, 10 fail), blinds grader outcomes, computes 2x2 agreement matrix and Cohen's Kappa, and formats audit report in `results/human_audit.md`.
+  - Unit tests in `tests/test_human_audit.py` verifying sampling and agreement metrics against hand-calculated values.
+  - Added `make audit` target to Makefile and allowed `tools/*.sh` in `publish_allowlist.txt`.
+  - Authored task difficulty reasons across all 8 tasks in `tasks/*/task.toml` and `EXPERT_REVIEW.md` prior to model evaluation.
 
 ### Corrected
 - Checkpoint provenance disclosure: Corrected historical descriptions characterizing Tier 2 trace checkpoints as "hand-calculated" in prior milestones. All 51 checkpoints across all 8 tasks are designated with `source: engine` because their values were generated via reference engine execution. Hand calculations are documented separately in audit worksheets.
