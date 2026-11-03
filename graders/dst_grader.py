@@ -107,7 +107,8 @@ class ResultCollector:
                 self.passed += 1
 
 collector = ResultCollector()
-pytest.main(["-q", str(r"{target_test_dir}")], plugins=[collector])
+args = ["-q", "-p", "no:hypothesis", "-p", "no:cacheprovider", str(r"{target_test_dir}")]
+pytest.main(args, plugins=[collector])
 score = (collector.passed / collector.total) if collector.total > 0 else 0.0
 print(json.dumps({{"passed": collector.passed, "total": collector.total, "score": score}}))
 """
