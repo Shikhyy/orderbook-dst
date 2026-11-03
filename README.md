@@ -1,10 +1,5 @@
 # OrderBook-DST: Deterministic Simulation Testing for Financial Exchange State Machines
 
-[![Grader Validation](https://img.shields.io/badge/Graders-V1--V8%20PASS-brightgreen)](tools/validate_graders.py)
-[![Mutant Kill Rate](https://img.shields.io/badge/Mutants-35%2F35%20(100%25)-blue)](mutants)
-[![Dual Reference Diff](https://img.shields.io/badge/Dual--Reference-1.0000%20(0%20diff)-success)](reference_alt_v2)
-[![Python Version](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-blue)](pyproject.toml)
-
 OrderBook-DST is an evaluation benchmark measuring whether Large Language Models can write mathematically and architecturally sound code for mission-critical financial exchange state machines.
 
 ---
@@ -66,87 +61,87 @@ $$\text{Score} = 0.20 \times T_1 + 0.30 \times T_2 + 0.50 \times T_3$$
 
 ### Grader Reliability & Verification
 - **Dual Clean-Room Reference Implementations**: Two independently authored reference solutions (`reference/` and `reference_alt_v2/`) both achieve **1.0000 across all 8 tasks**, with 0 mismatches across 272,000 generated events and 544,000 invariant checks.
-- **100% Mutant Kill Rate**: 35 hand-crafted fault mutants (injecting realistic human bugs) are 100% killed by the grader suite, detecting every invariant violation.
+- **Mutant kill rate**: 35 hand-crafted fault mutants (injecting realistic human bugs) are 100% killed by the grader suite, detecting every invariant violation.
 - **Grader Validation Suite**: Full automated validation suite (`tools/validate_graders.py`) passes all checks V1 to V8.
 
 ---
 
 ## 5. Model Evaluation Results
 
-We evaluated 3 frontier and open models across all 8 benchmark tasks (5 independent trials per task, 120 total trials) plus multi-turn feedback loop evaluation:
+> **Status: pending real model runs.** An earlier draft of this repository contained
+> *simulated* results: a local script assigned reference, alt-reference and mutant
+> code to each "trial" instead of calling any model. Those files, the transcripts
+> built from them, and every number derived from them have been deleted
+> (see `CHANGELOG.md`, *Corrected*). No model result is claimed until it comes from
+> `harness/run_eval.py` calling a real provider API.
 
-| Model (Version, Settings) | Trials / Task | Pass Rate (pass@1) | 95% Bootstrap CI | pass@5 | pass^5 | Mean Score | 95% CI | T1 (Public) | T2 (Checkpoints) | T3 (Hidden Traces) | MTTIF | Est. Cost / Run |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **Claude 3.5 Sonnet** (`20241022`, $T=0$) | 5 | **55.0%** | [30.0%, 80.0%] | **100.0%** | **25.0%** | **0.713** | [0.543, 0.875] | 0.893 | 0.789 | **0.596** | 82.4 | \$1.16 |
-| **GPT-4o** (`2024-08-06`, $T=0$) | 5 | **37.5%** | [15.0%, 62.5%] | **75.0%** | **0.0%** | **0.619** | [0.456, 0.784] | 0.884 | 0.746 | **0.436** | 83.9 | \$0.84 |
-| **Qwen 2.5 Coder 7B** (`Instruct`, $T=0$) | 5 | **10.0%** | [0.0%, 25.0%] | **37.5%** | **0.0%** | **0.439** | [0.335, 0.557] | 0.813 | 0.586 | **0.200** | 107.0 | \$0.18 |
+The table below is filled in from `results/main/summary.md` after the run:
 
-*(Full structured trials data available in [`results/trials.jsonl`](results/trials.jsonl) and [`results/summary.json`](results/summary.json)).*
+| Model (exact ID, settings) | Trials / task | Pass rate | 95% CI | pass@5 | pass^5 | Mean score | T1 | T2 | T3 | Cost / full run |
+|---|---|---|---|---|---|---|---|---|---|---|
+| _frontier model A_ | 5 | – | – | – | – | – | – | – | – | – |
+| _frontier model B_ | 5 | – | – | – | – | – | – | – | – | – |
+| _smaller / open model_ | 5 | – | – | – | – | – | – | – | – | – |
 
----
-
-## 6. Key Findings & The "Hot Take"
-
-### 1. The Generalization Deficit (Tier 1 vs Tier 3 Gap)
-All models demonstrated a statistically significant drop from visible public tests ($T_1$) to hidden simulation traces ($T_3$):
-- Claude 3.5 Sonnet: $T_1 = 0.893 \to T_3 = 0.596$ ($\Delta = +0.296$)
-- GPT-4o: $T_1 = 0.884 \to T_3 = 0.436$ ($\Delta = +0.447$)
-- Qwen 2.5 Coder: $T_1 = 0.813 \to T_3 = 0.200$ ($\Delta = +0.613$)
-
-*Models easily satisfy prompt-visible test cases, but break when exposed to dynamic multi-event state trajectories.*
-
-### 2. The Component Coupling Penalty (Hypothesis H2)
-When comparing pure transformation functions (Variant A) to coupled multi-subsystem handlers (Variant B):
-- **Claude 3.5 Sonnet**: Pass rate dropped from **93.3%** on Variant A to **32.0%** on Variant B (McNemar test $p = 0.0215$).
-- **GPT-4o**: Pass rate dropped from **80.0%** on Variant A to **12.0%** on Variant B (McNemar test $p = 0.0156$).
-- **Root Cause**: Over **72.9%** of Variant B failures were caused by omitting secondary state mutations (e.g. failing to debit the ledger fee vault when crediting maker rebates, or skipping margin lock adjustments) while the primary order execution logic was completely correct.
-
-### 3. Invariant Feedback Loop Benefit (Hypothesis H3)
-Providing models with structured invariant diagnostics (`[Invariant ID, Plain Name, Message]`) in a multi-turn feedback loop allowed Claude 3.5 Sonnet to repair secondary state omissions:
-- **Turn 0 (No feedback)**: 0.0% pass rate on initial failed runs.
-- **Turn 1 (With invariant feedback)**: **60.0% pass rate** (+60% revision gain).
-- Full details in [`results/feedback_results.json`](results/feedback_results.json).
+Run date, git SHA, exact model IDs, settings, and per-trial token counts are
+recorded in `results/main/run_meta.json` and `results/main/trials.jsonl`.
 
 ---
 
-## 7. Representative Failure Walkthroughs
+## 6. Hypotheses Under Test
 
-Representative failures with full transcripts and invariant diagnostic traces are cataloged in [`transcripts/FAILURES_ANALYSIS.md`](transcripts/FAILURES_ANALYSIS.md):
+The hypotheses were pre-registered in [`HYPOTHESES.md`](HYPOTHESES.md) before any
+model run. Whether each one holds will be reported there from real transcripts:
 
-1. **`f1_fee_b` (Cash Conservation $I_1$ Failure)**: Model credited maker rebates directly into trader cash without debiting the exchange fee vault. Cash was created from thin air (`total money 160000124750 != initial 160000000000`).
-2. **`f2_replace_b` (Margin Lock Conservation $I_2$ Failure)**: Model recalculated collateral locks using current engine default rate rather than preserving the order's historical locked margin rate.
-3. **`f3_fix_b` (FIX Sequencing $I_4$ Failure)**: Model double-dispatched messages to the matching engine during sequence gap buffer drains.
-4. **`f4_waterfall_b` (Inverted Waterfall Execution)**: Model initiated backstop liquidation against the `LIQ` account before cancelling resting orders to release locked margin, unnecessarily liquidating solvent accounts.
-5. **`f5_basket_b` (Atomic Rollback Failure)**: On intermediate leg rejection, model reverted order book state but failed to restore ledger balances and leaked execution reports.
+- **H1, the generalization gap:** scores on visible tests (T1) will be higher than on hidden simulation traces (T3).
+- **H2, the coupling penalty:** coupled handlers (Variant B) will be harder than isolated rules (Variant A). Caveat: B tasks are also longer and touch more state, and F4/F5 have no A variant (3 A tasks vs 5 B tasks), so a gap here does not isolate "coupling" alone. A and B tasks are different tasks, so the comparison is unpaired.
+- **H3, invariant feedback:** structured invariant diagnostics will help repair a failed attempt (`--mode feedback_loop`).
+
+---
+
+## 7. Failure Walkthroughs
+
+To be written by the author from the real transcripts in `results/main/raw/`,
+with at least one failure per task, one task where a model came close, and a
+judgement on each failure: real model mistake, or grader rejecting a valid answer.
 
 ---
 
 ## 8. Quickstart & Reproducibility
 
-### Setup Virtual Environment
+### Setup
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 1. Run Complete Test Suite
+### 1. Run the test suite (no API keys needed)
 ```bash
 make test
 ```
-*Executes all 242 engine unit tests and prompt leakage tests in ~8 seconds.*
 
-### 2. Validate Graders & Mutants (V1 - V8)
+### 2. Validate the graders against the reference solutions and mutants (V1–V8)
 ```bash
 make validate
 ```
-*Validates reference solutions, clean-room alt references, and kills all 35 mutants.*
 
-### 3. Generate Benchmark Reports
+### 3. Run the models
 ```bash
-PYTHONPATH=. .venv/bin/python harness/report.py --in results/ --out results/
+cp models.example.toml models.toml   # fill in exact model IDs, settings and prices
+cp .env.example .env                 # fill in your own keys; .env is git-ignored
+set -a; source .env; set +a
+.venv/bin/python -m harness.run_eval --models models.toml --mode single_turn --dry-run
+.venv/bin/python -m harness.run_eval --models models.toml --mode single_turn --out results/main
+.venv/bin/python -m harness.run_eval --models models.toml --mode feedback_loop --out results/feedback
 ```
-*Computes bootstrap 95% confidence intervals, pass@k, pass^k, and markdown summary table.*
+The run resumes if interrupted: completed trials are skipped.
+
+### 4. Build the summary tables
+```bash
+PYTHONPATH=. .venv/bin/python harness/report.py --in results/main --out results/main
+```
+Computes bootstrap 95% confidence intervals, pass@k and pass^k.
 
 ---
 
@@ -156,4 +151,5 @@ PYTHONPATH=. .venv/bin/python harness/report.py --in results/ --out results/
 - **AI Tool Usage**:
   - Claude Sonnet 4.6 (Thinking) assisted in drafting initial scaffolding and unit test fixtures.
   - An independent clean-room AI subagent implemented the secondary reference solution (`reference_alt_v2/`) without seeing the primary reference code.
-  - **Human Expert Review & Sign-Off**: The benchmark design, pre-registered hypotheses (`HYPOTHESES.md`), domain expert review (`EXPERT_REVIEW.md`), task difficulty justifications (`task.toml`), and final transcripts analysis (`transcripts/FAILURES_ANALYSIS.md`) were thoroughly audited and signed off by the author. See [`AI_USE.md`](AI_USE.md) for full attribution.
+  - **Correction**: a local script (not part of the submission) produced simulated model results for an earlier draft. They were never real model output and have been removed; see [`AI_USE.md`](AI_USE.md).
+  - **Human review**: the benchmark design, pre-registered hypotheses (`HYPOTHESES.md`), domain review (`EXPERT_REVIEW.md`) and task difficulty reasons (`task.toml`) were reviewed by the author. See [`AI_USE.md`](AI_USE.md) for full attribution.

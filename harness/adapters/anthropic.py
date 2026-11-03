@@ -1,5 +1,5 @@
 """harness/adapters/anthropic.py
-Anthropic Claude API adapter (<= 30 lines).
+Anthropic Claude API adapter.
 """
 import os
 import time
@@ -18,16 +18,22 @@ class AnthropicAdapter:
         import anthropic
 
         client: Any = anthropic.Anthropic(api_key=self.api_key)
+        kwargs: dict[str, Any] = {
+            "model": settings["model_id"],
+            "max_tokens": settings.get("max_tokens", 8000),
+            "system": system,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        # Only send sampling settings that models.toml sets explicitly, so the
+        # recorded settings are exactly what the provider received.
+        if "temperature" in settings:
+            kwargs["temperature"] = settings["temperature"]
         t0 = time.time()
-        res = client.messages.create(
-            model=settings.get("model_id", "claude-3-7-sonnet-20250219"),
-            max_tokens=settings.get("max_tokens", 8000),
-            temperature=settings.get("temperature", 1.0),
-            system=system,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        res = client.messages.create(**kwargs)
+        # Join every text block; skip thinking or other non-text blocks.
+        text = "".join(getattr(b, "text", "") for b in res.content if b.type == "text")
         return ModelReply(
-            text=res.content[0].text if res.content else "",
+            text=text,
             input_tokens=res.usage.input_tokens,
             output_tokens=res.usage.output_tokens,
             latency_s=time.time() - t0,

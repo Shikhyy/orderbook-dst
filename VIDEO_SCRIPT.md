@@ -50,41 +50,13 @@ To guarantee zero false passes and zero false rejections, we validated the grade
 
 ## Part 3: Results & Failure Walkthroughs (~2 minutes)
 
-**[Visual: Results Summary Table and Transcript Diff from `transcripts/FAILURES_ANALYSIS.md`]**
-
-**Speaker**:
-"We evaluated 3 model cohorts across 5 trials per task—120 total trials:
-- **Claude 3.5 Sonnet** achieved a **55.0% pass rate** (Mean score 0.713).
-- **GPT-4o** achieved a **37.5% pass rate** (Mean score 0.619).
-- **Qwen 2.5 Coder 7B** achieved a **10.0% pass rate** (Mean score 0.439).
-
-Notice two crucial findings:
-
-First, the **Generalization Deficit**:
-Every single model easily passed the visible unit tests in Tier 1—scoring 81% to 89%. But when evaluated against Tier 3 hidden simulation traces, scores collapsed: Claude fell to 59.6%, GPT-4o fell to 43.6%, and Qwen dropped to 20.0%. Models easily overfit prompt-visible unit tests, but fail on long-horizon state trajectories.
-
-Second, the **Component Coupling Penalty**:
-On isolated Variant A tasks, Claude achieved a **93.3% pass rate**. But on coupled Variant B tasks, its pass rate plummeted to **32.0%**—a statistically significant drop ($p = 0.0215$).
-
-Let's look at why models fail by walking through a real transcript from Task `f1_fee_b`:
-
-**[Visual: Highlight code in `transcripts/claude_3_5_sonnet/f1_fee_b_trial_3.md`]**
-
-In `f1_fee_b`, the model correctly calculates the trade fill and credits the maker rebate to the seller's account. But it forgets to debit the rebate from the exchange fee vault. The primary trade logic was completely correct, but total system cash increased from \$160,000,000 to \$160,001,247. Invariant $I_1$ caught the unauthorized cash creation at step 2.
-
-In fact, **72.9% of all failures on coupled tasks were secondary state omissions**—forgetting to debit fee vaults, omitting margin lock adjustments, or skipping sequence counter increments."
+*(To be written after the real model runs. Use only numbers from
+`results/main/summary.md` and walk through one or two real failing transcripts
+from `results/main/raw/`. The earlier draft of this part quoted simulated
+results and has been removed.)*
 
 ---
 
-## Part 4: The Hot Take & Invariant Feedback (~0.5 minute)
+## Part 4: The Takeaway (~0.5 minute)
 
-**[Visual: Multi-turn feedback diagram and `results/feedback_results.json`]**
-
-**Speaker**:
-"Our headline insight is that **unit tests give models a false sense of correctness in stateful distributed systems**.
-
-To test how to bridge this gap, we implemented an **Invariant Feedback Loop**. When Claude 3.5 Sonnet was given structured invariant diagnostic reports—without revealing test inputs or seeds—its pass rate jumped from **0.0% on initial failure to 60.0% on Turn 1**.
-
-Invariant-based feedback provides the exact orthogonal signal models need to overcome architectural tunnel vision.
-
-OrderBook-DST is fully reproducible with a single `make validate` command, completely free of external API dependencies, and ready for evaluation. Thank you!"
+*(To be written from what the real transcripts show.)*

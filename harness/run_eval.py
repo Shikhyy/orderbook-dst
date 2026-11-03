@@ -32,11 +32,11 @@ from harness.prompt import build_prompt_for_task
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # Approximate pricing per 1M tokens (USD)
-MODEL_PRICING = {
-    "claude-3-7-sonnet": {"in": 3.0, "out": 15.0},
-    "gpt-4o": {"in": 2.5, "out": 10.0},
-    "default": {"in": 0.5, "out": 1.5},
-}
+# USD per million tokens. Set real prices per model in models.toml with
+# price_in_per_mtok / price_out_per_mtok (copy them from the provider's
+# pricing page on the day of the run). This fallback only feeds dry-run
+# estimates and is reported as "unpriced" in results.
+DEFAULT_PRICING = {"in": 0.0, "out": 0.0}
 
 
 def get_git_sha() -> str:
@@ -66,13 +66,35 @@ def get_adapter(adapter_name: str) -> ModelAdapter:
         raise ValueError(f"Unknown adapter: {adapter_name}")
 
 
-def estimate_cost(model_id: str, in_tok: int, out_tok: int) -> float:
-    rates = MODEL_PRICING.get("default", {"in": 0.5, "out": 1.5})
-    for k, r in MODEL_PRICING.items():
-        if k in model_id.lower():
-            rates = r
-            break
-    return (in_tok * rates["in"] + out_tok * rates["out"]) / 1_000_000.0
+def estimate_cost(m: dict[str, Any], in_tok: int, out_tok: int) -> float:
+    """Estimate cost from the per-model prices in models.toml (0.0 if unset)."""
+    p_in = float(m.get("price_in_per_mtok", DEFAULT_PRICING["in"]))
+    p_out = float(m.get("price_out_per_mtok", DEFAULT_PRICING["out"]))
+    return (in_tok * p_in + out_tok * p_out) / 1_000_000.0
+
+
+def build_settings(m: dict[str, Any]) -> dict[str, Any]:
+    """Settings sent to the adapter: [model.settings] plus model_id and base_url."""
+    settings = dict(m.get("settings", {}))
+    settings["model_id"] = m.get("model_id", "default")
+    if "base_url" in m:
+        settings["base_url"] = m["base_url"]
+    return settings
+
+
+def models_meta(models_cfg: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Model configuration recorded in run_meta.json (no secrets live in models.toml)."""
+    return [
+        {
+            "label": m.get("label"),
+            "adapter": m.get("adapter"),
+            "model_id": m.get("model_id"),
+            "settings": m.get("settings", {}),
+            "price_in_per_mtok": m.get("price_in_per_mtok"),
+            "price_out_per_mtok": m.get("price_out_per_mtok"),
+        }
+        for m in models_cfg
+    ]
 
 
 def run_dry_run(
@@ -95,14 +117,13 @@ def run_dry_run(
 
     for m in models_cfg:
         label = m.get("label", "unknown")
-        model_id = m.get("model_id", "default")
         num_trials = trials_override if trials_override is not None else m.get("trials", 5)
 
         for tid in task_ids:
             bp = build_prompt_for_task(tid)
             in_tok = len(bp.user_prompt) // 4 + len(bp.system) // 4
             out_tok = 1200  # typical code implementation size
-            cost = estimate_cost(model_id, in_tok, out_tok) * num_trials
+            cost = estimate_cost(m, in_tok, out_tok) * num_trials
 
             total_calls += num_trials
             total_cost += cost
@@ -178,6 +199,9 @@ def run_single_turn_eval(
         "git_sha": get_git_sha(),
         "harness_version": "1.0",
         "python_version": sys.version,
+        "trials_override": trials_override,
+        "tasks": task_ids,
+        "models": models_meta(models_cfg),
     }
     (out_dir / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
@@ -196,8 +220,7 @@ def run_single_turn_eval(
         label = m.get("label", "unknown")
         adapter_type = m.get("adapter", "mock")
         model_id = m.get("model_id", "default")
-        settings = m.get("settings", {})
-        settings["model_id"] = model_id
+        settings = build_settings(m)
         num_trials = trials_override if trials_override is not None else m.get("trials", 5)
 
         adapter = get_adapter(adapter_type)
@@ -231,7 +254,7 @@ def run_single_turn_eval(
                 # Save extracted files
                 _save_candidate_files(trial_dir / "files", files)
 
-                cost_est = estimate_cost(model_id, reply.input_tokens, reply.output_tokens)
+                cost_est = estimate_cost(m, reply.input_tokens, reply.output_tokens)
 
                 if extract_err:
                     score_rec = ScoreRecord(
@@ -254,6 +277,10 @@ def run_single_turn_eval(
                     "task_id": tid,
                     "trial": trial_idx,
                     "mode": "single_turn",
+                    "served_model": reply.raw_meta.get("model"),
+                    "stop_reason": reply.raw_meta.get("stop_reason")
+                    or reply.raw_meta.get("finish_reason"),
+                    "settings": {k: v for k, v in settings.items() if k != "model_id"},
                     "prompt_sha256": bp.prompt_sha256,
                     "score": score_rec.score,
                     "passed": score_rec.passed,
@@ -362,6 +389,9 @@ def run_feedback_loop_eval(
         "mode": "feedback_loop",
         "max_revisions": max_revisions,
         "python_version": sys.version,
+        "trials_override": trials_override,
+        "tasks": task_ids,
+        "models": models_meta(models_cfg),
     }
     (out_dir / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
@@ -379,8 +409,7 @@ def run_feedback_loop_eval(
         label = m.get("label", "unknown")
         adapter_type = m.get("adapter", "mock")
         model_id = m.get("model_id", "default")
-        settings = m.get("settings", {})
-        settings["model_id"] = model_id
+        settings = build_settings(m)
         num_trials = trials_override if trials_override is not None else m.get("trials", 5)
 
         adapter = get_adapter(adapter_type)
@@ -521,13 +550,14 @@ def run_feedback_loop_eval(
                 (trial_dir / "score.json").write_text(score_rec.to_json(), encoding="utf-8")
                 (trial_dir / "turns.json").write_text(json.dumps(turns, indent=2), encoding="utf-8")
 
-                cost_est = estimate_cost(model_id, total_in_tok, total_out_tok)
+                cost_est = estimate_cost(m, total_in_tok, total_out_tok)
                 record = {
                     "model": label,
                     "model_id": model_id,
                     "task_id": tid,
                     "trial": trial_idx,
                     "mode": "feedback_loop",
+                    "settings": {k: v for k, v in settings.items() if k != "model_id"},
                     "prompt_sha256": bp.prompt_sha256,
                     "score": score_rec.score,
                     "passed": score_rec.passed,

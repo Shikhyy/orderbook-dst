@@ -1,5 +1,5 @@
 """harness/adapters/openai.py
-OpenAI API adapter (<= 30 lines).
+OpenAI API adapter.
 """
 import os
 import time
@@ -17,12 +17,23 @@ class OpenAIAdapter:
     def generate(self, system: str, prompt: str, settings: dict[str, Any]) -> ModelReply:
         import openai
         client = openai.OpenAI(api_key=self.api_key)
+        kwargs: dict[str, Any] = {
+            "model": settings["model_id"],
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+        }
+        # Only send settings that models.toml sets explicitly. Reasoning models
+        # reject a non-default temperature, so it is never sent by default.
+        if "temperature" in settings:
+            kwargs["temperature"] = settings["temperature"]
+        if "max_tokens" in settings:
+            kwargs["max_completion_tokens"] = settings["max_tokens"]
+        if "reasoning_effort" in settings:
+            kwargs["reasoning_effort"] = settings["reasoning_effort"]
         t0 = time.time()
-        res = client.chat.completions.create(
-            model=settings.get("model_id", "gpt-4o"),
-            temperature=settings.get("temperature", 1.0),
-            messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-        )
+        res = client.chat.completions.create(**kwargs)
         choice = res.choices[0]
         usage = res.usage
         return ModelReply(

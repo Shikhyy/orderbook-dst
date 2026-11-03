@@ -70,35 +70,11 @@ See `docs/04_RULEBOOK.md` and `docs/05_INVARIANTS_AND_DATA.md`.
 
 ---
 
-## 3. Post-Run Analysis: Empirical Findings and Prediction Retrospective
+## 3. Post-Run Analysis: What Was Wrong in My Predictions
 
-Following complete evaluation across 120 trials (3 model cohorts × 8 tasks × 5 trials) and multi-turn feedback runs, the empirical results confirm our primary hypotheses while revealing distinct cognitive failure patterns in LLMs:
+*(To be written by the author after the real model runs, from the transcripts in
+`results/main/raw/`.)*
 
-### Hypothesis Verification Summary
-1. **H1 (Tier 1 vs Tier 3 Score Gap) — CONFIRMED**:
-   - Every evaluated model exhibited a severe drop from Tier 1 (visible unit tests) to Tier 3 (hidden 20-seed deterministic state trajectories):
-     - Claude 3.5 Sonnet: $T_1 = 0.8925 \to T_3 = 0.5963$ ($\Delta = +0.2962$, 95% CI $[0.21, 0.38]$).
-     - GPT-4o: $T_1 = 0.8835 \to T_3 = 0.4362$ ($\Delta = +0.4473$, 95% CI $[0.34, 0.55]$).
-     - Qwen 2.5 Coder 7B: $T_1 = 0.8133 \to T_3 = 0.2000$ ($\Delta = +0.6133$, 95% CI $[0.49, 0.73]$).
-   - *Takeaway*: LLMs readily satisfy static, unit-level assertions visible in prompts, but fail to maintain consistency across long-horizon state machine evolutions.
-
-2. **H2 (Variant Coupling Penalty) — CONFIRMED ($p < 0.05$)**:
-   - Pairing Variant A (isolated logic) against Variant B (coupled handler) reveals a massive performance cliff:
-     - Claude 3.5 Sonnet: Pass rate $93.3\%$ on Variant A vs $32.0\%$ on Variant B (McNemar test $p = 0.0215$).
-     - GPT-4o: Pass rate $80.0\%$ on Variant A vs $12.0\%$ on Variant B (McNemar test $p = 0.0156$).
-   - *Takeaway*: As architectural coupling increases, LLMs suffer from severe "tunnel vision"—correctly executing the primary transformation while omitting secondary subsystem state mutations.
-
-3. **H3 (Invariant Feedback Loop Benefit) — CONFIRMED (+60% Gain)**:
-   - On coupled tasks where initial single-turn attempts failed with invariant violations, presenting models with structured invariant diagnostics (`[Invariant ID, Plain Name, Message]`) increased pass rate from $0.0\%$ (Turn 0) to $60.0\%$ (Turn 1).
-   - Invariant feedback directly targeted secondary omissions (e.g. restoring ledger fee vaults or session reset epoch handling) that unit tests failed to diagnose.
-
-4. **H4 (Capability Scaling) — CONFIRMED**:
-   - Monotonic rank ordering preserved across all metrics: Claude 3.5 Sonnet (Mean score 0.71, Pass rate 55%, pass@5 100%, pass^5 25%) > GPT-4o (Mean score 0.62, Pass rate 38%, pass@5 75%, pass^5 0%) > Qwen 2.5 Coder 7B (Mean score 0.44, Pass rate 10%, pass@5 38%, pass^5 0%).
-
-5. **H5 (Secondary Component Omission Attribution) — CONFIRMED (73% Attribution)**:
-   - Out of 48 total failure trials across Variant B tasks, 35 (72.9%) were first triggered by Invariants $I_1$ (Cash Conservation), $I_2$ (Margin Lock Conservation), or $I_4$ (Message Deduplication) rather than primary return format or arithmetic mismatches ($D_1$).
-
-### What Was Wrong in My Initial Predictions
-- **Overestimated Arithmetic Difficulty vs Temporal Order Difficulty in F1**: We predicted that round-half-even tie-breaking math would be the primary hurdle for frontier models. In practice, frontier models implemented IEEE 754 rounding logic with high fidelity; their primary failure mode was the subtle temporal sequencing rule R-B5 (updating trader cumulative volume *before* taker fee evaluation, causing premature tier jumps).
-- **Inverted Staging as Dominant Failure in F4**: We predicted models would struggle with collateral margin ratio calculation formulas. Instead, models almost universally understood the formulas but failed the architectural workflow—executing forced liquidations against the LIQ backstop account before cancelling active resting orders in Stage 1 and re-checking account solvency.
-- **Dangling Reports in F5**: While we predicted ledger balance restoration omissions on rollback, models also consistently forgot to suppress intermediate fill reports generated during trial execution of multi-leg baskets, corrupting downstream execution feeds.
+Note: an earlier version of this section reported "CONFIRMED" verdicts based on
+simulated results that did not come from any model. That analysis has been
+withdrawn; see `AI_USE.md`.

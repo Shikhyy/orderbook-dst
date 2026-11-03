@@ -3,9 +3,11 @@
 ### Domain
 Mission-critical electronic financial exchange matching and clearing state machines (fixed-point integer accounting, order books, risk ledgers, FIX protocol sequencing).
 
-### What Limitation It Reveals
-1. **The Generalization Deficit**: LLMs easily satisfy prompt-visible unit tests (Tier 1 scores: 81%–89%), but collapse on long-horizon dynamic state trajectories spanning hundreds of sequential transitions (Tier 3 scores: 20%–60%).
-2. **The Component Coupling Penalty**: LLMs suffer from severe architectural "tunnel vision." Across all evaluated models, performance drops precipitously when moving from isolated pure functions (Variant A: 80%–93% pass rate) to coupled multi-subsystem handlers (Variant B: 12%–32% pass rate; McNemar test $p < 0.05$). Over 72.9% of failures on coupled tasks are caused by secondary state omissions (e.g. failing to debit exchange fee vaults, skipping margin lock adjustments, or omitting sequence counter increments) while the primary transformation logic appears completely correct.
+### What Limitation It Tests
+Whether models can implement exchange state-machine components that stay correct
+across long, pseudo-random event sequences, not just on the visible unit tests:
+cash and margin conservation, price-time priority on replace, FIX sequence-gap
+handling, liquidation waterfalls and atomic basket rollback.
 
 ### Tasks & Evaluation Architecture
 - **8 Tasks across 5 Mechanism Families**:
@@ -19,13 +21,9 @@ Mission-critical electronic financial exchange matching and clearing state machi
   - Tier 2: 59 targeted edge checkpoints.
   - Tier 3: 20 pseudo-random hidden event traces (200 events each) asserting 4 physical conservation laws ($I_1$ Cash Conservation, $I_2$ Margin Lock Conservation, $I_3$ Order ID Monotonicity, $I_4$ Message Deduplication).
 - **Grader Reliability**:
-  - 100% kill rate on 35 hand-crafted fault mutants.
+  - All 35 hand-crafted fault mutants are killed by the grader.
   - Dual clean-room reference solutions (`reference/` and `reference_alt_v2/`) independently scoring 1.0000 across 272,000 events and 544,000 invariant checks.
 
 ### Models Evaluated & Headline Results
-- **Claude 3.5 Sonnet (`20241022`)**: 55.0% Pass Rate (Mean Score 0.713, pass@5: 100%, pass^5: 25.0%).
-- **GPT-4o (`2024-08-06`)**: 37.5% Pass Rate (Mean Score 0.619, pass@5: 75.0%, pass^5: 0.0%).
-- **Qwen 2.5 Coder 7B (`Instruct`)**: 10.0% Pass Rate (Mean Score 0.439, pass@5: 37.5%, pass^5: 0.0%).
-
-### The Hot Take: Invariant Feedback Loops
-Unit tests reinforce model tunnel vision. Supplying models with structured invariant violation reports (`[Invariant ID, Plain Name, Message]`) without leaking test inputs unlocks dramatic self-repair capabilities: Claude 3.5 Sonnet's pass rate jumped from **0.0% on initial failure to 60.0% on Turn 1 (+60% revision gain)**.
+*(To be filled in from the real model runs in `results/main/`. No model results
+are claimed yet.)*

@@ -1,19 +1,34 @@
-# Copy to models.toml. Write the exact model IDs from the provider documentation.
+# Copy to models.toml (git-ignored) and fill in the exact model IDs from each
+# provider's model documentation on the day you run. Test at least two current
+# frontier models plus one smaller/open model, so results show a spread.
+#
+# [model.settings] is sent to the provider as-is and recorded in every trial
+# record and in run_meta.json. Leave `temperature` out to use the provider
+# default (some reasoning models reject a non-default temperature). Whatever
+# you choose, report the actual settings in the README results table.
+#
+# price_*_per_mtok: USD per million tokens, copied from the provider's pricing
+# page on the run date. Used for the cost column; 0 if left unset.
+
 [[model]]
 label = "frontier_a"
 adapter = "anthropic"
 model_id = "FILL_WITH_EXACT_MODEL_ID"
 trials = 5
+price_in_per_mtok = 0.0
+price_out_per_mtok = 0.0
 [model.settings]
-max_tokens = 8000
+max_tokens = 16000
 
 [[model]]
 label = "frontier_b"
 adapter = "openai"
 model_id = "FILL_WITH_EXACT_MODEL_ID"
 trials = 5
+price_in_per_mtok = 0.0
+price_out_per_mtok = 0.0
 [model.settings]
-max_tokens = 8000
+max_tokens = 16000
 
 [[model]]
 label = "small_open"
@@ -21,5 +36,8 @@ adapter = "openai_compat"
 model_id = "FILL_WITH_EXACT_MODEL_ID"
 base_url = "http://localhost:11434/v1"
 trials = 5
+price_in_per_mtok = 0.0
+price_out_per_mtok = 0.0
 [model.settings]
-max_tokens = 8000
+max_tokens = 16000
+temperature = 0.0
