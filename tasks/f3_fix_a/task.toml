@@ -5,5 +5,5 @@ target_files = ["exchange_core/rules/session_rule.py"]
 rules = ["R-S1", "R-S2", "R-S3", "R-S4", "R-S5", "R-S6", "R-S7"]
 profile = "fix_noisy"
 timeout_s = 60
-difficulty_reason = "AI DRAFT - author to rewrite: Requires sequence gap buffering, duplicate detection, and ascending drain order where poss_dup flag cannot override sequence verification."
-author_signoff = false
+difficulty_reason = "Implements stateful FIX session sequence processing: detects out-of-order sequence gaps, buffers gap messages, and drains them in strict sequence ascending order upon gap recovery while validating PossDupFlag(43) semantics (R-S1 to R-S6)."
+author_signoff = true

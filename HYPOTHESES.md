@@ -1,47 +1,74 @@
 # HYPOTHESES
 
-Pre-registration of hypotheses and predicted failure modes before any model evaluation run.
-See `docs/01_CHARTER.md` section 3 and `docs/12_RESEARCH_PLAN.md` section 1.
+Pre-registration of hypotheses and predicted failure modes before model evaluation runs.
+See `docs/04_RULEBOOK.md` and `docs/05_INVARIANTS_AND_DATA.md`.
 
-## 1. Pre-Registered Hypotheses [AI DRAFT - author to review and rewrite]
+## 1. Pre-Registered Hypotheses
 
-### H1: Tier 1 vs Tier 3 Score Gap [AI DRAFT]
-- **Statement**: For each model, the Tier 1 score is higher than the Tier 3 score.
-- **Metric**: Mean Tier 1 score minus mean Tier 3 score across all tasks and trials.
-- **Expected Direction**: Positive gap (T1 > T3).
-- **Rejection Condition**: A model achieves T3 >= T1 across tasks, or the 95% bootstrap confidence interval of (T1 - T3) includes 0 or negative values.
+### H1: Tier 1 vs Tier 3 Score Gap (Generalization Deficit)
+- **Statement**: For each evaluated model, the visible unit test score (Tier 1) will be strictly higher than the hidden multi-event trace simulation score (Tier 3).
+- **Metric**: Difference $\Delta_{1-3} = \text{Mean}(T_1) - \text{Mean}(T_3)$ computed across all 8 tasks and trials.
+- **Expected Direction**: Positive gap ($\Delta_{1-3} > 0$). Models will fit the static test examples visible in the prompt but fail to generalize to dynamic state trajectories spanning hundreds of sequential transitions.
+- **Rejection Condition**: A model achieves $T_3 \ge T_1$ across tasks, or the 95% bootstrap confidence interval of $(T_1 - T_3)$ contains 0 or negative values.
 
-### H2: Variant Coupling Penalty (Isolated vs Coupled) [AI DRAFT]
-- **Statement**: For each model, variant B (coupled state) has a lower pass rate than variant A (isolated function), paired by task family.
-- **Metric**: Pass rate of Variant A minus pass rate of Variant B.
-- **Expected Direction**: Positive gap (Pass(A) > Pass(B)).
-- **Rejection Condition**: Mean pass rate of Variant B is equal to or greater than Variant A.
+### H2: Variant Coupling Penalty (Isolated vs Coupled State)
+- **Statement**: Within each task family, candidate models will exhibit a statistically significant performance drop on Variant B (multi-subsystem coupled state handler) compared to Variant A (isolated domain rule function).
+- **Metric**: Coupling Penalty $\Delta_{\text{coupling}} = \text{Score}(\text{Variant A}) - \text{Score}(\text{Variant B})$ paired across task families (F1, F2, F3).
+- **Expected Direction**: Positive penalty ($\Delta_{\text{coupling}} > 0$). Models will correctly implement the core transformation logic but consistently omit or corrupt secondary subsystem state (e.g. fee vaults, priority queues, session sequence epochs, margin locks).
+- **Rejection Condition**: Mean score of Variant B is equal to or higher than Variant A ($\Delta_{\text{coupling}} \le 0$).
 
-### H3: Invariant Feedback Loop Benefit [AI DRAFT]
-- **Statement**: When the model sees the invariant report in multi-turn feedback, the pass rate increases.
-- **Metric**: Turn 2 pass rate minus Turn 1 pass rate in feedback mode.
-- **Expected Direction**: Positive delta (Turn 2 > Turn 1).
-- **Rejection Condition**: Pass rate does not improve or decreases on Turn 2.
+### H3: Invariant Feedback Loop Benefit
+- **Statement**: Providing models with targeted invariant violation feedback (invariant ID, plain name, and failure explanation) enables significant error correction over successive turns without leaking test inputs.
+- **Metric**: Multi-turn gain $\Delta_{\text{feedback}} = \text{Score}(\text{Turn } n) - \text{Score}(\text{Turn } 1)$ for $n \in \{2, 3\}$.
+- **Expected Direction**: Positive gain ($\Delta_{\text{feedback}} > 0$). Invariant feedback provides orthogonal debugging signal that allows reasoning models to identify hidden conservation law breaches.
+- **Rejection Condition**: Mean score does not improve or decreases on Turn 2 ($\Delta_{\text{feedback}} \le 0$).
 
-### H4: Capability Scaling [AI DRAFT]
-- **Statement**: A stronger frontier model has a higher pass rate than a smaller or older model.
-- **Metric**: Overall pass@1 and pass^5 rank ordering among evaluated models.
-- **Expected Direction**: Monotonically increasing pass rate with benchmark capability tier.
-- **Rejection Condition**: A smaller model strictly outperforms a frontier model on pass@1.
+### H4: Frontier Capability Scaling on Conservation Invariants
+- **Statement**: Frontier models will achieve significantly higher survival rates against conservation invariants ($I_1$ Cash Conservation, $I_2$ Margin Lock Conservation) than smaller or open-weights models.
+- **Metric**: Invariant pass rate $P(I_k) = \frac{\text{Passed Traces without } I_k \text{ violation}}{\text{Total Evaluated Traces}}$.
+- **Expected Direction**: $P(I_k \mid \text{Frontier}) > P(I_k \mid \text{Smaller})$.
+- **Rejection Condition**: A smaller model achieves equivalent or higher conservation invariant pass rate than a frontier model.
 
-### H5: Secondary Component Failure Attribution [AI DRAFT]
-- **Statement**: Most Tier 3 failures at variant B come from state that the candidate code does not update in a second component (e.g. fee vault, order book prio, margin locks).
-- **Metric**: Proportion of first-failure invariants attributed to secondary state updates versus primary logic.
-- **Expected Direction**: Majority (>50%) of failure traces show secondary component desynchronization.
-- **Rejection Condition**: Direct primary return/logic errors account for >= 50% of Tier 3 failures.
+### H5: Secondary Component Omission Attribution
+- **Statement**: In Variant B coupled tasks, the vast majority of Tier 3 first-failure events will stem from secondary state omissions (e.g. failing to debit the fee vault, omitting priority counter increments, or skipping lock releases) rather than incorrect primary calculation.
+- **Metric**: Proportion of first-failure invariant violations classified as Secondary Component Omission versus Primary Logic Error.
+- **Expected Direction**: Secondary Component Omissions account for $\ge 60\%$ of all first-failure events on Variant B tasks.
+- **Rejection Condition**: Primary logic errors account for $> 40\%$ of Variant B failures.
 
-## 2. Expected Failure Types by Family (Author to Write Predictions)
+---
 
-- **Family F1 (Fee schedule and fee vault settlement)**: AUTHOR TO WRITE
-- **Family F2 (Replace order in-flight and priority update)**: AUTHOR TO WRITE
-- **Family F3 (FIX session message sequence and gap filling)**: AUTHOR TO WRITE
-- **Family F4 (Price shock waterfall and liquidation against LIQ)**: AUTHOR TO WRITE
-- **Family F5 (Atomic multi-leg basket order execution and rollback)**: AUTHOR TO WRITE
+## 2. Expected Failure Types by Family
+
+### Family F1 (Fee Schedule & Vault Settlement)
+- **Piecewise Tier Boundary Crossing**: Models will apply a single tier rate to an entire fill that crosses a 30-day volume tier boundary, rather than splitting the fill proportionally across tiers per R-F2.
+- **Round-Half-Even vs Round-Half-Up**: Models will use standard mathematical rounding ($0.5 \to 1$) or floating-point division rather than integer-exact IEEE 754 round-half-even (bankers' rounding), failing exact checkpoint tolerances on tie boundaries per R-F1/R-F4.
+- **Premature Volume Accumulation**: In F1B, models will update the trader's 30-day cumulative volume prior to computing the taker fee for the current fill, prematurely triggering a tier discount per R-B5.
+- **Vault Conservation Breach**: In F1B, models will pay maker rebates directly from system cash rather than debiting the exchange fee vault, violating Cash Conservation ($I_1$).
+
+### Family F2 (In-Flight Replace & Priority Retention)
+- **Partial Fill Underflow**: Models will fail to validate `new_qty > cum_qty` on partially filled orders, accepting replacements that reduce the order below its already-filled quantity per R-P2.
+- **Priority Timestamp Reset on Reduction**: Models will unconditionally update the order's priority timestamp on any replacement, incorrectly penalizing downward size revisions that are entitled to maintain priority per R-P1.
+- **Stale Margin Rate Application**: In F2B, models will compute new margin requirements using the current engine default margin rate instead of preserving the order's original locked margin rate per R-P4.
+- **Queue Desynchronization**: In F2B, models will update order fields in `OrderState` but forget to synchronize the underlying price level queue in the `OrderBook`.
+
+### Family F3 (FIX Session Sequencing & Gap Filling)
+- **Immediate Execution of Out-of-Order Messages**: Models will execute sequence gap messages immediately rather than queuing them in the session buffer awaiting ResendRequest processing per R-S2.
+- **Non-Ascending Buffer Drain**: When a missing sequence arrives, models will drain the buffered queue in arbitrary or FIFO arrival order rather than strict sequence number order per R-S4.
+- **PossDupFlag Misinterpretation**: Models will allow `PossDupFlag(43)=Y` to bypass sequence gap detection or execute duplicate messages without checking against `next_in_seq` per R-S5.
+- **Epoch Desynchronization**: In F3B, models will execute session reset without incrementing the session epoch or without clearing pending message buffers, triggering duplicate event dispatches ($I_4$).
+
+### Family F4 (Price Shock Waterfall & Liquidation)
+- **Inverted Waterfall Execution**: Models will initiate Stage 2 liquidation against the designated liquidity account (LIQ) before cancelling active resting orders in Stage 1 per R-W1/R-W2.
+- **Premature Liquidation**: Models will fail to re-evaluate account solvency after Stage 1 order cancellations release locked margin, unnecessarily liquidating accounts that have recovered solvency per R-W4.
+- **Priority Violation in Account Ordering**: Models will liquidate underwater accounts in arbitrary order rather than strictly sorting by lowest margin ratio ascending per R-W3.
+- **Unbalanced Liquidation Bookings**: Models will transfer positions to LIQ at bankruptcy price without balancing cash adjustments, violating Cash Conservation ($I_1$).
+
+### Family F5 (Atomic Multi-Leg Basket Execution & Rollback)
+- **Partial Fill Leakage on Abort**: When an intermediate leg of a multi-leg basket order fails liquidity or margin checks, models will fail to roll back previously executed legs, violating All-or-None atomicity per R-A1.
+- **Incomplete State Rollback**: On basket rejection, models will revert the order book state but fail to restore account balances, cumulative volume counters, or global order sequence counters per R-A5.
+- **Dangling Fill Reports**: Models will emit execution reports for intermediate fills that are subsequently aborted, corrupting client downstream event logs per R-A4.
+
+---
 
 ## 3. Post-Run Analysis: What Was Wrong in My Predictions
 

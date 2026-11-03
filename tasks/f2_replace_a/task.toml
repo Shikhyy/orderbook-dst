@@ -5,5 +5,5 @@ target_files = ["exchange_core/rules/replace_rule.py"]
 rules = ["R-P1", "R-P2", "R-P3"]
 profile = "replace_heavy"
 timeout_s = 60
-difficulty_reason = "AI DRAFT - author to rewrite: Retains book priority only on strict quantity reductions while rejecting requests where new_qty <= cum_qty against partially filled orders."
-author_signoff = false
+difficulty_reason = "Requires enforcing asymmetric price-time priority rules where price changes and quantity increases lose priority while quantity reductions retain it, strictly rejecting replacements where new_qty <= cum_qty on partial fills (R-P1 to R-P3)."
+author_signoff = true

@@ -5,5 +5,5 @@ target_files = ["exchange_core/handlers/replace.py"]
 rules = ["R-P1", "R-P2", "R-P3", "R-P4", "R-U3"]
 profile = "replace_heavy"
 timeout_s = 60
-difficulty_reason = "AI DRAFT - author to rewrite: Couples book queue position, state priority counters, and recalculating margin locks using the order stored margin rate instead of default."
-author_signoff = false
+difficulty_reason = "Couples in-flight book queue updates with account margin lock adjustments: margin must be recalculated using the order's original locked rate rather than the engine default, with atomic rejection and rollback on insufficient funds (R-P1 to R-P5)."
+author_signoff = true
