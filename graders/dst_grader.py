@@ -21,6 +21,7 @@ from exchange_core.engine import Engine
 from exchange_core.invariants import check_invariants
 from exchange_core.types import BasketLeg, Event
 from graders.hidden_seeds import get_task_seeds
+from graders.import_policy import check_candidate_target_files
 from graders.sandbox import prepare_overlay
 from graders.trace_gen import generate_trace, make_noisy_fix_trace
 
@@ -373,11 +374,24 @@ def grade_tier3(
 def grade_task(
     task_id: str,
     target_files: dict[str, str],
+    is_candidate: bool = False,
 ) -> ScoreRecord:
     """Grade a candidate solution for a given task ID.
 
     Rule GRD-02: score = 0.2 * T1 + 0.3 * T2 + 0.5 * T3.
     """
+    if is_candidate:
+        ok, import_err = check_candidate_target_files(target_files)
+        if not ok:
+            return ScoreRecord(
+                task_id=task_id,
+                t1=0.0,
+                t2=0.0,
+                t3=0.0,
+                score=0.0,
+                passed=False,
+                error="FORBIDDEN_IMPORT",
+            )
     meta = _load_task_metadata(task_id)
     temp_dir = Path(tempfile.mkdtemp(prefix=f"grade_{task_id}_"))
 

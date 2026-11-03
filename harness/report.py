@@ -118,10 +118,18 @@ def compute_model_summary(model_label: str, trials: list[dict[str, Any]]) -> dic
     # Paired comparison
     paired = paired_comparison_a_vs_b(tasks_dict)
 
+    # Error breakdowns
+    format_errors = sum(1 for t in trials if t.get("error") == "FORMAT_ERROR")
+    forbidden_imports = sum(1 for t in trials if t.get("error") == "FORBIDDEN_IMPORT")
+    missing_files = sum(1 for t in trials if t.get("error") == "MISSING_FILE")
+
     return {
         "model": model_label,
         "trials_count": len(trials),
         "tasks_count": n_tasks,
+        "format_errors": format_errors,
+        "forbidden_imports": forbidden_imports,
+        "missing_files": missing_files,
         "pass_rate": round(avg_pass_rate, 4),
         "pass_rate_ci95": [round(ci_pass[0], 4), round(ci_pass[1], 4)],
         "pass_at_1": round(mean_pass_at_1, 4),

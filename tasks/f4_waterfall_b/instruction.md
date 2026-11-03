@@ -45,3 +45,17 @@ Returns `list[Report]` in strict order (Rule R-W6):
 - `from exchange_core.book import get_account_orders, remove_order`
 - `from exchange_core.intmath import ceil_div`
 - `from exchange_core.types import Event, Report`
+
+## Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+- `exchange_core.handlers.new_limit`
+
+All other `exchange_core` imports (including `exchange_core.rules.*`, other handlers like `exchange_core.handlers.shock`, and `exchange_core.rules.waterfall_rule`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.
