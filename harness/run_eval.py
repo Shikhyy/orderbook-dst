@@ -147,7 +147,7 @@ def run_regrade(out_dir: Path) -> None:
                 rel = fp.relative_to(files_dir).as_posix()
                 cand_files[rel] = fp.read_text(encoding="utf-8")
 
-        new_score = grade_task(task_id, cand_files)
+        new_score = grade_task(task_id, cand_files, is_candidate=True)
         record["score"] = new_score.score
         record["passed"] = new_score.passed
         record["t1"] = new_score.t1
@@ -253,7 +253,7 @@ def run_single_turn_eval(
                         error=extract_err,
                     )
                 else:
-                    score_rec = grade_task(tid, files)
+                    score_rec = grade_task(tid, files, is_candidate=True)
 
                 (trial_dir / "score.json").write_text(score_rec.to_json(), encoding="utf-8")
 

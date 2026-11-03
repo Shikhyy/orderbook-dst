@@ -1,0 +1,46 @@
+"""Replace decision rule.
+
+Rules:
+- R-P1: new_qty is new total quantity.
+- R-P2: Rejection checks (checks 2 and 3).
+- R-P3: Priority preservation:
+  - If new_price == order.price and new_qty < order.qty: keeps priority.
+  - If new_price == order.price and new_qty == order.qty: keeps priority (nothing changes).
+  - Otherwise: loses priority.
+"""
+from exchange_core.config import EngineConfig
+from exchange_core.types import Order, ReplaceDecision
+
+
+def decide_replace(
+    order: Order,
+    new_price: int,
+    new_qty: int,
+    cfg: EngineConfig,
+) -> ReplaceDecision:
+    """Decide whether a replace request is valid and whether it keeps priority.
+
+    Rules R-P1, R-P2 (checks 2 & 3), R-P3:
+    - If new_price <= 0 or new_price % cfg.tick != 0: REJECTED(INVALID_ORDER)
+    - If new_qty <= order.cum_qty: REJECTED(INVALID_REPLACE)
+    - If valid:
+        keep_priority = (new_price == order.price and new_qty <= order.qty)
+        new_leaves = new_qty - order.cum_qty
+        return ReplaceDecision(
+            ok=True, reason="", keep_priority=keep_priority, new_leaves=new_leaves
+        )
+    """
+    if new_price <= 0 or new_price % cfg.tick != 0:
+        return ReplaceDecision(ok=False, reason="INVALID_ORDER")
+
+    if new_qty <= order.cum_qty:
+        return ReplaceDecision(ok=False, reason="INVALID_REPLACE")
+
+    keep_priority = (new_price == order.price and new_qty <= order.qty)
+    new_leaves = new_qty - order.cum_qty
+    return ReplaceDecision(
+        ok=True,
+        reason="",
+        keep_priority=keep_priority,
+        new_leaves=new_leaves,
+    )

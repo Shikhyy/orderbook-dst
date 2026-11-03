@@ -13,8 +13,10 @@ models.example.toml
 README.md
 CHANGELOG.md
 HYPOTHESES.md
+EXPERT_REVIEW.md
 AI_USE.md
 conftest.py
+.pre-commit-config.yaml
 
 # Allowed docs
 docs/04_RULEBOOK.md
@@ -43,6 +45,8 @@ reference/*.py
 reference/**/*.py
 reference_alt/*.py
 reference_alt/**/*.py
+reference_alt_v2/*.py
+reference_alt_v2/**/*.py
 mutants/*.py
 mutants/**/*.py
 mutants/**/expect.toml
@@ -50,6 +54,10 @@ mutants/**/expect.toml
 # Tests
 tests/*.py
 tests/**/*.py
+
+# Evaluation Results (main and feedback runs)
+results/main/**
+results/feedback/**
 
 # CI
 .github/workflows/*.yml

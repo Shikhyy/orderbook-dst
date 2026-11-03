@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Added
+- Clarification `R-A6 [Declared]`: Basket rollback 0-based leg indexing in R-A4 (decision OQ-01).
+- Clarification `R-A7 [Declared]`: Basket IOC leg success check runs before remainder cancel in R-A3 and R-B5 (decision OQ-02).
+- Clarification `R-W7 [Declared]`: Account iteration order in R-W1 and R-W6 is lexicographic string order (decision OQ-03).
+- Clarification `R-M5 [Declared]`: Explicit lock release to free_cash on complete order fill in R-M4 (decision OQ-04).
+- Clarification `R-P5 [Declared]`: Raw best opposite price checked in R-P2 without filtering same-account orders (decision OQ-05).
+- Clarification `R-X1 [Declared]`: Environment execution convention applying skill intent when skills are missing (decision OQ-06).
+- Clarification `R-X2 [Declared]`: Missing policy files scaffolding during initial setup (decision OQ-07).
+- Clarification `R-F4 [Declared]`: Inclusive boundary condition for T0 tier threshold in R-F2 (decision OQ-08).
+- Milestone M8-prep evaluation runner and human audit tools:
+  - Evaluation runner `tools/run_all.sh`: Verifies preflight checks, runs dry-run cost estimation, supports pilot and main evaluation runs with confirmation prompts.
+  - Human audit tool `tools/human_audit.py`: Selects 20 stored trials with fixed seed (10 pass, 10 fail), blinds grader outcomes, computes 2x2 agreement matrix and Cohen's Kappa, and formats audit report in `results/human_audit.md`.
+  - Unit tests in `tests/test_human_audit.py` verifying sampling and agreement metrics against hand-calculated values.
+  - Added `make audit` target to Makefile and allowed `tools/*.sh` in `publish_allowlist.txt`.
+  - Added AI-drafted difficulty reasons across all 8 tasks in `tasks/*/task.toml` and `EXPERT_REVIEW.md` with `author_signoff = false` pending author rewrite.
+
+### Corrected
+- Mutant count and mutation testing disclosure: Clarified that the benchmark contains exactly 35 hand-crafted mutants across the 8 tasks (not 42). Formal mutation testing (mutmut) has not been run yet. Noted that `reference_alt/` was not clean-room independent; clean-room isolation was implemented in `reference_alt_v2/`.
+- Checkpoint provenance disclosure: Corrected historical descriptions characterizing Tier 2 trace checkpoints as "hand-calculated" in prior milestones. All 51 checkpoints across all 8 tasks are designated with `source: engine` because their values were generated via reference engine execution. Hand calculations are documented separately in audit worksheets.
+- Audit worksheet methodology: Noted that current Tier 2 audit worksheets in scratch/ re-derive some checkpoint transitions starting from engine-provided pre-states rather than computing the entire trace strictly end-to-end from event 0 by hand; full independent blind verification from scratch without engine pre-states is currently pending. Also clarified that the total count of checkpoints across all 8 tasks is 59 (not 51), all of which carry `source: engine`.
+
 ## [M7] 2026-11-02
 
 ### Added

@@ -35,6 +35,109 @@ READONLY_CONTEXT_FILES = [
     "exchange_core/ledger.py",
 ]
 
+STUB_TEMPLATES: dict[str, str] = {
+    "exchange_core/rules/fee_rule.py": '''"""exchange_core/rules/fee_rule.py
+Pure functions for taker fee and maker rebate calculation.
+Rules R-F2 and R-F3. Target for task f1_fee_a.
+"""
+from exchange_core.config import EngineConfig
+
+
+def compute_taker_fee(volume_before: int, notional: int, cfg: EngineConfig) -> int:
+    """Compute the taker fee for a fill using tier threshold logic (Rule R-F2)."""
+    raise NotImplementedError("Implement compute_taker_fee")
+
+
+def compute_maker_rebate(notional: int, cfg: EngineConfig) -> int:
+    """Compute the maker rebate for a fill (Rule R-F3)."""
+    raise NotImplementedError("Implement compute_maker_rebate")
+''',
+    "exchange_core/handlers/settle.py": '''"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.types import Fill, Report
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    raise NotImplementedError("Implement settle_fill")
+''',
+    "exchange_core/rules/replace_rule.py": '''"""exchange_core/rules/replace_rule.py
+Pure function for replace decisions.
+Rules R-P1, R-P2 (steps 2, 3), and R-P3. Target for task f2_replace_a.
+"""
+from exchange_core.config import EngineConfig
+from exchange_core.types import Order, ReplaceDecision
+
+
+def decide_replace(
+    order: Order,
+    new_price: int,
+    new_qty: int,
+    cfg: EngineConfig,
+) -> ReplaceDecision:
+    """Decide whether a replace request is valid and whether it keeps priority."""
+    raise NotImplementedError("Implement decide_replace")
+''',
+    "exchange_core/handlers/replace.py": '''"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    raise NotImplementedError("Implement handle_replace")
+''',
+    "exchange_core/rules/session_rule.py": '''"""exchange_core/rules/session_rule.py
+Pure function for FIX session sequence decisions.
+Rules R-S1 to R-S7. Target for task f3_fix_a.
+"""
+from exchange_core.state import SessionState
+from exchange_core.types import Event, SessionOutcome
+
+
+def on_message(session: SessionState, msg: Event) -> SessionOutcome:
+    """Process an incoming FIX message according to session sequence rules."""
+    raise NotImplementedError("Implement on_message")
+''',
+    "exchange_core/handlers/fix.py": '''"""exchange_core/handlers/fix.py
+Handler for FIX session messages and session reset.
+Rules R-S1 to R-S9. Target for task f3_fix_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_fix(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process FIX_MSG and SESSION_RESET events according to rules R-S1 to R-S9."""
+    raise NotImplementedError("Implement handle_fix")
+''',
+    "exchange_core/handlers/shock.py": '''"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_shock(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    raise NotImplementedError("Implement handle_shock")
+''',
+    "exchange_core/handlers/basket.py": '''"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    raise NotImplementedError("Implement handle_basket")
+''',
+}
+
 
 @dataclass(frozen=True)
 class BuiltPrompt:
@@ -60,6 +163,12 @@ def build_prompt_for_task(task_id: str) -> BuiltPrompt:
     # 1. Instruction
     parts.append(instruction_text.strip())
 
+    # 1b. Public tests (visible)
+    public_test_file = task_dir / "public_tests" / f"test_{task_id}.py"
+    if public_test_file.exists():
+        test_content = public_test_file.read_text(encoding="utf-8")
+        parts.append(f"\n## Public Tests (Visible)\n```python\n{test_content.strip()}\n```")
+
     # 2. Target file stubs
     parts.append("\n## Target Files to Implement\n")
     target_files = meta.get("target_files", [])
@@ -67,9 +176,10 @@ def build_prompt_for_task(task_id: str) -> BuiltPrompt:
         stub_file = task_dir / "workspace" / rel_path
         if stub_file.exists():
             content = stub_file.read_text(encoding="utf-8")
+        elif rel_path in STUB_TEMPLATES:
+            content = STUB_TEMPLATES[rel_path]
         else:
-            ref_file = REPO_ROOT / "reference" / task_id / Path(rel_path).name
-            content = ref_file.read_text(encoding="utf-8") if ref_file.exists() else ""
+            content = 'raise NotImplementedError("Implement candidate function")\n'
 
         parts.append(f"### Stub: {rel_path}\n```python\n{content.strip()}\n```")
 

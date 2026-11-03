@@ -5,4 +5,5 @@ target_files = ["exchange_core/handlers/fix.py"]
 rules = ["R-S1", "R-S2", "R-S3", "R-S4", "R-S5", "R-S6", "R-S7", "R-S8", "R-S9"]
 profile = "fix_noisy"
 timeout_s = 60
-difficulty_reason = "The handler must manage FIX_MSG and SESSION_RESET events, maintain session state and buffer, and dispatch message bodies in sequence order."
+difficulty_reason = "AI DRAFT - author to rewrite: Couples FIX session state machine with dispatching drained messages to matching engine while tracking next_seq across reset epochs."
+author_signoff = false

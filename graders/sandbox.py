@@ -70,3 +70,67 @@ def run_sandboxed(
         return -1, "", f"TimeoutExpired after {timeout_s}s"
     except Exception as e:
         return -1, "", str(e)
+
+
+def is_docker_available() -> bool:
+    """Check if Docker CLI is installed and the daemon is reachable."""
+    if shutil.which("docker") is None:
+        return False
+    try:
+        proc = subprocess.run(
+            ["docker", "info"],
+            capture_output=True,
+            timeout=5,
+        )
+        return proc.returncode == 0
+    except Exception:
+        return False
+
+
+def run_sandboxed_docker(
+    command: list[str],
+    cwd: Path,
+    timeout_s: int = 60,
+    memory_limit: str = "512m",
+    cpus: str = "1.0",
+    read_only: bool = True,
+) -> tuple[int, str, str]:
+    """Execute command in an isolated Docker container.
+
+    Security constraints:
+    - --network none: strictly prevents any external or local network traffic.
+    - -m / --memory: memory limit (default 512MB).
+    - --cpus: CPU quota (default 1.0 core).
+    - --read-only: root filesystem is read-only (with tmpfs /tmp).
+    - Clean environment: no host tokens or API keys mounted.
+    """
+    if not is_docker_available():
+        raise RuntimeError("Docker daemon is not reachable in this environment")
+
+    docker_args = [
+        "docker", "run", "--rm",
+        "--network", "none",
+        "-m", memory_limit,
+        f"--cpus={cpus}",
+        "-v", f"{cwd.resolve()}:/workspace",
+        "-w", "/workspace",
+    ]
+    if read_only:
+        docker_args.extend(["--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m"])
+
+    # Base image: standard python slim
+    docker_args.append("python:3.11-slim")
+    docker_args.extend(command)
+
+    try:
+        proc = subprocess.run(
+            docker_args,
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+        )
+        return proc.returncode, proc.stdout, proc.stderr
+    except subprocess.TimeoutExpired:
+        return -1, "", f"TimeoutExpired after {timeout_s}s in container"
+    except Exception as e:
+        return -1, "", str(e)

@@ -9,11 +9,12 @@ from pathlib import Path
 
 # Patterns that indicate a secret or private data.
 SECRET_PATTERNS = [
-    re.compile(r"(?i)(api[_-]?key|secret|password|token)\s*=\s*['\"][^'\"]{8,}['\"]"),
+    re.compile(r"(?i)['\"]?(api[_-]?key|secret|password|token)['\"]?\s*[:=]\s*['\"][^'\"]{8,}['\"]"),
     re.compile(r"sk-[A-Za-z0-9]{20,}"),          # OpenAI style key
     re.compile(r"sk-ant-[A-Za-z0-9\-]{20,}"),    # Anthropic style key
     re.compile(r"-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----"),
     re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"),  # email
+    re.compile(r"/(Users|home)/[A-Za-z0-9._\-]+"),  # personal path
 ]
 
 # Allowed email pattern (no-reply GitHub emails are safe).

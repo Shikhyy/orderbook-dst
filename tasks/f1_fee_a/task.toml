@@ -5,4 +5,5 @@ target_files = ["exchange_core/rules/fee_rule.py"]
 rules = ["R-F1", "R-F2", "R-F3", "R-U2"]
 profile = "fee_heavy"
 timeout_s = 60
-difficulty_reason = "The rule needs a split of one fill at the threshold, and a separate rounding of each part. A simple rule applies one rate to the whole fill. Round-half-even differs from round-half-up on ties."
+difficulty_reason = "AI DRAFT - author to rewrite: Requires piecewise rate calculation splitting crossing fills across tier threshold with independent round-half-even ties on each portion."
+author_signoff = false

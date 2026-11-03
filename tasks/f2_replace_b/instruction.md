@@ -10,9 +10,7 @@ The handler processes `REPLACE` events according to rules R-P1 to R-P4, adjusts 
 Target file to write:
 - `exchange_core/handlers/replace.py`
 
-Workspace structure:
-- `exchange_core/`: Core exchange modules.
-- `tests/`: Public tests for this task. Run with `pytest tests/`.
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
 
 ## 3. Interface
 
@@ -66,7 +64,7 @@ Provide the complete contents of `exchange_core/handlers/replace.py`.
 ## 6. What the grader checks
 
 The grader checks:
-1. **Tier 1 (T1)**: 10 public unit tests in `tests/`.
+1. **Tier 1 (T1)**: 10 public unit tests shown in the prompt.
 2. **Tier 2 (T2)**: Targeted replacement trace checkpoints.
 3. **Tier 3 (T3)**: 20 hidden traces evaluated against invariants:
    - I1: Cash conservation.
@@ -78,3 +76,17 @@ The grader checks:
 
 - Use integer arithmetic only. Never use floating-point numbers or operations.
 - Do not modify any other file in the repository.
+
+## Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+- `exchange_core.handlers.new_limit`
+
+All other `exchange_core` imports (including `exchange_core.rules.*`, other handlers like `exchange_core.handlers.shock`, and `exchange_core.rules.waterfall_rule`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.

@@ -30,7 +30,16 @@ package:
 secrets-scan:
 	$(BIN)/python tools/secrets_scan.py
 
+grade-docker:
+	$(BIN)/python tools/grade_docker.py
+
+preflight:
+	$(BIN)/python tools/preflight.py
+
+audit:
+	$(BIN)/python tools/human_audit.py
+
 check-publish:
 	$(BIN)/python tools/check_publish.py
 
-.PHONY: setup test lint validate demo run regrade package secrets-scan check-publish
+.PHONY: setup test lint validate demo run regrade package secrets-scan check-publish grade-docker preflight audit

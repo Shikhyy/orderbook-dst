@@ -10,9 +10,7 @@ The handler settles the financial and account changes from an order match: trans
 Target file to write:
 - `exchange_core/handlers/settle.py`
 
-Workspace structure:
-- `exchange_core/`: Core exchange modules.
-- `tests/`: Public tests for this task. Run with `pytest tests/`.
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
 
 ## 3. Interface
 
@@ -23,7 +21,16 @@ def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:
     """Settle the financial effects of a fill."""
 ```
 
-The function returns a list containing one `FILL` report.
+The function returns a list containing exactly one `FILL` report:
+```python
+Report.fill(
+    buy_order_id=fill.buy_order_id,
+    sell_order_id=fill.sell_order_id,
+    price=fill.price,
+    qty=fill.qty,
+    taker_order_id=fill.taker_order_id,
+)
+```
 
 ## 4. Rules
 
@@ -70,8 +77,8 @@ Do not edit or return other files.
 ## 6. What the grader checks
 
 The grader checks your code against three tiers:
-- **Tier 1 (Public tests)**: 9 unit tests in `tests/`.
-- **Tier 2 (Targeted trace)**: 40 events with 6 threshold-crossing fill checkpoints.
+- **Tier 1 (Public tests)**: 9 unit tests shown in the prompt.
+- **Tier 2 (Targeted trace)**: 42 events with 7 fill checkpoints (including round-half-even tie break).
 - **Tier 3 (Hidden seeds)**: 20 traces of 200 events each under the `fee_heavy` profile.
   Checks invariant I1 (conservation of cash and vault), I2 (margin locks), I3 (order queue integrity), and D1 (differential matching against reference reports).
 
@@ -79,3 +86,17 @@ The grader checks your code against three tiers:
 
 - Integer arithmetic only. Use `round_half_even` from `exchange_core.intmath`.
 - Standard library only.
+
+## Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+- `exchange_core.handlers.new_limit`
+
+All other `exchange_core` imports (including `exchange_core.rules.*`, other handlers like `exchange_core.handlers.shock`, and `exchange_core.rules.waterfall_rule`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.

@@ -7,6 +7,8 @@ def handle_shock(engine: Any, event: Event) -> list[Report]:
 ```
 in `exchange_core/handlers/shock.py`.
 
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
+
 ## 2. Applicable Rules (docs/04_RULEBOOK.md Section 8)
 - **R-W1 [Declared].** A PRICE_SHOCK event sets the `mark_price` on the state. The engine then runs the waterfall for each account except `LIQ`, in ascending account-id order.
 - **R-W2 [Declared].** For an account with `position != 0`:
@@ -24,7 +26,36 @@ in `exchange_core/handlers/shock.py`.
   - The engine reports `LIQUIDATED(account, qty)` where `qty` is the signed position before liquidation.
 - **R-W6 [Declared].** The report order for PRICE_SHOCK is: `MARK_SET`, then for each account in ascending order the stage 1 cancels, then the `LIQUIDATED` report if it occurs.
 
-## 3. Allowed Dependencies
+## 3. Interface and Return Value
+
+```python
+from exchange_core.types import Event, Report
+
+def handle_shock(engine: Any, event: Event) -> list[Report]:
+    """Process PRICE_SHOCK and run margin waterfall for breached accounts."""
+```
+
+Returns `list[Report]` in strict order (Rule R-W6):
+1. `Report.mark_set(mark_price=event.mark_price)`
+2. For each breached account in ascending account-id order:
+   - Any Stage 1 cancels: `Report.cancelled(order_id=o.order_id, reason="RISK")` in ascending `prio_seq` order
+   - If still in breach after Stage 1, Stage 2 liquidation: `Report.liquidated(account=acc_id, qty=orig_position)`
+
+## 4. Allowed Dependencies
 - `from exchange_core.book import get_account_orders, remove_order`
 - `from exchange_core.intmath import ceil_div`
 - `from exchange_core.types import Event, Report`
+
+## Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+- `exchange_core.handlers.new_limit`
+
+All other `exchange_core` imports (including `exchange_core.rules.*`, other handlers like `exchange_core.handlers.shock`, and `exchange_core.rules.waterfall_rule`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.

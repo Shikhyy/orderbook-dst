@@ -2,6 +2,7 @@
 Three-tier deterministic grader for OrderBook-DST tasks.
 See docs/07_GRADER_SPEC.md and docs/05_INVARIANTS_AND_DATA.md section 4.
 """
+
 import importlib
 import json
 import shutil
@@ -21,6 +22,7 @@ from exchange_core.engine import Engine
 from exchange_core.invariants import check_invariants
 from exchange_core.types import BasketLeg, Event
 from graders.hidden_seeds import get_task_seeds
+from graders.import_policy import check_candidate_target_files
 from graders.sandbox import prepare_overlay
 from graders.trace_gen import generate_trace, make_noisy_fix_trace
 
@@ -165,9 +167,12 @@ def grade_tier2(
                 chk_ok = True
 
                 if "expected_reports" in chk:
+                    c_idx = 0
                     for exp_r in chk["expected_reports"]:
                         matched = False
-                        for cr in cand_reports:
+                        while c_idx < len(cand_reports):
+                            cr = cand_reports[c_idx]
+                            c_idx += 1
                             if cr.kind == exp_r.get("kind"):
                                 fields_match = True
                                 for k, v in exp_r.items():
@@ -203,6 +208,10 @@ def grade_tier2(
                             if getattr(act_ord, k, None) != v:
                                 chk_ok = False
                                 break
+
+                if chk_ok and "expected_fee_vault" in chk:
+                    if cand.state.fee_vault != chk["expected_fee_vault"]:
+                        chk_ok = False
 
                 if chk_ok:
                     passed_chk += 1
@@ -246,7 +255,7 @@ def grade_tier3(
     first_failure: Optional[FailureDetail] = None
     min_triggers = 9999
 
-    is_f3 = (meta.get("family") == "F3")
+    is_f3 = meta.get("family") == "F3"
     for seed in seeds:
         trace = generate_trace(seed=seed, profile=profile, num_events=200, clean_fix=is_f3)
         min_triggers = min(min_triggers, trace.trigger_count)
@@ -257,8 +266,12 @@ def grade_tier3(
         except Exception as e:
             if not first_failure:
                 first_failure = FailureDetail(
-                    seed=seed, event_index=0, invariant="CRASH",
-                    plain_name="Engine crash", message=str(e), diff={},
+                    seed=seed,
+                    event_index=0,
+                    invariant="CRASH",
+                    plain_name="Engine crash",
+                    message=str(e),
+                    diff={},
                 )
             continue
 
@@ -275,8 +288,12 @@ def grade_tier3(
                 seed_ok = False
                 if not first_failure:
                     first_failure = FailureDetail(
-                        seed=seed, event_index=idx, invariant="CRASH",
-                        plain_name="Engine crash", message=str(e), diff={},
+                        seed=seed,
+                        event_index=idx,
+                        invariant="CRASH",
+                        plain_name="Engine crash",
+                        message=str(e),
+                        diff={},
                     )
                 break
 
@@ -287,7 +304,9 @@ def grade_tier3(
                     seed_ok = False
                     if not first_failure:
                         first_failure = FailureDetail(
-                            seed=seed, event_index=idx, invariant="I1",
+                            seed=seed,
+                            event_index=idx,
+                            invariant="I1",
                             plain_name="Rollback restores complete state",
                             message=f"state hash after rolled-back basket at event {idx} differs",
                             diff={"before": hash_before_basket, "after": cand_engine.state_hash()},
@@ -299,7 +318,9 @@ def grade_tier3(
                 seed_ok = False
                 if not first_failure:
                     first_failure = FailureDetail(
-                        seed=seed, event_index=idx, invariant="D1",
+                        seed=seed,
+                        event_index=idx,
+                        invariant="D1",
                         plain_name="Report mismatch",
                         message=f"event {idx} report differs from reference",
                         diff={
@@ -316,8 +337,12 @@ def grade_tier3(
                 if not first_failure:
                     v = violations[0]
                     first_failure = FailureDetail(
-                        seed=seed, event_index=idx, invariant=v.invariant,
-                        plain_name=v.plain_name, message=v.message, diff=v.diff,
+                        seed=seed,
+                        event_index=idx,
+                        invariant=v.invariant,
+                        plain_name=v.plain_name,
+                        message=v.message,
+                        diff=v.diff,
                     )
                 break
 
@@ -336,9 +361,12 @@ def grade_tier3(
                 seed_ok = False
                 if not first_failure:
                     first_failure = FailureDetail(
-                        seed=seed, event_index=len(trace.events), invariant="D1",
+                        seed=seed,
+                        event_index=len(trace.events),
+                        invariant="D1",
                         plain_name="Final account state mismatch",
-                        message=f"account {acc_id} final balance differs", diff={},
+                        message=f"account {acc_id} final balance differs",
+                        diff={},
                     )
                 break
 
@@ -355,9 +383,12 @@ def grade_tier3(
                 seed_ok = False
                 if not first_failure:
                     first_failure = FailureDetail(
-                        seed=seed, event_index=len(trace.events), invariant="I4",
+                        seed=seed,
+                        event_index=len(trace.events),
+                        invariant="I4",
                         plain_name="Replay gives the same state",
-                        message="noisy trace produced different state hash", diff={},
+                        message="noisy trace produced different state hash",
+                        diff={},
                     )
 
         if seed_ok:
@@ -370,11 +401,24 @@ def grade_tier3(
 def grade_task(
     task_id: str,
     target_files: dict[str, str],
+    is_candidate: bool = False,
 ) -> ScoreRecord:
     """Grade a candidate solution for a given task ID.
 
     Rule GRD-02: score = 0.2 * T1 + 0.3 * T2 + 0.5 * T3.
     """
+    if is_candidate:
+        ok, import_err = check_candidate_target_files(target_files)
+        if not ok:
+            return ScoreRecord(
+                task_id=task_id,
+                t1=0.0,
+                t2=0.0,
+                t3=0.0,
+                score=0.0,
+                passed=False,
+                error="FORBIDDEN_IMPORT",
+            )
     meta = _load_task_metadata(task_id)
     temp_dir = Path(tempfile.mkdtemp(prefix=f"grade_{task_id}_"))
 
@@ -394,7 +438,12 @@ def grade_task(
             CandEngine = getattr(core_engine_mod, "Engine")
         except Exception as e:
             return ScoreRecord(
-                task_id=task_id, t1=0.0, t2=0.0, t3=0.0, score=0.0, passed=False,
+                task_id=task_id,
+                t1=0.0,
+                t2=0.0,
+                t3=0.0,
+                score=0.0,
+                passed=False,
                 error=f"ImportError: {e}",
             )
 
@@ -402,7 +451,12 @@ def grade_task(
         t1, err1 = grade_tier1(task_id, temp_dir)
         if err1:
             return ScoreRecord(
-                task_id=task_id, t1=0.0, t2=0.0, t3=0.0, score=0.0, passed=False,
+                task_id=task_id,
+                t1=0.0,
+                t2=0.0,
+                t3=0.0,
+                score=0.0,
+                passed=False,
                 error=f"Tier 1 error: {err1}",
             )
 
@@ -410,7 +464,12 @@ def grade_task(
         t2, err2 = grade_tier2(task_id, CandEngine, meta)
         if err2:
             return ScoreRecord(
-                task_id=task_id, t1=t1, t2=0.0, t3=0.0, score=0.2 * t1, passed=False,
+                task_id=task_id,
+                t1=t1,
+                t2=0.0,
+                t3=0.0,
+                score=0.2 * t1,
+                passed=False,
                 error=f"Tier 2 error: {err2}",
             )
 
@@ -418,7 +477,7 @@ def grade_task(
         t3, first_failure, cov = grade_tier3(task_id, CandEngine, meta)
 
         score = round(0.2 * t1 + 0.3 * t2 + 0.5 * t3, 4)
-        passed = (score == 1.0)
+        passed = score == 1.0
 
         failure_dict = asdict(first_failure) if first_failure else None
         return ScoreRecord(

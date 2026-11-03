@@ -10,9 +10,7 @@ The handler manages session lifecycle (`SESSION_RESET`) and sequences incoming m
 Target file to write:
 - `exchange_core/handlers/fix.py`
 
-Workspace structure:
-- `exchange_core/`: Core exchange modules.
-- `tests/`: Public tests for this task. Run with `pytest tests/`.
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
 
 ## 3. Interface
 
@@ -21,6 +19,11 @@ from exchange_core.types import Event, Report
 
 def handle_fix(engine: "Engine", event: Event) -> list[Report]:
     """Handle FIX session events (FIX_MSG and SESSION_RESET)."""
+```
+
+Method on `engine` to dispatch message bodies (copied from `exchange_core/engine.py`):
+```python
+def dispatch(self, event: Event) -> list[Report]:
 ```
 
 The function returns a list of `Report` instances.
@@ -73,7 +76,7 @@ Do not edit or return other files.
 ## 6. What the grader checks
 
 The grader checks your code against three tiers:
-- **Tier 1 (Public tests)**: 9 unit tests in `tests/`.
+- **Tier 1 (Public tests)**: 9 unit tests shown in the prompt.
 - **Tier 2 (Targeted trace)**: Targeted trace with message gaps, duplicates, buffer drain, and reset checkpoints.
 - **Tier 3 (Hidden seeds)**: 20 traces of 200 events each under the `fix_noisy` profile, including the Invariant I4 replay law check.
   Checks invariants I1, I2, I3, I4, and D1.
@@ -81,3 +84,17 @@ The grader checks your code against three tiers:
 ## 7. Constraints
 
 - Standard library only.
+
+## Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+- `exchange_core.handlers.new_limit`
+
+All other `exchange_core` imports (including `exchange_core.rules.*`, other handlers like `exchange_core.handlers.shock`, and `exchange_core.rules.waterfall_rule`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.

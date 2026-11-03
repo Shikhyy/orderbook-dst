@@ -5,4 +5,5 @@ target_files = ["exchange_core/rules/session_rule.py"]
 rules = ["R-S1", "R-S2", "R-S3", "R-S4", "R-S5", "R-S6", "R-S7"]
 profile = "fix_noisy"
 timeout_s = 60
-difficulty_reason = "The flag poss_dup does not decide processing. Only seq decides. Buffered messages must drain in order. A reset must clear the buffer."
+difficulty_reason = "AI DRAFT - author to rewrite: Requires sequence gap buffering, duplicate detection, and ascending drain order where poss_dup flag cannot override sequence verification."
+author_signoff = false
