@@ -31,7 +31,6 @@ harness/*.py
 harness/**/*.py
 tools/*.py
 tools/**/*.py
-tools/*.sh
 tools/publish_allowlist.txt
 
 # Tasks (no workspace/)
