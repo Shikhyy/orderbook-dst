@@ -36,6 +36,13 @@ def check_hypotheses_committed() -> tuple[bool, str]:
     if not hyp_file.exists():
         return False, "HYPOTHESES.md does not exist"
 
+    text = hyp_file.read_text(encoding="utf-8")
+    if "AUTHOR TO WRITE" in text or "AI DRAFT" in text:
+        return (
+            False,
+            "HYPOTHESES.md contains 'AUTHOR TO WRITE' or 'AI DRAFT' (pending human author signoff)",
+        )
+
     res = subprocess.run(
         ["git", "log", "-1", "--format=%h (%ad)", "--date=iso", "--", "HYPOTHESES.md"],
         capture_output=True,
