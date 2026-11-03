@@ -5,4 +5,4 @@ target_files = ["exchange_core/handlers/replace.py"]
 rules = ["R-P1", "R-P2", "R-P3", "R-P4", "R-U3"]
 profile = "replace_heavy"
 timeout_s = 60
-difficulty_reason = "AUTHOR TO WRITE"
+difficulty_reason = "Couples book queue position, state priority counters, and recalculating margin locks using the order stored margin rate instead of default."

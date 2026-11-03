@@ -5,4 +5,4 @@ target_files = ["exchange_core/rules/replace_rule.py"]
 rules = ["R-P1", "R-P2", "R-P3"]
 profile = "replace_heavy"
 timeout_s = 60
-difficulty_reason = "AUTHOR TO WRITE"
+difficulty_reason = "Retains book priority only on strict quantity reductions while rejecting requests where new_qty <= cum_qty against partially filled orders."
