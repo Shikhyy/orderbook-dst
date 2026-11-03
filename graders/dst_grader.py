@@ -61,6 +61,7 @@ class ScoreRecord:
     first_failure: Optional[dict[str, Any]] = None
     coverage: Optional[dict[str, Any]] = None
     error: Optional[str] = None
+    public_test_output: Optional[str] = None
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)
@@ -77,11 +78,11 @@ def grade_tier1(
     task_id: str,
     overlay_dir: Path,
     timeout_s: int = 60,
-) -> tuple[float, Optional[str]]:
+) -> tuple[float, Optional[str], str]:
     """Run public tests in workspace via sandboxed subprocess (Rule docs/07)."""
     public_tests_dir = REPO_ROOT / "tasks" / task_id / "public_tests"
     if not public_tests_dir.exists():
-        return 1.0, None
+        return 1.0, None, ""
 
     target_test_dir = overlay_dir / "tests"
     if target_test_dir.exists():
@@ -115,18 +116,28 @@ print(json.dumps({{"passed": collector.passed, "total": collector.total, "score"
     cmd = [sys.executable, "-I", "-c", runner_code]
     code, stdout, stderr = run_sandboxed(cmd, cwd=overlay_dir, timeout_s=timeout_s)
 
+    # Exclude internal json score line from visible public test output
+    output_lines = [
+        line
+        for line in stdout.splitlines()
+        if not (line.strip().startswith('{"passed":') and line.strip().endswith("}"))
+    ]
+    pub_output = "\n".join(output_lines).strip()
+    if stderr:
+        pub_output = (pub_output + "\n" + stderr).strip()
+
     for line in reversed(stdout.splitlines()):
         try:
             res = json.loads(line)
             if "score" in res:
-                return float(res["score"]), None
+                return float(res["score"]), None, pub_output
         except Exception:
             continue
 
     if code != 0:
-        return 0.0, f"Pytest exit {code}: {stderr or stdout}"
+        return 0.0, f"Pytest exit {code}: {stderr or stdout}", pub_output
 
-    return 0.0, f"Invalid runner output: {stdout} | {stderr}"
+    return 0.0, f"Invalid runner output: {stdout} | {stderr}", pub_output
 
 
 def _reports_equal(r1: list[Any], r2: list[Any]) -> bool:
@@ -448,7 +459,7 @@ def grade_task(
             )
 
         # Run T1
-        t1, err1 = grade_tier1(task_id, temp_dir)
+        t1, err1, pub_output = grade_tier1(task_id, temp_dir)
         if err1:
             return ScoreRecord(
                 task_id=task_id,
@@ -458,6 +469,7 @@ def grade_task(
                 score=0.0,
                 passed=False,
                 error=f"Tier 1 error: {err1}",
+                public_test_output=pub_output,
             )
 
         # Run T2
@@ -471,6 +483,7 @@ def grade_task(
                 score=0.2 * t1,
                 passed=False,
                 error=f"Tier 2 error: {err2}",
+                public_test_output=pub_output,
             )
 
         # Run T3
@@ -489,6 +502,7 @@ def grade_task(
             passed=passed,
             first_failure=failure_dict,
             coverage=cov,
+            public_test_output=pub_output,
         )
     finally:
         sys.path = old_sys_path

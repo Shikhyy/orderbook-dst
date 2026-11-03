@@ -2,10 +2,12 @@
 Evaluation harness for OrderBook-DST benchmark.
 See docs/08_HARNESS_AND_STATS.md sections 1, 6, 7, and 8.
 """
+
 import argparse
 import datetime
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -104,10 +106,7 @@ def run_dry_run(
 
             total_calls += num_trials
             total_cost += cost
-            row = (
-                f"{label:<15} {tid:<15} {num_trials:<8} "
-                f"{in_tok:<12} {out_tok:<12} ${cost:<11.4f}"
-            )
+            row = f"{label:<15} {tid:<15} {num_trials:<8} {in_tok:<12} {out_tok:<12} ${cost:<11.4f}"
             print(row)
 
     print("-" * 80)
@@ -230,15 +229,7 @@ def run_single_turn_eval(
                 files, extract_err = extract_files(reply.text, expected_targets)
 
                 # Save extracted files
-                files_dir = trial_dir / "files"
-                if files_dir.exists():
-                    import shutil
-                    shutil.rmtree(files_dir)
-                files_dir.mkdir(parents=True, exist_ok=True)
-                for fpath, fcontent in files.items():
-                    fp = files_dir / fpath
-                    fp.parent.mkdir(parents=True, exist_ok=True)
-                    fp.write_text(fcontent, encoding="utf-8")
+                _save_candidate_files(trial_dir / "files", files)
 
                 cost_est = estimate_cost(model_id, reply.input_tokens, reply.output_tokens)
 
@@ -289,6 +280,282 @@ def run_single_turn_eval(
                 print(msg)
 
 
+def _save_candidate_files(dst_dir: Path, files: dict[str, str]) -> None:
+    if dst_dir.exists():
+        shutil.rmtree(dst_dir)
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    for fpath, fcontent in files.items():
+        fp = dst_dir / fpath
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        fp.write_text(fcontent, encoding="utf-8")
+
+
+def build_feedback_record(score_rec: ScoreRecord) -> dict[str, Any]:
+    """Extract strictly permitted feedback data for multi-turn revision:
+    - public test output
+    - first violation record: [invariant ID, plain name, message]
+    NO hidden trace, seed number, or expected reports.
+    """
+    first_viol = None
+    if score_rec.first_failure:
+        ff = score_rec.first_failure
+        # Strictly [invariant ID, plain name, message]
+        first_viol = [
+            str(ff.get("invariant", "")),
+            str(ff.get("plain_name", "")),
+            str(ff.get("message", "")),
+        ]
+
+    return {
+        "public_test_output": score_rec.public_test_output or "",
+        "first_violation": first_viol,
+        "error": score_rec.error,
+    }
+
+
+def format_feedback_prompt(feedback_data: dict[str, Any]) -> str:
+    """Format feedback text for model revision turn."""
+    parts = [
+        "Your previous code submission failed verification.",
+        "Here is the test feedback on your submission:",
+    ]
+    pub = feedback_data.get("public_test_output")
+    if pub:
+        parts.append(f"### Public Unit Test Output:\n```\n{pub.strip()}\n```")
+
+    first_v = feedback_data.get("first_violation")
+    if first_v:
+        inv_id, name, msg = first_v
+        parts.append(
+            f"### Invariant Violation:\n- Invariant: {inv_id}\n- Name: {name}\n- Details: {msg}"
+        )
+
+    err = feedback_data.get("error")
+    if err and not pub and not first_v:
+        parts.append(f"### Grader Error:\n{err}")
+
+    parts.append(
+        "Please provide your complete revised solution using the standard format:\n"
+        "### FILE: <relative_path>\n"
+        "```python\n"
+        "# your code\n"
+        "```"
+    )
+    return "\n\n".join(parts)
+
+
+def run_feedback_loop_eval(
+    models_cfg: list[dict[str, Any]],
+    task_ids: list[str],
+    out_dir: Path,
+    trials_override: Optional[int],
+    max_revisions: int = 3,
+) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    raw_dir = out_dir / "raw"
+    trials_file = out_dir / "trials.jsonl"
+
+    meta = {
+        "date": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "git_sha": get_git_sha(),
+        "harness_version": "1.0",
+        "mode": "feedback_loop",
+        "max_revisions": max_revisions,
+        "python_version": sys.version,
+    }
+    (out_dir / "run_meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+
+    completed: set[tuple[str, str, int]] = set()
+    if trials_file.exists():
+        for line in trials_file.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                try:
+                    rec = json.loads(line)
+                    completed.add((rec["model"], rec["task_id"], rec["trial"]))
+                except Exception:
+                    continue
+
+    for m in models_cfg:
+        label = m.get("label", "unknown")
+        adapter_type = m.get("adapter", "mock")
+        model_id = m.get("model_id", "default")
+        settings = m.get("settings", {})
+        settings["model_id"] = model_id
+        num_trials = trials_override if trials_override is not None else m.get("trials", 5)
+
+        adapter = get_adapter(adapter_type)
+
+        for tid in task_ids:
+            task_toml = REPO_ROOT / "tasks" / tid / "task.toml"
+            task_meta = tomli.loads(task_toml.read_text(encoding="utf-8"))
+            expected_targets = task_meta.get("target_files", [])
+
+            bp = build_prompt_for_task(tid)
+
+            for trial_idx in range(num_trials):
+                trial_key = (label, tid, trial_idx)
+                trial_dir = raw_dir / label / tid / str(trial_idx)
+                if trial_key in completed and (trial_dir / "score.json").exists():
+                    print(f"Skipping completed trial: {label} / {tid} / trial {trial_idx}")
+                    continue
+
+                trial_dir.mkdir(parents=True, exist_ok=True)
+                (trial_dir / "prompt.txt").write_text(bp.user_prompt, encoding="utf-8")
+
+                print(
+                    f"Running (feedback_loop): {label} | Task: {tid} | "
+                    f"Trial: {trial_idx + 1}/{num_trials}..."
+                )
+
+                total_in_tok = 0
+                total_out_tok = 0
+                total_latency = 0.0
+                turns: list[dict[str, Any]] = []
+
+                # Turn 0: Initial Attempt
+                reply = adapter.generate(bp.system, bp.user_prompt, settings)
+                (trial_dir / "reply_turn_0.txt").write_text(reply.text, encoding="utf-8")
+                (trial_dir / "reply.txt").write_text(reply.text, encoding="utf-8")
+                total_in_tok += reply.input_tokens
+                total_out_tok += reply.output_tokens
+                total_latency += reply.latency_s
+
+                files, extract_err = extract_files(reply.text, expected_targets)
+                _save_candidate_files(trial_dir / "files_turn_0", files)
+                _save_candidate_files(trial_dir / "files", files)
+
+                if extract_err:
+                    score_rec = ScoreRecord(
+                        task_id=tid,
+                        t1=0.0,
+                        t2=0.0,
+                        t3=0.0,
+                        score=0.0,
+                        passed=False,
+                        error=extract_err,
+                    )
+                else:
+                    score_rec = grade_task(tid, files, is_candidate=True)
+
+                (trial_dir / "score_turn_0.json").write_text(score_rec.to_json(), encoding="utf-8")
+
+                turn_record = {
+                    "turn": 0,
+                    "score": score_rec.score,
+                    "passed": score_rec.passed,
+                    "t1": score_rec.t1,
+                    "t2": score_rec.t2,
+                    "t3": score_rec.t3,
+                    "error": score_rec.error,
+                    "first_failure": score_rec.first_failure,
+                    "in_tok": reply.input_tokens,
+                    "out_tok": reply.output_tokens,
+                }
+                turns.append(turn_record)
+
+                # Revisions: up to max_revisions (1..3)
+                current_reply_text = reply.text
+                for rev_idx in range(1, max_revisions + 1):
+                    if score_rec.passed:
+                        break
+
+                    feedback_data = build_feedback_record(score_rec)
+                    feedback_prompt = format_feedback_prompt(feedback_data)
+                    (trial_dir / f"feedback_revision_{rev_idx}.txt").write_text(
+                        feedback_prompt, encoding="utf-8"
+                    )
+
+                    rev_user_prompt = (
+                        f"{bp.user_prompt}\n\n"
+                        f"=== PREVIOUS SUBMISSION ===\n{current_reply_text}\n\n"
+                        f"=== TEST FEEDBACK ===\n{feedback_prompt}"
+                    )
+
+                    rev_reply = adapter.generate(bp.system, rev_user_prompt, settings)
+                    (trial_dir / f"reply_revision_{rev_idx}.txt").write_text(
+                        rev_reply.text, encoding="utf-8"
+                    )
+                    (trial_dir / "reply.txt").write_text(rev_reply.text, encoding="utf-8")
+                    current_reply_text = rev_reply.text
+
+                    total_in_tok += rev_reply.input_tokens
+                    total_out_tok += rev_reply.output_tokens
+                    total_latency += rev_reply.latency_s
+
+                    files, extract_err = extract_files(rev_reply.text, expected_targets)
+                    _save_candidate_files(trial_dir / f"files_revision_{rev_idx}", files)
+                    _save_candidate_files(trial_dir / "files", files)
+
+                    if extract_err:
+                        score_rec = ScoreRecord(
+                            task_id=tid,
+                            t1=0.0,
+                            t2=0.0,
+                            t3=0.0,
+                            score=0.0,
+                            passed=False,
+                            error=extract_err,
+                        )
+                    else:
+                        score_rec = grade_task(tid, files, is_candidate=True)
+
+                    (trial_dir / f"score_revision_{rev_idx}.json").write_text(
+                        score_rec.to_json(), encoding="utf-8"
+                    )
+
+                    turn_record = {
+                        "turn": rev_idx,
+                        "score": score_rec.score,
+                        "passed": score_rec.passed,
+                        "t1": score_rec.t1,
+                        "t2": score_rec.t2,
+                        "t3": score_rec.t3,
+                        "error": score_rec.error,
+                        "first_failure": score_rec.first_failure,
+                        "in_tok": rev_reply.input_tokens,
+                        "out_tok": rev_reply.output_tokens,
+                    }
+                    turns.append(turn_record)
+
+                # Final scores and metadata
+                (trial_dir / "score.json").write_text(score_rec.to_json(), encoding="utf-8")
+                (trial_dir / "turns.json").write_text(json.dumps(turns, indent=2), encoding="utf-8")
+
+                cost_est = estimate_cost(model_id, total_in_tok, total_out_tok)
+                record = {
+                    "model": label,
+                    "model_id": model_id,
+                    "task_id": tid,
+                    "trial": trial_idx,
+                    "mode": "feedback_loop",
+                    "prompt_sha256": bp.prompt_sha256,
+                    "score": score_rec.score,
+                    "passed": score_rec.passed,
+                    "t1": score_rec.t1,
+                    "t2": score_rec.t2,
+                    "t3": score_rec.t3,
+                    "error": score_rec.error,
+                    "first_failure": score_rec.first_failure,
+                    "num_revisions": len(turns) - 1,
+                    "turns": turns,
+                    "input_tokens": total_in_tok,
+                    "output_tokens": total_out_tok,
+                    "cost_usd_est": cost_est,
+                    "latency_s": total_latency,
+                    "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                }
+
+                with trials_file.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(record) + "\n")
+
+                completed.add(trial_key)
+                msg = (
+                    f"  Finished: score={score_rec.score:.2f}, "
+                    f"passed={score_rec.passed}, revisions={len(turns) - 1}, err={score_rec.error}"
+                )
+                print(msg)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="OrderBook-DST Evaluation Harness")
     parser.add_argument(
@@ -330,8 +597,8 @@ def main() -> None:
 
     if args.mode == "single_turn":
         run_single_turn_eval(models_cfg, task_ids, Path(args.out), args.trials)
-    else:
-        raise NotImplementedError("Feedback loop mode is scheduled for milestone M8 ablation")
+    elif args.mode == "feedback_loop":
+        run_feedback_loop_eval(models_cfg, task_ids, Path(args.out), args.trials)
 
 
 if __name__ == "__main__":
