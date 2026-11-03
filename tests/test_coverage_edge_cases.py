@@ -4,6 +4,7 @@ Edge-case coverage tests for:
 2. ledger.py: pay_fee, pay_rebate, and add_volume helper functions (lines 45-60).
 3. handlers/fix.py: Unknown session auto-initialization starting at epoch 0 per Rule R-S2.
 """
+
 from exchange_core.canonical import _msg_to_dict, canonical_state_hash
 from exchange_core.config import EngineConfig
 from exchange_core.engine import Engine
@@ -111,3 +112,26 @@ def test_unknown_session_starts_at_epoch_zero() -> None:
     assert reset_sess.epoch == 1
     assert reset_sess.next_seq == 1
     assert any(r.kind == "SESSION_RESET_DONE" for r in reset_reports)
+
+
+def test_grader_tier2_expected_fee_vault_check() -> None:
+    """Verify that grade_tier2 checks expected_fee_vault and fails if fee_vault is wrong."""
+    from graders.dst_grader import _load_task_metadata, grade_tier2
+
+    meta = _load_task_metadata("f4_waterfall_b")
+
+    # Baseline Engine: fee_vault is correct, tier 2 score is 1.0
+    t2_good, err_good = grade_tier2("f4_waterfall_b", Engine, meta)
+    assert err_good is None
+    assert t2_good == 1.0
+
+    # Engine subclass that corrupts fee_vault
+    class BadFeeVaultEngine(Engine):
+        def process(self, event: Event):
+            reps = super().process(event)
+            self.state.fee_vault = 999_999_999
+            return reps
+
+    t2_bad, err_bad = grade_tier2("f4_waterfall_b", BadFeeVaultEngine, meta)
+    assert err_bad is None
+    assert t2_bad < 1.0
