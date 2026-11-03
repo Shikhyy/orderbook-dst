@@ -5,4 +5,5 @@ target_files = ["exchange_core/handlers/shock.py"]
 rules = ["R-W1", "R-W2", "R-W3", "R-W4", "R-W5", "R-W6"]
 profile = "shock_heavy"
 timeout_s = 60
-difficulty_reason = "Requires two-stage liquidation waterfall: Stage 1 resting order cancellation in priority order and margin release before Stage 2 liquidation."
+difficulty_reason = "AI DRAFT - author to rewrite: Requires two-stage liquidation waterfall: Stage 1 resting order cancellation in priority order and margin release before Stage 2 liquidation."
+author_signoff = false

@@ -49,6 +49,7 @@ def check_hypotheses_committed() -> tuple[bool, str]:
 
 def check_task_difficulty_reasons() -> tuple[bool, str]:
     unwritten = []
+    unsigned = []
     missing = []
     for tid in REQUIRED_TASKS:
         t_file = REPO_ROOT / "tasks" / tid / "task.toml"
@@ -58,16 +59,24 @@ def check_task_difficulty_reasons() -> tuple[bool, str]:
         try:
             data = tomli.loads(t_file.read_text(encoding="utf-8"))
             reason = data.get("difficulty_reason", "").strip()
-            if not reason or reason == "AUTHOR TO WRITE":
+            signoff = data.get("author_signoff", False)
+            if not reason or reason == "AUTHOR TO WRITE" or reason.startswith("AI DRAFT"):
                 unwritten.append(tid)
+            if not signoff:
+                unsigned.append(tid)
         except Exception:
             missing.append(tid)
 
     if missing:
         return False, f"Missing task.toml for: {', '.join(missing)}"
+    if unsigned:
+        return (
+            False,
+            f"author_signoff is false (pending author review) for: {', '.join(unsigned)}",
+        )
     if unwritten:
-        return False, f"difficulty_reason is 'AUTHOR TO WRITE' or empty for: {', '.join(unwritten)}"
-    return True, f"All {len(REQUIRED_TASKS)} tasks have authored difficulty reasons"
+        return False, f"difficulty_reason pending author completion for: {', '.join(unwritten)}"
+    return True, f"All {len(REQUIRED_TASKS)} tasks have signed-off authored difficulty reasons"
 
 
 def check_expert_review_exists() -> tuple[bool, str]:
