@@ -765,6 +765,44 @@
       "poss_dup": false,
       "body": null,
       "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 50000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 50000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
     }
   ],
   "checkpoints": [
@@ -881,6 +919,41 @@
         }
       },
       "source": "engine"
+    },
+    {
+      "event_index": 41,
+      "name": "chk_tie_floor_even",
+      "source": "rulebook-derived (AI), author to verify",
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 41980649898,
+          "locked_margin": 0,
+          "position": 81,
+          "volume": 8000050000
+        },
+        "A2": {
+          "free_cash": 64003550012,
+          "locked_margin": 0,
+          "position": -141,
+          "volume": 14000050000
+        },
+        "A3": {
+          "free_cash": 43984399990,
+          "locked_margin": 0,
+          "position": 60,
+          "volume": 6000000000
+        }
+      },
+      "expected_reports": [
+        {
+          "kind": "FILL",
+          "buy_order_id": 28,
+          "sell_order_id": 27,
+          "price": 50000,
+          "qty": 1,
+          "taker_order_id": 28
+        }
+      ]
     }
   ]
 }
