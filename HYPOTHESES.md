@@ -70,6 +70,51 @@ See `docs/04_RULEBOOK.md` and `docs/05_INVARIANTS_AND_DATA.md`.
 
 ---
 
+## Amendment A1 (2026-11-04, before any real model run): analysis methods
+
+The predictions above are unchanged. These notes fix how each one is computed,
+written before any real model output existed:
+
+- **H1**: T1 − T3 is taken per trial (both tiers grade the same code), averaged per
+  task, with a hierarchical bootstrap CI. Trials that never reached tier 3
+  (format, import, tier 1/2 errors) are excluded, because their T3 of 0 is a
+  placeholder.
+- **H2**: the original text said "paired across task families". Trials on task A
+  and task B are independent calls on different tasks, so they cannot be paired
+  trial-by-trial. The test is instead a one-sided permutation test that shuffles
+  A/B labels within each family (F1–F3), on both pass rate and mean score.
+  Variant B tasks are also longer than A tasks; a positive result is reported as
+  "B is harder than A", not as a pure coupling effect.
+- **H3**: paired by trial (turn 0 vs final turn of the same trial), exact McNemar
+  test on pass/fail, plus mean score gain.
+- **H4**: per-invariant survival = share of evaluated hidden seeds on which that
+  invariant was never violated.
+- **H5**: the grader compares reports (D1) before checking invariants, so a
+  conservation breach that also changes a report would be labelled D1. For H5 the
+  grader records every invariant broken at each failing seed's first failing
+  event. "Secondary omission" is proxied by "a conservation invariant (I1–I4)
+  broke"; "primary logic error" by "report or final state differs with no
+  invariant broken". The proxy is checked against the transcripts by hand.
+- **Grader-level prior** (no model involved): of the 35 hand-written mutants, 32
+  already fail a visible test, 2 are caught first by checkpoints and 1 only by the
+  hidden traces (`results/grader_analysis/mutant_tiers.md`). If model bugs resemble
+  these mutants, H1's gap will be small; a large gap would mean models make a
+  different kind of mistake than the author anticipated.
+
+---
+
+## Amendment A2 (2026-11-04, written after the first pilot runs; recorded so the change is visible)
+
+A1 above was written before any model run. The first pilot runs found grader and task problems that were fixed before any result counts. None changes a prediction or how a hypothesis is computed:
+
+- Coupled-task instructions now document `engine.cfg`, `engine.state` and `engine.dispatch`; before, a model could not know the attribute names (it failed for a reason the prompt never covered).
+- The output-format instructions contradicted the system message and the extractor accepted only one layout; both layouts are now accepted and the instructions agree.
+- The hidden simulation now also compares the whole final engine state with the reference's. A model skipped a required state update (storing the mark price) and still scored T3 = 1.00. The grader-level prior therefore changes: of **36** hand-written mutants (one added for this gap), 33 fail a visible test, 2 are caught first by checkpoints and 1 only by the hidden traces.
+- Trials that end because the model ran out of output tokens are reported as `OUTPUT_TRUNCATED`, separate from format errors.
+- Pilot results from before these fixes are discarded and not used anywhere.
+
+---
+
 ## 3. Post-Run Analysis: What Was Wrong in My Predictions
 
 *(To be written by the author after the real model runs, from the transcripts in

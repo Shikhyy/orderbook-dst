@@ -1,9 +1,11 @@
-# Pin exact versions after the first successful install. Run: pip freeze
-pytest
-hypothesis
-mutmut
-ruff
-mypy
-anthropic
-openai
-rich
+# Direct dependencies, pinned to the versions used for the reported runs.
+# Tested on Python 3.12 (Docker image) and 3.14 (author machine).
+anthropic==2.3.0
+openai==3.42.0
+pytest==9.2.0
+hypothesis==6.170.14
+mypy==2.4.1
+ruff==0.17.3
+rich==15.0.0
+# Optional: mutation testing only (not needed to run or grade the eval)
+mutmut==3.8.1

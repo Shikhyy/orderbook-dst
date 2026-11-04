@@ -1,0 +1,15 @@
+.venv/
+.git/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.env
+models.toml
+models.ablation.toml
+scratch/
+pack/
+*.zip
+tasks/**/workspace/
+results/pilot/

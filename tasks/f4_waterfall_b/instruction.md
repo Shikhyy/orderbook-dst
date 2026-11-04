@@ -41,6 +41,15 @@ Returns `list[Report]` in strict order (Rule R-W6):
    - Any Stage 1 cancels: `Report.cancelled(order_id=o.order_id, reason="RISK")` in ascending `prio_seq` order
    - If still in breach after Stage 1, Stage 2 liquidation: `Report.liquidated(account=acc_id, qty=orig_position)`
 
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. A handler may use these members:
+
+- `engine.cfg`: the `EngineConfig` instance. Its fields are listed in the `exchange_core/config.py` context file below.
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. Handlers read it and change it in place.
+
+The `Engine` class itself is not part of this task. Use only the members listed here; no other attribute of `engine` is available.
+
 ## 4. Allowed Dependencies
 - `from exchange_core.book import get_account_orders, remove_order`
 - `from exchange_core.intmath import ceil_div`

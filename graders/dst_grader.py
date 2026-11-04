@@ -62,6 +62,9 @@ class ScoreRecord:
     coverage: Optional[dict[str, Any]] = None
     error: Optional[str] = None
     public_test_output: Optional[str] = None
+    # Diagnostic only, never used for scoring or shown to the model: for every
+    # failing hidden seed, all failure labels observed at its first failing event.
+    seed_failures: Optional[list[dict[str, Any]]] = None
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)
@@ -266,6 +269,12 @@ def grade_tier3(
     passed_seeds = 0
     first_failure: Optional[FailureDetail] = None
     min_triggers = 9999
+    seed_failures: list[dict[str, Any]] = []
+
+    def _record(seed: int, idx: int, labels: list[str]) -> None:
+        seed_failures.append(
+            {"seed": seed, "event_index": idx, "labels": sorted(set(labels))}
+        )
 
     is_f3 = meta.get("family") == "F3"
     for seed in seeds:
@@ -285,6 +294,7 @@ def grade_tier3(
                     message=str(e),
                     diff={},
                 )
+            _record(seed, 0, ["CRASH"])
             continue
 
         seed_ok = True
@@ -307,6 +317,7 @@ def grade_tier3(
                         message=str(e),
                         diff={},
                     )
+                _record(seed, idx, ["CRASH"])
                 break
 
             # F5 rollback law check: state hash after rollback must equal state hash before
@@ -323,6 +334,7 @@ def grade_tier3(
                             message=f"state hash after rolled-back basket at event {idx} differs",
                             diff={"before": hash_before_basket, "after": cand_engine.state_hash()},
                         )
+                    _record(seed, idx, ["I1_ROLLBACK"])
                     break
 
             # Differential check D1: same list of reports
@@ -340,6 +352,10 @@ def grade_tier3(
                             "actual": [asdict(r) for r in cand_reps],
                         },
                     )
+                # Also label any invariant broken at this same event, so a
+                # conservation breach that changes a report is not hidden as D1.
+                extra = [v.invariant for v in check_invariants(cand_engine.state, idx, cfg)]
+                _record(seed, idx, ["D1", *extra])
                 break
 
             # Invariant checks I1, I2, I3
@@ -356,6 +372,7 @@ def grade_tier3(
                         message=v.message,
                         diff=v.diff,
                     )
+                _record(seed, idx, [v.invariant for v in violations])
                 break
 
         if not seed_ok:
@@ -380,7 +397,31 @@ def grade_tier3(
                         message=f"account {acc_id} final balance differs",
                         diff={},
                     )
+                _record(seed, len(trace.events), ["D1_FINAL"])
                 break
+
+        if not seed_ok:
+            continue
+
+        # Differential check D1: the whole final state (not just balances) must equal the
+        # reference's, so a required state update that no report or invariant reveals
+        # (for example storing the new mark price) cannot go unnoticed.
+        try:
+            states_match = cand_engine.state_hash() == ref_engine.state_hash()
+        except Exception:
+            states_match = False
+        if not states_match:
+            seed_ok = False
+            if not first_failure:
+                first_failure = FailureDetail(
+                    seed=seed,
+                    event_index=len(trace.events),
+                    invariant="D1",
+                    plain_name="Final state mismatch",
+                    message="final engine state differs from the reference",
+                    diff={},
+                )
+            _record(seed, len(trace.events), ["D1_STATE"])
 
         if not seed_ok:
             continue
@@ -402,12 +443,16 @@ def grade_tier3(
                         message="noisy trace produced different state hash",
                         diff={},
                     )
+                _record(seed, len(trace.events), ["I4"])
 
         if seed_ok:
             passed_seeds += 1
 
     t3_score = passed_seeds / len(seeds)
-    return t3_score, first_failure, {"min_trigger_events": min_triggers}
+    return t3_score, first_failure, {
+        "min_trigger_events": min_triggers,
+        "seed_failures": seed_failures,
+    }
 
 
 def grade_task(
@@ -502,8 +547,9 @@ def grade_task(
             score=score,
             passed=passed,
             first_failure=failure_dict,
-            coverage=cov,
+            coverage={"min_trigger_events": cov["min_trigger_events"]},
             public_test_output=pub_output,
+            seed_failures=cov["seed_failures"],
         )
     finally:
         sys.path = old_sys_path

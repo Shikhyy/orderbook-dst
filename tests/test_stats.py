@@ -13,8 +13,9 @@ from harness.stats import (
     compute_mttif,
     compute_pass_at_k,
     compute_pass_pow_k,
+    family_a_vs_b,
     mcnemar_exact_pvalue,
-    paired_comparison_a_vs_b,
+    paired_tier_gap,
 )
 
 
@@ -168,16 +169,47 @@ def test_compute_mttif_hand_calculated():
     assert compute_mttif([]) is None
 
 
-def test_paired_comparison():
+def test_family_a_vs_b_unpaired_permutation():
+    # A always passes, B always fails, in two families: maximal positive gap.
     trials_by_task = {
-        "f1_fee_a": [{"trial": 0, "passed": True}, {"trial": 1, "passed": False}],
-        "f1_fee_b": [{"trial": 0, "passed": False}, {"trial": 1, "passed": True}],
+        "f1_fee_a": [{"passed": True}] * 5,
+        "f1_fee_b": [{"passed": False}] * 5,
+        "f2_replace_a": [{"passed": True}] * 5,
+        "f2_replace_b": [{"passed": False}] * 5,
     }
-    res = paired_comparison_a_vs_b(trials_by_task, families=("F1",))
-    assert res["b"] == 1  # trial 0: A pass, B fail
-    assert res["c"] == 1  # trial 1: A fail, B pass
-    assert res["p_value"] == 1.0
-    assert res["total_pairs"] == 2
+    res = family_a_vs_b(trials_by_task, families=("F1", "F2"), num_permutations=2000)
+    assert res["mean_diff"] == 1.0
+    assert [f["family"] for f in res["families"]] == ["F1", "F2"]
+    # Exact one-sided p for 5 vs 5 all-separated within two strata is (1/252)^2,
+    # so the permutation estimate must be at its floor of 1/(N+1).
+    assert res["p_value"] == round(1 / 2001, 4)
+
+
+def test_family_a_vs_b_no_difference():
+    trials_by_task = {
+        "f1_fee_a": [{"passed": True}, {"passed": False}],
+        "f1_fee_b": [{"passed": True}, {"passed": False}],
+    }
+    res = family_a_vs_b(trials_by_task, families=("F1",), num_permutations=2000)
+    assert res["mean_diff"] == 0.0
+    assert res["p_value"] > 0.4
+
+
+def test_family_a_vs_b_skips_family_without_variant_a():
+    trials_by_task = {"f4_waterfall_b": [{"passed": False}]}
+    res = family_a_vs_b(trials_by_task, families=("F4",))
+    assert res["families"] == [] and res["p_value"] is None
+
+
+def test_paired_tier_gap_excludes_errored_trials():
+    trials = [
+        {"task_id": "f1_fee_a", "t1": 1.0, "t3": 0.5},
+        {"task_id": "f1_fee_a", "t1": 1.0, "t3": 1.0},
+        {"task_id": "f1_fee_b", "t1": 0.0, "t3": 0.0, "error": "FORMAT_ERROR"},
+    ]
+    res = paired_tier_gap(trials)
+    assert res["n"] == 2
+    assert res["mean_gap"] == 0.25
 
 
 def test_generate_report_pipeline(tmp_path: Path):
@@ -200,3 +232,59 @@ def test_generate_report_pipeline(tmp_path: Path):
     assert rep["models"][0]["model"] == "m1"
     assert (out_dir / "summary.json").exists()
     assert (out_dir / "summary.md").exists()
+
+
+def test_report_hypothesis_metrics_and_feedback(tmp_path: Path):
+    import json
+
+    in_dir = tmp_path / "main"
+    in_dir.mkdir()
+    rows = []
+    for i in range(3):
+        rows.append({"model": "m", "task_id": "f1_fee_a", "trial": i, "score": 1.0,
+                     "passed": True, "t1": 1.0, "t2": 1.0, "t3": 1.0,
+                     "first_failure": None, "seed_failures": []})
+        rows.append({"model": "m", "task_id": "f1_fee_b", "trial": i, "score": 0.6,
+                     "passed": False, "t1": 1.0, "t2": 1.0, "t3": 0.2,
+                     "first_failure": {"invariant": "D1", "event_index": 3},
+                     "seed_failures": [{"seed": s, "event_index": 3, "labels": ["D1", "I1"]}
+                                       for s in range(16)]})
+    rows.append({"model": "m", "task_id": "f1_fee_b", "trial": 0, "mode": "feedback_loop",
+                 "score": 1.0, "passed": True, "t1": 1.0, "t2": 1.0, "t3": 1.0,
+                 "turns": [{"turn": 0, "passed": False, "score": 0.6},
+                           {"turn": 1, "passed": True, "score": 1.0}]})
+    (in_dir / "trials.jsonl").write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+    rep = generate_report(in_dir, tmp_path / "out")
+    s = rep["models"][0]
+    assert s["trials_count"] == 6  # feedback trial summarised separately
+    assert s["h2_a_vs_b_pass"]["mean_diff"] == 1.0
+    stats = s["seed_stats"]
+    assert stats["evaluated_seeds"] == 120
+    assert stats["invariant_survival"]["I1"] == round(1 - 48 / 120, 4)
+    # A D1 mismatch that also broke I1 counts as a conservation breach (H5).
+    assert stats["h5_variant_b"]["conservation_share"] == 1.0
+    fb = rep["feedback"][0]
+    assert fb["turn0_pass_rate"] == 0.0 and fb["final_pass_rate"] == 1.0
+    assert fb["mcnemar_c_broken_to_fixed"] == 1
+    md = (tmp_path / "out" / "summary.md").read_text()
+    assert "Pre-registered hypotheses" in md and "H3" in md
+
+
+def test_sanity_checks_flag_guide_warning_signs():
+    from harness.report import sanity_checks
+
+    def summ(name, tier, pass_rate, score, passes):
+        return {"model": name, "tier": tier, "trials_count": 10, "tasks_count": 2,
+                "trials_per_task": 5, "pass_rate": pass_rate, "mean_score": score,
+                "format_errors": 0, "missing_files": 0,
+                "per_task": [{"task_id": "f1_fee_a", "passes": passes, "trials": 5,
+                              "mean_score": score}]}
+
+    warns = sanity_checks(
+        [summ("big", "frontier", 0.95, 0.5, 5), summ("tiny", "small", 0.0, 0.6, 5)]
+    )
+    text = " ".join(warns)
+    assert "headroom" in text
+    assert "tiny (tier small) outscores big" in text
+    assert "does not separate" in text
+    assert sanity_checks([summ("x", None, 0.0, 0.1, 0)])[0].startswith("Every model has a 0%")

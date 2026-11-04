@@ -10,3 +10,5 @@ models.toml
 *.mov
 node_modules/
 tasks/**/workspace/
+models.ablation.toml
+models.modal.toml

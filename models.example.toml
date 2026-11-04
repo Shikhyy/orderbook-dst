@@ -12,6 +12,7 @@
 
 [[model]]
 label = "frontier_a"
+tier = "frontier"
 adapter = "anthropic"
 model_id = "FILL_WITH_EXACT_MODEL_ID"
 trials = 5
@@ -22,6 +23,7 @@ max_tokens = 16000
 
 [[model]]
 label = "frontier_b"
+tier = "frontier"
 adapter = "openai"
 model_id = "FILL_WITH_EXACT_MODEL_ID"
 trials = 5
@@ -32,9 +34,11 @@ max_tokens = 16000
 
 [[model]]
 label = "small_open"
+tier = "small"
 adapter = "openai_compat"
 model_id = "FILL_WITH_EXACT_MODEL_ID"
-base_url = "http://localhost:11434/v1"
+base_url = "https://api.groq.com/openai/v1"
+api_key_env = "GROQ_API_KEY"
 trials = 5
 price_in_per_mtok = 0.0
 price_out_per_mtok = 0.0

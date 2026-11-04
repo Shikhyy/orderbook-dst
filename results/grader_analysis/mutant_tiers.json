@@ -1,0 +1,584 @@
+[
+  {
+    "task_id": "f1_fee_a",
+    "variant": "A",
+    "mutant": "m_float_math",
+    "t1": 0.875,
+    "t2": 0.14285714285714285,
+    "t3": 0.0,
+    "score": 0.2179,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1_FINAL": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_a",
+    "variant": "A",
+    "mutant": "m_off_by_one_boundary",
+    "t1": 0.75,
+    "t2": 0.2857142857142857,
+    "t3": 0.15,
+    "score": 0.3107,
+    "caught_by": "T1",
+    "failing_seeds": 17,
+    "seed_labels": {
+      "D1_FINAL": 17
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_a",
+    "variant": "A",
+    "mutant": "m_round_half_up",
+    "t1": 0.875,
+    "t2": 0.8571428571428571,
+    "t3": 0.0,
+    "score": 0.4321,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1_FINAL": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_a",
+    "variant": "A",
+    "mutant": "m_whole_fill_new_rate",
+    "t1": 0.875,
+    "t2": 0.2857142857142857,
+    "t3": 0.15,
+    "score": 0.3357,
+    "caught_by": "T1",
+    "failing_seeds": 17,
+    "seed_labels": {
+      "D1_FINAL": 17
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_b",
+    "variant": "B",
+    "mutant": "m_rebate_not_paid_from_vault",
+    "t1": 0.8888888888888888,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.4778,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_b",
+    "variant": "B",
+    "mutant": "m_vault_not_updated",
+    "t1": 0.8888888888888888,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.4778,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_b",
+    "variant": "B",
+    "mutant": "m_volume_before_fee",
+    "t1": 0.7777777777777778,
+    "t2": 0.14285714285714285,
+    "t3": 0.05,
+    "score": 0.2234,
+    "caught_by": "T1",
+    "failing_seeds": 19,
+    "seed_labels": {
+      "D1_FINAL": 19
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f1_fee_b",
+    "variant": "B",
+    "mutant": "m_whole_fill_new_rate",
+    "t1": 0.7777777777777778,
+    "t2": 0.2857142857142857,
+    "t3": 0.2,
+    "score": 0.3413,
+    "caught_by": "T1",
+    "failing_seeds": 16,
+    "seed_labels": {
+      "D1_FINAL": 16
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_a",
+    "variant": "A",
+    "mutant": "m_allow_equal_cum",
+    "t1": 0.8888888888888888,
+    "t2": 0.3333333333333333,
+    "t3": 0.6,
+    "score": 0.5778,
+    "caught_by": "T1",
+    "failing_seeds": 8,
+    "seed_labels": {
+      "D1": 8,
+      "I3": 8
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_a",
+    "variant": "A",
+    "mutant": "m_compare_with_leaves",
+    "t1": 0.6666666666666666,
+    "t2": 0.1111111111111111,
+    "t3": 0.0,
+    "score": 0.1667,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20,
+      "I3": 2
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_a",
+    "variant": "A",
+    "mutant": "m_keep_on_price_change",
+    "t1": 0.8888888888888888,
+    "t2": 0.7777777777777778,
+    "t3": 0.0,
+    "score": 0.4111,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 4,
+      "D1_STATE": 16
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_a",
+    "variant": "A",
+    "mutant": "m_reset_on_decrease",
+    "t1": 0.6666666666666666,
+    "t2": 0.1111111111111111,
+    "t3": 0.0,
+    "score": 0.1667,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1_STATE": 12,
+      "D1": 8
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_b",
+    "variant": "B",
+    "mutant": "m_counter_not_incremented",
+    "t1": 1.0,
+    "t2": 0.875,
+    "t3": 0.0,
+    "score": 0.4625,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I3": 20
+    },
+    "first_failure": "I3",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_b",
+    "variant": "B",
+    "mutant": "m_lock_not_adjusted",
+    "t1": 0.9,
+    "t2": 0.875,
+    "t3": 0.0,
+    "score": 0.4425,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I2": 20
+    },
+    "first_failure": "I2",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_b",
+    "variant": "B",
+    "mutant": "m_lock_uses_current_rate",
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.5,
+    "caught_by": "T3",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I2": 20
+    },
+    "first_failure": "I2",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_b",
+    "variant": "B",
+    "mutant": "m_prio_not_updated_in_state",
+    "t1": 0.8,
+    "t2": 0.375,
+    "t3": 0.05,
+    "score": 0.2975,
+    "caught_by": "T1",
+    "failing_seeds": 19,
+    "seed_labels": {
+      "D1": 12,
+      "D1_STATE": 7
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f2_replace_b",
+    "variant": "B",
+    "mutant": "m_state_changed_on_reject",
+    "t1": 0.9,
+    "t2": 1.0,
+    "t3": 0.4,
+    "score": 0.68,
+    "caught_by": "T1",
+    "failing_seeds": 12,
+    "seed_labels": {
+      "I1": 12
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_a",
+    "variant": "A",
+    "mutant": "m_buffer_overwrite",
+    "t1": 0.8888888888888888,
+    "t2": 0.875,
+    "t3": 0.0,
+    "score": 0.4403,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_a",
+    "variant": "A",
+    "mutant": "m_no_drain",
+    "t1": 0.6666666666666666,
+    "t2": 0.75,
+    "t3": 0.0,
+    "score": 0.3583,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_a",
+    "variant": "A",
+    "mutant": "m_process_out_of_order",
+    "t1": 0.5555555555555556,
+    "t2": 0.5,
+    "t3": 0.0,
+    "score": 0.2611,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_a",
+    "variant": "A",
+    "mutant": "m_skip_possdup",
+    "t1": 0.7777777777777778,
+    "t2": 0.625,
+    "t3": 0.0,
+    "score": 0.3431,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_b",
+    "variant": "B",
+    "mutant": "m_double_dispatch_on_drain",
+    "t1": 1.0,
+    "t2": 0.875,
+    "t3": 0.0,
+    "score": 0.4625,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_b",
+    "variant": "B",
+    "mutant": "m_process_out_of_order",
+    "t1": 0.5555555555555556,
+    "t2": 0.5,
+    "t3": 0.0,
+    "score": 0.2611,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_b",
+    "variant": "B",
+    "mutant": "m_reset_keeps_buffer",
+    "t1": 0.8888888888888888,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.4778,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f3_fix_b",
+    "variant": "B",
+    "mutant": "m_skip_possdup",
+    "t1": 0.7777777777777778,
+    "t2": 0.625,
+    "t3": 0.0,
+    "score": 0.3431,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I4": 20
+    },
+    "first_failure": "I4",
+    "error": null
+  },
+  {
+    "task_id": "f4_waterfall_b",
+    "variant": "B",
+    "mutant": "m_liq_account_not_updated",
+    "t1": 0.7777777777777778,
+    "t2": 0.3333333333333333,
+    "t3": 0.0,
+    "score": 0.2556,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f4_waterfall_b",
+    "variant": "B",
+    "mutant": "m_liquidate_first",
+    "t1": 0.7777777777777778,
+    "t2": 0.16666666666666666,
+    "t3": 0.1,
+    "score": 0.2556,
+    "caught_by": "T1",
+    "failing_seeds": 18,
+    "seed_labels": {
+      "D1": 18
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f4_waterfall_b",
+    "variant": "B",
+    "mutant": "m_locks_not_released_to_cash",
+    "t1": 0.8888888888888888,
+    "t2": 0.16666666666666666,
+    "t3": 0.1,
+    "score": 0.2778,
+    "caught_by": "T1",
+    "failing_seeds": 18,
+    "seed_labels": {
+      "I1": 18,
+      "D1": 4
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f4_waterfall_b",
+    "variant": "B",
+    "mutant": "m_mark_price_not_stored",
+    "t1": 0.8888888888888888,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.4778,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1_STATE": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f4_waterfall_b",
+    "variant": "B",
+    "mutant": "m_no_recheck_after_cancel",
+    "t1": 0.8888888888888888,
+    "t2": 0.16666666666666666,
+    "t3": 0.6,
+    "score": 0.5278,
+    "caught_by": "T1",
+    "failing_seeds": 8,
+    "seed_labels": {
+      "D1": 8
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f4_waterfall_b",
+    "variant": "B",
+    "mutant": "m_wrong_account_order",
+    "t1": 0.8888888888888888,
+    "t2": 0.6666666666666666,
+    "t3": 0.6,
+    "score": 0.6778,
+    "caught_by": "T1",
+    "failing_seeds": 8,
+    "seed_labels": {
+      "D1": 8
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f5_basket_b",
+    "variant": "B",
+    "mutant": "m_forgot_counter_restore",
+    "t1": 0.7777777777777778,
+    "t2": 0.75,
+    "t3": 0.0,
+    "score": 0.3806,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1_ROLLBACK": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f5_basket_b",
+    "variant": "B",
+    "mutant": "m_forgot_volume_restore",
+    "t1": 0.7777777777777778,
+    "t2": 0.125,
+    "t3": 0.0,
+    "score": 0.1931,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1_ROLLBACK": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f5_basket_b",
+    "variant": "B",
+    "mutant": "m_partial_commit",
+    "t1": 0.4444444444444444,
+    "t2": 0.125,
+    "t3": 0.0,
+    "score": 0.1264,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1_ROLLBACK": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f5_basket_b",
+    "variant": "B",
+    "mutant": "m_reports_not_discarded",
+    "t1": 0.6666666666666666,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.4333,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f5_basket_b",
+    "variant": "B",
+    "mutant": "m_restore_book_only",
+    "t1": 0.7777777777777778,
+    "t2": 0.125,
+    "t3": 0.0,
+    "score": 0.1931,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1_ROLLBACK": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  }
+]

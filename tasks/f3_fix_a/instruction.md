@@ -54,10 +54,10 @@ If `seq > next_seq`:
 
 ## 5. Output format
 
-Provide the complete contents of `exchange_core/rules/session_rule.py` inside a single markdown code block:
+Provide the complete contents of `exchange_core/rules/session_rule.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
 
-```python
 ### FILE: exchange_core/rules/session_rule.py
+```python
 ...
 ```
 

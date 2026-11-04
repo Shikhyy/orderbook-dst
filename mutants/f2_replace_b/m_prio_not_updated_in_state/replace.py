@@ -1,8 +1,52 @@
 """Mutant m_prio_not_updated_in_state: Forgets to update order.prio_seq on priority loss."""
 from exchange_core.book import best_ask, best_bid, get_order
+from exchange_core.config import EngineConfig
 from exchange_core.intmath import ceil_div
-from exchange_core.rules.replace_rule import decide_replace
-from exchange_core.types import Event, Report
+from exchange_core.types import Event, Order, ReplaceDecision, Report
+
+# --- Rule logic (replace_rule), written out here because Variant B code may not
+# import exchange_core.rules.* (see the task's 'Allowed imports'). ---
+
+def decide_replace(
+    order: Order,
+    new_price: int,
+    new_qty: int,
+    cfg: EngineConfig,
+) -> ReplaceDecision:
+    """Decide whether a replace request is valid and whether it keeps priority.
+
+    Rules R-P1, R-P2 (steps 2 and 3), R-P3:
+    - Step 2: If new_price <= 0 or new_price % TICK != 0: REJECTED(INVALID_ORDER)
+    - Step 3: If new_qty <= cum_qty: REJECTED(INVALID_REPLACE)
+    - Priority:
+      - If new_price == old_price and new_qty < old_qty: keeps prio_seq
+      - If new_price == old_price and new_qty == old_qty: nothing changes (keeps prio_seq)
+      - In all other cases (price change or qty increase): gets new prio_seq
+    """
+    # Rule R-P2 step 2: price validation
+    if new_price <= 0 or new_price % cfg.tick != 0:
+        return ReplaceDecision(ok=False, reason="INVALID_ORDER", keep_priority=False, new_leaves=0)
+
+    # Rule R-P2 step 3: quantity vs cum_qty
+    if new_qty <= order.cum_qty:
+        return ReplaceDecision(
+            ok=False, reason="INVALID_REPLACE", keep_priority=False, new_leaves=0
+        )
+
+    new_leaves = new_qty - order.cum_qty
+
+    # Rule R-P3: priority determination
+    if new_price == order.price and new_qty <= order.qty:
+        keep_priority = True
+    else:
+        keep_priority = False
+
+    return ReplaceDecision(
+        ok=True,
+        reason="",
+        keep_priority=keep_priority,
+        new_leaves=new_leaves,
+    )
 
 
 def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821

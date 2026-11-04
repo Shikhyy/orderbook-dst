@@ -127,7 +127,8 @@ def run_validation() -> bool:
         # V1: Reference solution scores 1.00
         t0 = time.time()
         ref_files = get_reference_files(task_id, meta)
-        r_ref = grade_task(task_id, ref_files)
+        # Graded exactly as a model's answer is, including the import allowlist.
+        r_ref = grade_task(task_id, ref_files, is_candidate=True)
         dt = time.time() - t0
         v1_ok = (r_ref.score == 1.00 and r_ref.passed is True)
         if not v1_ok:
@@ -135,20 +136,28 @@ def run_validation() -> bool:
         v1_tag = "PASS" if v1_ok else "FAIL"
         print(f"  [V1] Reference Check:      {v1_tag} (score={r_ref.score:.2f}, {dt:.2f}s)")
 
-        # V2: Alternative implementation (M6/M7)
-        alt_dir = REPO_ROOT / "reference_alt" / task_id
-        if alt_dir.exists():
+        # V2: Alternative implementations. reference_alt_v2/ is the clean-room one
+        # (written without seeing reference/); reference_alt/ is an earlier,
+        # non-independent variant kept for regression.
+        for alt_name, alt_label in (
+            ("reference_alt_v2", "Clean-room alt (v2)"),
+            ("reference_alt", "Alt reference (v1)"),
+        ):
+            alt_dir = REPO_ROOT / alt_name / task_id
+            if not alt_dir.exists():
+                print(f"  [V2] {alt_label + ':':<22}SKIP (missing {alt_name}/{task_id})")
+                if alt_name == "reference_alt_v2":
+                    all_passed = False
+                continue
             alt_files = {}
             for rel_path in meta.get("target_files", []):
                 alt_files[rel_path] = (alt_dir / Path(rel_path).name).read_text(encoding="utf-8")
-            r_alt = grade_task(task_id, alt_files)
+            r_alt = grade_task(task_id, alt_files, is_candidate=True)
             v2_ok = (r_alt.score == 1.00 and r_alt.passed is True)
             if not v2_ok:
                 all_passed = False
             v2_tag = "PASS" if v2_ok else "FAIL"
-            print(f"  [V2] Alt Reference Check:  {v2_tag} (score={r_alt.score:.2f})")
-        else:
-            print("  [V2] Alt Reference Check:  SKIP (Milestone M6/M7 deliverable)")
+            print(f"  [V2] {alt_label + ':':<22}{v2_tag} (score={r_alt.score:.2f})")
 
         # V3: Mutants match expect.toml
         mutants_dir = REPO_ROOT / "mutants" / task_id
@@ -166,7 +175,7 @@ def run_validation() -> bool:
                     if m_file.exists():
                         m_files[rel_path] = m_file.read_text(encoding="utf-8")
 
-                r_m = grade_task(task_id, m_files)
+                r_m = grade_task(task_id, m_files, is_candidate=True)
                 passed_m = r_m.passed == expect_data.get("passed", False)
                 t1_ok = r_m.t1 >= (expect_data.get("t1_min", 0.0) - 0.05)
                 t3_ok = r_m.t3 <= (expect_data.get("t3_max", 1.0) + 0.05)

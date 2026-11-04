@@ -138,7 +138,12 @@ def check_adapter_env_vars() -> tuple[bool, str]:
 
     for m in models:
         adapter = m.get("adapter", "")
-        req_vars = ADAPTER_ENV_VARS.get(adapter, [f"{adapter.upper()}_API_KEY"])
+        if m.get("api_key_env"):
+            req_vars = [m["api_key_env"]]
+        elif adapter == "openai_compat" and "localhost" in str(m.get("base_url", "")):
+            req_vars = []  # local server (e.g. Ollama) needs no key
+        else:
+            req_vars = ADAPTER_ENV_VARS.get(adapter, [f"{adapter.upper()}_API_KEY"])
         for v in req_vars:
             if v in seen_vars:
                 continue

@@ -32,6 +32,15 @@ Returns `list[Report]`:
 - If any leg fails: `[Report.basket_rolled_back(leg_index=failing_leg_index)]` (0-based index of failing leg).
 - If all legs succeed: reports of all individual legs in order, followed by `Report.basket_committed()`.
 
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. A handler may use these members:
+
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. Handlers read it and change it in place.
+- `engine.dispatch(event: Event) -> list[Report]`: runs the event through the engine's own handler for `event.kind` and returns its reports. `engine.process(event)` does exactly the same.
+
+The `Engine` class itself is not part of this task. Use only the members listed here; no other attribute of `engine` is available.
+
 ## 4. Allowed Dependencies
 - `from exchange_core.types import Event, Report`
 - Call `engine.dispatch(event: Event) -> list[Report]` or `handle_new_limit(engine: "Engine", event: Event) -> list[Report]` for each leg event.

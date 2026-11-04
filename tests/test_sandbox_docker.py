@@ -22,6 +22,13 @@ def test_is_docker_available_function():
 )
 def test_docker_network_socket_fails():
     """A candidate solution that attempts to open a network socket must fail inside Docker."""
+    # Make sure the base image is local first, so a slow first pull is not
+    # mistaken for a failure of the 10-second sandbox call below.
+    import subprocess
+
+    if subprocess.run(["docker", "image", "inspect", "python:3.11-slim"],
+                      capture_output=True).returncode != 0:
+        subprocess.run(["docker", "pull", "python:3.11-slim"], capture_output=True, timeout=600)
     code = (
         "import socket\n"
         "s = socket.create_connection(('8.8.8.8', 53), timeout=2)\n"

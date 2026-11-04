@@ -25,6 +25,15 @@ The function returns a list of `Report` instances:
 - On rejection: `[Report.rejected(reason)]`
 - On success: `[Report.replaced(order_id)]`
 
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. A handler may use these members:
+
+- `engine.cfg`: the `EngineConfig` instance. Its fields are listed in the `exchange_core/config.py` context file below.
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. Handlers read it and change it in place.
+
+The `Engine` class itself is not part of this task. Use only the members listed here; no other attribute of `engine` is available.
+
 ## 4. Rules
 
 ### R-P1 [Common, FIX semantics]
@@ -59,7 +68,14 @@ After a valid REPLACE:
 
 ## 5. Output format
 
-Provide the complete contents of `exchange_core/handlers/replace.py`.
+Provide the complete contents of `exchange_core/handlers/replace.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
+
+### FILE: exchange_core/handlers/replace.py
+```python
+...
+```
+
+Do not edit or return other files.
 
 ## 6. What the grader checks
 

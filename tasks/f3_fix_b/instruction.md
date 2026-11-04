@@ -28,6 +28,15 @@ def dispatch(self, event: Event) -> list[Report]:
 
 The function returns a list of `Report` instances.
 
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. A handler may use these members:
+
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. Handlers read it and change it in place.
+- `engine.dispatch(event: Event) -> list[Report]`: runs the event through the engine's own handler for `event.kind` and returns its reports. `engine.process(event)` does exactly the same.
+
+The `Engine` class itself is not part of this task. Use only the members listed here; no other attribute of `engine` is available.
+
 ## 4. Rules
 
 ### R-S1 [Common, FIX semantics]
@@ -64,10 +73,10 @@ When message bodies are dispatched, the resulting reports are accumulated in ord
 
 ## 5. Output format
 
-Provide the complete contents of `exchange_core/handlers/fix.py` inside a single markdown code block:
+Provide the complete contents of `exchange_core/handlers/fix.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
 
-```python
 ### FILE: exchange_core/handlers/fix.py
+```python
 ...
 ```
 

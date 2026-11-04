@@ -1,0 +1,157 @@
+# Free-tier model configuration (hosted APIs only, no local models).
+# None of these providers needed a payment method at the time of writing. Free
+# tiers change often: check each provider's dashboard and set rpm / rpd to the
+# limits it shows for your account.
+#
+#   cp models.free.example.toml models.toml
+#   make list-models          # exact model IDs your keys can use -> fill model_id below
+#   make dry-run && make pilot  # 1 trial per task: format, truncation, headroom
+#   make run                  # resumes; safe to re-run after a daily reset
+#
+# Keys go in .env (git-ignored), one variable per provider, named by api_key_env.
+# Never paste a key into a chat or into a file that is committed.
+#
+# Suggested line-up (4 models, 3+ model families, a real size spread):
+#   frontier A  Gemini (Google AI Studio)        - strongest free Gemini model you can list
+#   frontier B  NVIDIA NIM                       - a large open frontier model (different family)
+#   mid         Groq                             - a mid-size open model
+#   small       Groq or NVIDIA NIM               - a small (~8B) model, so the spread is visible
+# Optional extras: Mistral (free "Experiment" tier), OpenRouter ":free" models, Cerebras.
+#
+# Record in the README exactly which model IDs and tiers you used; free tiers
+# may not include a provider's newest flagship.
+#
+# Terms: some free tiers may use prompts to improve the provider's models. This
+# benchmark's prompts are synthetic (no personal or confidential data).
+#
+# Fields: rpm = max requests per minute; rpd = max requests this run makes per
+# day (the run stops cleanly there and resumes next time); tier labels the
+# model's size class for the report's "stronger models should do better" check.
+
+# --- Google AI Studio (Gemini), OpenAI-compatible endpoint -------------------
+# Key: https://aistudio.google.com/apikey  -> GEMINI_API_KEY
+[[model]]
+label = "gemini"
+tier = "frontier"
+adapter = "openai_compat"
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+api_key_env = "GEMINI_API_KEY"
+model_id = "FILL_FROM_list_models"
+trials = 5
+rpm = 5
+rpd = 100
+[model.settings]
+max_tokens = 16000
+
+# --- NVIDIA NIM (build.nvidia.com), free developer access --------------------
+# Key: https://build.nvidia.com (free NVIDIA Developer Program account) -> NVIDIA_API_KEY
+# Free access is rate-limited per minute (about 40 rpm reported); for prototyping
+# and evaluation, not production. Pick a large model for frontier B.
+[[model]]
+label = "nim_large"
+tier = "frontier"
+adapter = "openai_compat"
+base_url = "https://integrate.api.nvidia.com/v1"
+api_key_env = "NVIDIA_API_KEY"
+model_id = "FILL_FROM_list_models"
+trials = 5
+rpm = 20
+[model.settings]
+max_tokens = 16000
+
+# --- Groq: mid-size model ---------------------------------------------------------
+# Key: https://console.groq.com/keys  -> GROQ_API_KEY
+[[model]]
+label = "groq_mid"
+tier = "mid"
+adapter = "openai_compat"
+base_url = "https://api.groq.com/openai/v1"
+api_key_env = "GROQ_API_KEY"
+model_id = "FILL_FROM_list_models"
+trials = 5
+rpm = 20
+rpd = 500
+[model.settings]
+max_tokens = 8000
+
+# --- Groq (or NIM): small model, for the size spread ------------------------------
+[[model]]
+label = "groq_small"
+tier = "small"
+adapter = "openai_compat"
+base_url = "https://api.groq.com/openai/v1"
+api_key_env = "GROQ_API_KEY"
+model_id = "FILL_FROM_list_models"
+trials = 5
+rpm = 20
+rpd = 500
+[model.settings]
+max_tokens = 8000
+
+# --- Optional: Mistral (free "Experiment" tier on La Plateforme) -----------------
+# Key: https://console.mistral.ai  -> MISTRAL_API_KEY
+# [[model]]
+# label = "mistral"
+# tier = "mid"
+# adapter = "openai_compat"
+# base_url = "https://api.mistral.ai/v1"
+# api_key_env = "MISTRAL_API_KEY"
+# model_id = "FILL_FROM_list_models"
+# trials = 5
+# rpm = 2
+# [model.settings]
+# max_tokens = 8000
+
+# --- Optional: OpenRouter ":free" models -----------------------------------------
+# Key: https://openrouter.ai/keys  -> OPENROUTER_API_KEY
+# Low daily cap on free models, so 40 calls may take more than one day (it resumes).
+# [[model]]
+# label = "openrouter_free"
+# tier = "frontier"
+# adapter = "openai_compat"
+# base_url = "https://openrouter.ai/api/v1"
+# api_key_env = "OPENROUTER_API_KEY"
+# model_id = "FILL_FROM_list_models:free"
+# trials = 5
+# rpm = 10
+# rpd = 45
+# [model.settings]
+# max_tokens = 16000
+
+# --- Optional: Cerebras -------------------------------------------------------------
+# Key: https://cloud.cerebras.ai  -> CEREBRAS_API_KEY
+# [[model]]
+# label = "cerebras"
+# tier = "mid"
+# adapter = "openai_compat"
+# base_url = "https://api.cerebras.ai/v1"
+# api_key_env = "CEREBRAS_API_KEY"
+# model_id = "FILL_FROM_list_models"
+# trials = 5
+# rpm = 20
+# rpd = 500
+# [model.settings]
+# max_tokens = 8000
+
+# --- Optional, NOT FREE: Modal-hosted endpoint --------------------------------------
+# Modal bills GPU time to your Modal credits, so the free-only guard refuses it
+# unless the entry sets allow_paid = true, and budget_usd caps estimated spend
+# (latency x usd_per_second; use your endpoint's real rate). Keep it in its own
+# git-ignored file, e.g. models.modal.toml, and run it on purpose:
+#   make run MODELS=models.modal.toml TASKS=<ids> TRIALS=1
+# Proxy auth is "<token id>.<token secret>": both variables go in .env.
+# [[model]]
+# label = "modal_deepseek"
+# tier = "mid"
+# adapter = "openai_compat"
+# base_url = "https://YOUR-WORKSPACE--YOUR-ENDPOINT.us-west.modal.direct/v1"
+# api_key_env = "MODAL_PROXY_TOKEN_ID"
+# api_key_secret_env = "MODAL_PROXY_TOKEN_SECRET"
+# model_id = "deepseek-ai/DeepSeek-V4.1-Flash"
+# allow_paid = true
+# budget_usd = 0.40
+# usd_per_second = 0.006
+# trials = 1
+# rpm = 20
+# [model.settings]
+# max_tokens = 8000

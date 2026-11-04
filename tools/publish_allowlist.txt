@@ -7,9 +7,12 @@ Makefile
 pyproject.toml
 requirements.txt
 Dockerfile
+.dockerignore
 .gitignore
 .env.example
 models.example.toml
+models.ablation.example.toml
+models.free.example.toml
 README.md
 CHANGELOG.md
 HYPOTHESES.md

@@ -124,3 +124,25 @@ def test_mock_adapter_interface() -> None:
     assert reply.output_tokens > 0
     assert reply.latency_s > 0
     assert "target.py" in reply.text
+
+
+def test_marker_inside_the_fence_is_accepted() -> None:
+    reply = "```python\n### FILE: exchange_core/a.py\nX = 1\n```\n"
+    files, err = extract_files(reply, ["exchange_core/a.py"])
+    assert err is None and files["exchange_core/a.py"] == "X = 1\n"
+
+
+def test_mixed_layouts_in_one_reply_keep_each_file() -> None:
+    reply = (
+        "### FILE: exchange_core/a.py\n```python\nA = 1\n```\n\n"
+        "```python\n### FILE: exchange_core/b.py\nB = 2\n```\n"
+    )
+    files, err = extract_files(reply, ["exchange_core/a.py", "exchange_core/b.py"])
+    assert err is None
+    assert files == {"exchange_core/a.py": "A = 1\n", "exchange_core/b.py": "B = 2\n"}
+
+
+def test_marker_inside_fence_does_not_leak_into_code() -> None:
+    reply = "```python\n### FILE: exchange_core/a.py\nimport os\n```\n"
+    files, _ = extract_files(reply, ["exchange_core/a.py"])
+    assert "FILE:" not in files["exchange_core/a.py"]

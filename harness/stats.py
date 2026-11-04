@@ -121,55 +121,111 @@ def mcnemar_exact_pvalue(b: int, c: int) -> float:
     return p_value
 
 
-def paired_comparison_a_vs_b(
+def _family_variant_tasks(
+    task_ids: list[str], families: tuple[str, ...]
+) -> list[tuple[str, str, str]]:
+    """Return (family, task_a, task_b) for families that have both variants."""
+    out: list[tuple[str, str, str]] = []
+    for fam in families:
+        prefix = f"{fam.lower()}_"
+        a = next((t for t in sorted(task_ids) if t.startswith(prefix) and t.endswith("_a")), None)
+        b = next((t for t in sorted(task_ids) if t.startswith(prefix) and t.endswith("_b")), None)
+        if a and b:
+            out.append((fam, a, b))
+    return out
+
+
+def family_a_vs_b(
     trials_by_task: dict[str, list[dict[str, Any]]],
     families: tuple[str, ...] = ("F1", "F2", "F3"),
+    metric: str = "passed",
+    num_permutations: int = 10000,
+    seed: int = 42,
 ) -> dict[str, Any]:
-    """Perform paired comparison between variant A and variant B.
+    """Compare Variant A with Variant B within each task family (hypothesis H2).
 
-    Matches trial index t for task A and task B in each family.
-    Returns discordant pair counts b (A pass, B fail), c (A fail, B pass), and exact p-value.
+    Trials of task A and task B are independent model calls on different tasks, so
+    they are NOT paired. The test statistic is the mean over families of
+    (mean metric on A) - (mean metric on B). The p-value is a one-sided stratified
+    permutation test: A/B labels are shuffled within each family, which keeps the
+    family mix fixed. `metric` is "passed" (0/1) or "score".
+
+    Only families with both variants enter the comparison (F1-F3). Variant B tasks
+    are also longer and touch more state than Variant A, so a positive difference
+    measures "A vs B" as designed, not coupling in isolation.
     """
-    b = 0
-    c = 0
-    pairs: list[tuple[str, int, bool, bool]] = []
+    def val(t: dict[str, Any]) -> float:
+        if metric == "passed":
+            return 1.0 if t.get("passed", False) else 0.0
+        return float(t.get(metric, 0.0))
 
-    for fam in families:
-        fam_lower = fam.lower()
-        # Find tasks matching fam_lower + "_..._a" and fam_lower + "_..._b"
-        task_a = None
-        task_b = None
-        for t_id in trials_by_task:
-            if t_id.startswith(f"{fam_lower}_") and t_id.endswith("_a"):
-                task_a = t_id
-            elif t_id.startswith(f"{fam_lower}_") and t_id.endswith("_b"):
-                task_b = t_id
+    groups: list[tuple[str, list[float], list[float]]] = []
+    for fam, ta, tb in _family_variant_tasks(list(trials_by_task), families):
+        xa = [val(t) for t in trials_by_task[ta]]
+        xb = [val(t) for t in trials_by_task[tb]]
+        if xa and xb:
+            groups.append((fam, xa, xb))
 
-        if not task_a or not task_b:
-            continue
+    if not groups:
+        return {"metric": metric, "families": [], "mean_diff": None, "p_value": None}
 
-        trials_a = {
-            t.get("trial", idx): t.get("passed", False)
-            for idx, t in enumerate(trials_by_task[task_a])
-        }
-        trials_b = {
-            t.get("trial", idx): t.get("passed", False)
-            for idx, t in enumerate(trials_by_task[task_b])
-        }
+    def stat(gs: list[tuple[str, list[float], list[float]]]) -> float:
+        return sum(sum(a) / len(a) - sum(b) / len(b) for _, a, b in gs) / len(gs)
 
-        common_trials = sorted(set(trials_a.keys()).intersection(trials_b.keys()))
-        for tr in common_trials:
-            pass_a = bool(trials_a[tr])
-            pass_b = bool(trials_b[tr])
-            pairs.append((fam, tr, pass_a, pass_b))
-            if pass_a and not pass_b:
-                b += 1
-            elif not pass_a and pass_b:
-                c += 1
+    observed = stat(groups)
+    rng = random.Random(seed)
+    at_least = 0
+    for _ in range(num_permutations):
+        shuffled = []
+        for fam, xa, xb in groups:
+            pool = xa + xb
+            rng.shuffle(pool)
+            shuffled.append((fam, pool[: len(xa)], pool[len(xa):]))
+        if stat(shuffled) >= observed - 1e-12:
+            at_least += 1
 
     return {
-        "b": b,
-        "c": c,
-        "p_value": mcnemar_exact_pvalue(b, c),
-        "total_pairs": len(pairs),
+        "metric": metric,
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+            {
+                "family": fam,
+                "n_a": len(xa),
+                "n_b": len(xb),
+                "mean_a": round(sum(xa) / len(xa), 4),
+                "mean_b": round(sum(xb) / len(xb), 4),
+                "diff": round(sum(xa) / len(xa) - sum(xb) / len(xb), 4),
+            }
+            for fam, xa, xb in groups
+        ],
+        "mean_diff": round(observed, 4),
+        "p_value": round((at_least + 1) / (num_permutations + 1), 4),
+    }
+
+
+def paired_tier_gap(
+    trials: list[dict[str, Any]], hi: str = "t1", lo: str = "t3"
+) -> dict[str, Any]:
+    """Within-trial gap between two tiers (hypothesis H1), e.g. T1 - T3.
+
+    The two tiers are scored on the same candidate code, so the difference is
+    paired per trial. The CI is the hierarchical (task, then trial) bootstrap.
+    Trials that never reached tier 3 (format, import or tier 1/2 errors) are
+    excluded, because their tier 3 score is a placeholder 0, not a measurement.
+    """
+    by_task: dict[str, list[float]] = {}
+    for t in trials:
+        if t.get("error"):
+            continue
+        by_task.setdefault(t["task_id"], []).append(
+            float(t.get(hi, 0.0)) - float(t.get(lo, 0.0))
+        )
+    if not by_task:
+        return {"n": 0, "mean_gap": None, "ci95": None}
+    task_means = [sum(v) / len(v) for v in by_task.values()]
+    lo_ci, hi_ci = bootstrap_ci(by_task)
+    return {
+        "n": sum(len(v) for v in by_task.values()),
+        "mean_gap": round(sum(task_means) / len(task_means), 4),
+        "ci95": [round(lo_ci, 4), round(hi_ci, 4)],
     }

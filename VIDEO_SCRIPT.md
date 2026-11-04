@@ -4,47 +4,47 @@
 
 ---
 
-## Part 1: The Problem & Real-World Relevance (~1 minute)
+## Part 1: The problem and why it matters (~1 minute)
 
-**[Visual: Title Slide / Architecture Diagram showing Order Book, Ledger, and Invariants]**
+**[Visual: title slide, then the f1_fee_b instruction]**
 
-**Speaker**:
-"Hi everyone, I'm presenting **OrderBook-DST**, an evaluation benchmark that tests whether Large Language Models can write mathematically sound and architecturally robust code for financial exchange state machines.
+"OrderBook-DST asks one question: can a model write exchange-core code that stays
+correct over hundreds of events, not just on the tests it can see?
 
-In electronic trading and clearing infrastructure—like the CME, Nasdaq, or crypto derivatives exchanges—software bugs are not minor formatting issues. They cause immediate clearinghouse deficits, unauthorized credit creation, or catastrophic market crashes:
-- In 2012, Knight Capital lost **\$440 million in 45 minutes** due to an obsolete routing flag bug.
-- In 2022, an unbacked margin loophole in FTX led to an **\$8 billion deficit**, breaking basic conservation laws.
+In trading and clearing systems a bug moves money immediately. Knight Capital lost
+about 440 million dollars in 45 minutes when old code was left reachable. FTX's
+accounting let one account run a multi-billion-dollar hole. These are not crashes;
+they are code that looks right and quietly breaks a conservation law.
 
-Traditional software testing with isolated unit tests fails to catch these bugs because individual functions appear locally correct. In the finance industry, the gold standard is **Deterministic Simulation Testing (DST)**—pioneered by TigerBeetle and FoundationDB. DST runs hundreds of thousands of state transitions over a single-threaded deterministic event loop, asserting physical conservation laws after every single transition.
-
-We built OrderBook-DST to see if frontier models can actually write code that survives DST."
+So instead of asking a model about finance, I give it one file of a working
+exchange engine to write, from a written rulebook, and then I run it."
 
 ---
 
-## Part 2: Task Design & 3-Tier Grader (~1.5 minutes)
+## Part 2: How a task looks and how it is graded (~1.5 minutes)
 
-**[Visual: Code walkthrough of `tasks/f1_fee_b/instruction.md` and `graders/dst_grader.py`]**
+**[Visual: task table from the README, then `make demo` in a terminal]**
 
-**Speaker**:
-"OrderBook-DST features **8 tasks across 5 mechanism families**:
-1. Fee schedules with piecewise rate interpolation and bankers' rounding ties.
-2. In-flight order cancel/replace with asymmetric price-time priority retention.
-3. Stateful FIX session sequencing and out-of-order gap buffering.
-4. Two-stage price shock liquidation waterfalls.
-5. Multi-leg atomic basket order execution and rollback.
+"There are 8 tasks: tiered fees, cancel/replace priority, FIX sequence gaps, a
+liquidation waterfall, and atomic multi-leg baskets. Three families come in two
+versions: an isolated rule, and the handler that must also update everything
+around it.
 
-To measure what we call the **Component Coupling Penalty**, every family pairs an isolated pure transformation (Variant A) with an integrated engine handler (Variant B).
+Grading is all code, three tiers. The visible tests from the prompt. 59 hidden
+checkpoints. And 20 hidden simulations of 200 events each, replayed against a
+reference engine, checking after every event that no money is created, margin
+locks match resting orders, IDs only go up, and FIX replays give the same state.
 
-Each candidate solution is graded through a rigorous 3-tier pipeline:
-- **Tier 1 (20% weight)**: Public unit tests visible in the prompt, verifying basic API contracts.
-- **Tier 2 (30% weight)**: 59 targeted boundary checkpoints checking mathematical corner cases like exact tie rounding and partial fill replacements.
-- **Tier 3 (50% weight)**: 20 pseudo-random hidden event traces—200 sequential events each—asserting 4 inviolable financial conservation laws:
-  - Invariant $I_1$: Total cash across all accounts and the fee vault is strictly conserved. Zero money created or destroyed.
-  - Invariant $I_2$: Collateral margin locks exactly cover all resting orders.
-  - Invariant $I_3$: Order IDs and book queue priority timestamps strictly increment.
-  - Invariant $I_4$: Sequence gap buffers drain in strict order with zero duplicate dispatches.
+Here is why the last tier matters. *(run `make demo`)* This bug changes one word:
+it re-locks margin at today's rate instead of the order's original rate. It passes
+every visible test and every checkpoint. The simulation catches it on all 20
+seeds: invariant I2, order 31's lock is wrong.
 
-To guarantee zero false passes and zero false rejections, we validated the grader against **two independent clean-room reference solutions**—both achieving a perfect 1.0000 score across 272,000 events—and proved that our grader **kills 100% of 35 hand-crafted fault mutants**."
+I validated the grader before running any model: the reference and a clean-room
+second reference written without seeing the first both score 1.0 on every task;
+all 36 hand-written bugs fail; empty and hard-coded stubs score near zero; and
+grading is deterministic. Of those 36 bugs, 33 are already caught by the visible
+tests, so the question for the models is whether their mistakes look like mine."
 
 ---
 

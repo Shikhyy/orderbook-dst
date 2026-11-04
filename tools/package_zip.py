@@ -25,10 +25,12 @@ def get_tracked_files() -> list[Path]:
 
 
 def get_results_files() -> list[Path]:
-    """Find files in results/main/ and results/feedback/ to include."""
+    """Find files in results/main/, results/feedback/ and transcripts/ to include."""
     results_files: list[Path] = []
-    for sub in ["main", "feedback"]:
-        dir_path = REPO_ROOT / "results" / sub
+    subs = ["main", "feedback", "ablation", "grader_analysis"]
+    dirs = [REPO_ROOT / "results" / sub for sub in subs]
+    dirs.append(REPO_ROOT / "transcripts")
+    for dir_path in dirs:
         if dir_path.exists():
             for p in dir_path.rglob("*"):
                 if p.is_file() and not p.name.startswith("."):

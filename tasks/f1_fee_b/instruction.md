@@ -32,6 +32,15 @@ Report.fill(
 )
 ```
 
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. A handler may use these members:
+
+- `engine.cfg`: the `EngineConfig` instance. Its fields are listed in the `exchange_core/config.py` context file below.
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. Handlers read it and change it in place.
+
+The `Engine` class itself is not part of this task. Use only the members listed here; no other attribute of `engine` is available.
+
 ## 4. Rules
 
 ### R-M4 [Declared]
@@ -65,10 +74,10 @@ Division rounds to the nearest even integer on ties (`round_half_even`).
 
 ## 5. Output format
 
-Provide the complete contents of `exchange_core/handlers/settle.py` inside a single markdown code block:
+Provide the complete contents of `exchange_core/handlers/settle.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
 
-```python
 ### FILE: exchange_core/handlers/settle.py
+```python
 ...
 ```
 

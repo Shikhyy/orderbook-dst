@@ -56,7 +56,14 @@ Priority after a valid REPLACE:
 
 ## 5. Output format
 
-Provide the complete contents of `exchange_core/rules/replace_rule.py`.
+Provide the complete contents of `exchange_core/rules/replace_rule.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
+
+### FILE: exchange_core/rules/replace_rule.py
+```python
+...
+```
+
+Do not edit or return other files.
 
 ## 6. What the grader checks
 

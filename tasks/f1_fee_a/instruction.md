@@ -50,10 +50,10 @@ Formula: `round_half_even(n, d) = round(n / d)` with round-half-even.
 
 ## 5. Output format
 
-Provide the complete contents of `exchange_core/rules/fee_rule.py` inside a single markdown code block:
+Provide the complete contents of `exchange_core/rules/fee_rule.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
 
-```python
 ### FILE: exchange_core/rules/fee_rule.py
+```python
 ...
 ```
 
