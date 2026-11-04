@@ -169,6 +169,41 @@ def format_audit_report(
     return "\n".join(lines)
 
 
+def _export_sheet(
+    sampled: list[dict[str, Any]], raw_dir: Path, sheet_path: Path, key_path: Path
+) -> bool:
+    """Write the blinded reading sheet and the key file (sampled order)."""
+    lines = [
+        "# Human audit sheet (blinded)",
+        "",
+        "For each trial decide: does this code correctly implement the task's rules? Judge it",
+        "against the task's `instruction.md` only. You do not see the grader's verdict or the",
+        "model name. Record verdicts in a JSON file like:",
+        "",
+        '    {"T01": {"verdict": true, "reason": "matches R-M1..R-M5"},',
+        '     "T02": {"verdict": false, "reason": "keeps last crossing order, not best"}}',
+        "",
+        "`true` = the code is correct, `false` = it has at least one rule violation.",
+        "",
+    ]
+    keys = []
+    for i, t in enumerate(sampled, 1):
+        model, task_id, trial = t.get("model", ""), t.get("task_id", ""), t.get("trial", 0)
+        keys.append(f"{model}:{task_id}:{trial}")
+        code = load_candidate_code(raw_dir, model, task_id, trial)
+        lines += [
+            "---", "", f"## T{i:02d}: task `{task_id}`",
+            f"Rules: `tasks/{task_id}/instruction.md`", "",
+            "```python", code, "```", "",
+        ]
+    sheet_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet_path.write_text("\n".join(lines), encoding="utf-8")
+    key_path.write_text(json.dumps(keys, indent=1), encoding="utf-8")
+    print(f"Wrote {len(sampled)} blinded trials to {sheet_path}")
+    print(f"Key file (do not open before you finish): {key_path}")
+    return True
+
+
 def run_audit(
     trials_path: Path,
     raw_dir: Path,
@@ -178,8 +213,15 @@ def run_audit(
     n_fail: int = 10,
     verdicts_json: Optional[Path] = None,
     auto_agree: bool = False,
+    export_sheet: Optional[Path] = None,
+    max_chars: int = 6000,
 ) -> bool:
-    """Execute human audit session."""
+    """Execute human audit session.
+
+    With export_sheet, write a blinded reading sheet (anonymous ids T01, T02, ..., full code,
+    no grader outcome, no model name) plus a key file with the sampled order, then stop.
+    Verdicts can then be given in a JSON file keyed by those ids and passed with verdicts_json.
+    """
     if not trials_path.exists():
         print(f"ERROR: Trials file not found at {trials_path}")
         return False
@@ -191,10 +233,20 @@ def run_audit(
     ]
     trials = [json.loads(line) for line in raw_lines]
 
-    sampled = sample_trials(trials, n_pass=n_pass, n_fail=n_fail, seed=seed)
+    key_path = out_path.with_name("audit_key.json")
+    if export_sheet is None and key_path.exists():
+        # Score exactly the trials that were exported, even if trials.jsonl has grown since.
+        order = json.loads(key_path.read_text(encoding="utf-8"))
+        by_key = {f"{t['model']}:{t['task_id']}:{t.get('trial', 0)}": t for t in trials}
+        sampled = [by_key[k] for k in order if k in by_key]
+    else:
+        sampled = sample_trials(trials, n_pass=n_pass, n_fail=n_fail, seed=seed)
     if not sampled:
         print("ERROR: No trials available to sample.")
         return False
+
+    if export_sheet is not None:
+        return _export_sheet(sampled, raw_dir, export_sheet, key_path)
 
     print(
         f"Sampled {len(sampled)} trials with seed {seed} for human review."
@@ -220,16 +272,17 @@ def run_audit(
         print("=" * 80)
 
         code_text = load_candidate_code(raw_dir, model, task_id, trial_num)
-        print(code_text[:1200])
-        if len(code_text) > 1200:
-            print("... (truncated code preview) ...")
+        print(code_text[:max_chars])
+        if len(code_text) > max_chars:
+            print("... (truncated; use --export-sheet to read the full code) ...")
         print("-" * 80)
 
         h_pass: bool
         h_reason: str
 
-        if key in predefined_verdicts:
-            v = predefined_verdicts[key]
+        aid = f"T{i:02d}"
+        if key in predefined_verdicts or aid in predefined_verdicts:
+            v = predefined_verdicts.get(aid) or predefined_verdicts[key]
             h_pass = bool(v.get("verdict", False))
             h_reason = str(v.get("reason", "predefined"))
             v_str = "correct" if h_pass else "incorrect"
@@ -334,6 +387,18 @@ def main() -> int:
         action="store_true",
         help="Automatically agree with grader (for testing / CI)",
     )
+    parser.add_argument(
+        "--export-sheet",
+        type=Path,
+        default=None,
+        help="Write a blinded reading sheet (ids T01.., full code) and exit",
+    )
+    parser.add_argument(
+        "--max-chars",
+        type=int,
+        default=6000,
+        help="Characters of code shown per trial in interactive mode",
+    )
     args = parser.parse_args()
 
     success = run_audit(
@@ -345,6 +410,8 @@ def main() -> int:
         n_fail=args.fail_count,
         verdicts_json=args.verdicts_json,
         auto_agree=args.auto_agree,
+        export_sheet=args.export_sheet,
+        max_chars=args.max_chars,
     )
     return 0 if success else 1
 

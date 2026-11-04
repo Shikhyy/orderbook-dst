@@ -107,3 +107,32 @@ def test_run_audit_end_to_end(tmp_path: Path) -> None:
     assert "Human Grader Audit Report" in content
     assert "**Cohen's Kappa (κ)**: 1.0000" in content
     assert "| **Grader PASS** | 2 (TP) | 0 (FP) | 2 |" in content
+
+
+def test_export_sheet_is_blind_and_ids_score(tmp_path: Path) -> None:
+    """The exported sheet hides model and grader outcome; id-keyed verdicts are scored."""
+    raw = tmp_path / "raw"
+    trials = []
+    for i in range(4):
+        d = raw / f"model_{i}" / "taskX" / "0" / "files"
+        d.mkdir(parents=True)
+        (d / "mod.py").write_text(f"x = {i}\n", encoding="utf-8")
+        trials.append({"model": f"model_{i}", "task_id": "taskX", "trial": 0,
+                       "passed": i % 2 == 0})
+    tf = tmp_path / "trials.jsonl"
+    tf.write_text("\n".join(json.dumps(t) for t in trials), encoding="utf-8")
+    out = tmp_path / "human_audit.md"
+    sheet = tmp_path / "sheet.md"
+
+    assert run_audit(tf, raw, out, n_pass=2, n_fail=2, export_sheet=sheet)
+    text = sheet.read_text(encoding="utf-8")
+    assert "T01" in text and "T04" in text
+    assert "model_" not in text and "passed" not in text.lower()
+
+    verdicts = tmp_path / "v.json"
+    verdicts.write_text(
+        json.dumps({f"T{i:02d}": {"verdict": True, "reason": "ok"} for i in range(1, 5)}),
+        encoding="utf-8",
+    )
+    assert run_audit(tf, raw, out, n_pass=2, n_fail=2, verdicts_json=verdicts)
+    assert "Cohen" in out.read_text(encoding="utf-8")
