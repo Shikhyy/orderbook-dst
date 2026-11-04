@@ -214,6 +214,18 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 
 **R-A7 [Declared].** Basket IOC leg evaluation timing (OQ-02). For an `IOC` basket leg, the success check (`leaves == 0`) runs immediately after matching (R-M1 to R-M4) and before the R-B5 step 6 IOC remainder cancellation. If `leaves > 0` after matching, the leg fails and triggers rollback.
 
+## 10b. Funding
+
+**R-Y1 [Declared].** A FUNDING event carries a signed funding rate in parts per million in its `bps` field (`event.bps`; for this event the field is in ppm, not basis points). The engine clamps it to the range -3000 to +3000, both limits included (`MAX_FUNDING_PPM = 3000`). The clamped value is `rate`.
+
+**R-Y2 [Declared].** If `rate != 0`, the engine processes every account with `position != 0` in ascending account-id order (the `LIQ` account included). For each such account: `notional = abs(position) * mark_price` and `amount = round_half_even(notional * abs(rate), PPM)`. The rounding is applied to this non-negative value. The account pays `amount` when it is long and `rate > 0`, or short and `rate < 0`. Otherwise it receives `amount`. A payment is subtracted from `free_cash`; a receipt is added to `free_cash`. `free_cash` can become negative. Locks, volume and positions do not change.
+
+**R-Y3 [Declared].** Rounding is done per account, so the payments and receipts need not cancel. The engine adds the net of all payments (payments minus receipts, which can be negative) to `fee_vault`. Total cash plus `fee_vault` is unchanged.
+
+**R-Y4 [Declared].** The first report is `FUNDING_APPLIED` with `bps = rate` (the clamped rate) and `qty` equal to the number of accounts processed in R-Y2 (every account with `position != 0`, even when its `amount` is 0; 0 when `rate == 0`).
+
+**R-Y5 [Declared].** After the payments, the engine always runs the margin waterfall at the current mark price, as if a PRICE_SHOCK event with `mark_price` equal to the current `mark_price` had arrived (rules R-W1 to R-W7). The reports of that waterfall follow `FUNDING_APPLIED`, in their own order (the first of them is `MARK_SET`). This also happens when `rate == 0`.
+
 ## 11. Report reference
 
 | Report | Fields |
@@ -231,6 +243,7 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 | `SESSION_RESET_DONE` | `session` |
 | `BASKET_COMMITTED` | none |
 | `BASKET_ROLLED_BACK` | `leg_index` |
+| `FUNDING_APPLIED` | `bps` (clamped rate), `qty` (accounts processed) |
 
 ## 12. Development and operational conventions
 

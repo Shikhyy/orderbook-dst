@@ -111,3 +111,10 @@ Authored and reviewed prior to candidate model runs per `docs/04_RULEBOOK.md` an
 - **Interface**: `handle_new_limit(engine: Engine, event: Event) -> list[Report]`
 - **Difficulty Reason**: see `tasks/f6_match_b/task.toml`.
 - **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.
+
+## 10. Task: f7_funding_b (Family F7, Variant B - Coupled)
+- **Target Files**: `exchange_core/handlers/funding.py`
+- **Applicable Rules**: R-Y1, R-Y2, R-Y3, R-Y4, R-Y5
+- **Interface**: `handle_funding(engine: Engine, event: Event) -> list[Report]`
+- **Difficulty Reason**: see `tasks/f7_funding_b/task.toml`.
+- **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.

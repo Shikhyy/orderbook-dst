@@ -7,6 +7,7 @@ from exchange_core.config import EngineConfig
 from exchange_core.handlers.basket import handle_basket
 from exchange_core.handlers.cancel import handle_cancel
 from exchange_core.handlers.fix import handle_fix
+from exchange_core.handlers.funding import handle_funding
 from exchange_core.handlers.margin_rate import handle_margin_rate
 from exchange_core.handlers.new_limit import handle_new_limit
 from exchange_core.handlers.replace import handle_replace
@@ -59,6 +60,7 @@ class Engine:
             "FIX_MSG": handle_fix,
             "SESSION_RESET": handle_fix,
             "BASKET": handle_basket,
+            "FUNDING": handle_funding,
         }
         handler = handlers.get(event.kind)
         if handler:

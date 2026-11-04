@@ -137,6 +137,17 @@ def handle_new_limit(engine: "Engine", event: Event) -> list[Report]:  # type: i
     """Process a NEW_LIMIT event."""
     raise NotImplementedError("Implement handle_new_limit")
 ''',
+    "exchange_core/handlers/funding.py": '''"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a FUNDING event."""
+    raise NotImplementedError("Implement handle_funding")
+''',
     "exchange_core/handlers/basket.py": '''"""exchange_core/handlers/basket.py
 Handler for atomic multi-leg basket orders.
 Rules R-A1 to R-A5. Target for task f5_basket_b.

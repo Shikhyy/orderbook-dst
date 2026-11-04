@@ -63,7 +63,13 @@ def alt_engine_cls() -> Any:
     return make_alt_engine_class()
 
 
-@pytest.mark.parametrize("profile", PROFILES)
+# reference_alt predates the FUNDING event and has no funding handler; funding is checked against
+# the independent clean-room implementation in reference_alt_v2 (grader validation V2) and by
+# the report audit, so the N-version comparison covers the other profiles.
+DIFFERENTIAL_PROFILES = [p for p in PROFILES if p != "funding_heavy"]
+
+
+@pytest.mark.parametrize("profile", DIFFERENTIAL_PROFILES)
 @pytest.mark.parametrize("seed_offset", [0, 1, 2, 3, 4])
 def test_differential_equivalence(alt_engine_cls: Any, profile: str, seed_offset: int) -> None:
     """Verify that reference and reference_alt produce identical reports and state hashes."""

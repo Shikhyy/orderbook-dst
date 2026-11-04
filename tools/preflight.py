@@ -20,7 +20,7 @@ from graders.sandbox import is_docker_available  # noqa: E402
 
 REQUIRED_TASKS = [
     "f1_fee_a", "f1_fee_b", "f2_replace_a", "f2_replace_b",
-    "f3_fix_a", "f3_fix_b", "f4_waterfall_b", "f5_basket_b", "f6_match_b",
+    "f3_fix_a", "f3_fix_b", "f4_waterfall_b", "f5_basket_b", "f6_match_b", "f7_funding_b",
 ]
 
 ADAPTER_ENV_VARS = {

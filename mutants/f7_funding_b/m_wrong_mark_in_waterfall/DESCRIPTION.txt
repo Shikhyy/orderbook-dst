@@ -1,0 +1,1 @@
+The waterfall is dispatched with the funding event's own (unused, zero) mark price.

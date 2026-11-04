@@ -5,7 +5,7 @@ tracker (no import of ledger.py or book.py) and compare with engine state on all
 This test fulfills item A4:
 - Independent audit tracking of free_cash, locked_margin, and position
 - Recomputed strictly from FILL, CANCELLED, REPLACED, ACCEPTED, and LIQUIDATED reports
-- Verified on all 5 trace profiles across multiple seeds
+- Verified on all trace profiles across multiple seeds
 """
 from dataclasses import dataclass
 
@@ -69,6 +69,16 @@ class IndependentReportAuditTracker:
                 self.current_mark = r.mark_price
             elif r.kind == "MARGIN_RATE_SET":
                 self.current_bps = r.bps
+            elif r.kind == "FUNDING_APPLIED":
+                # Independent re-derivation of R-Y1 to R-Y2 from the tracker's own positions.
+                assert r.bps == max(-3000, min(3000, event.bps))
+                for acc_id in sorted(self.positions):
+                    pos = self.positions[acc_id]
+                    if pos == 0 or r.bps == 0:
+                        continue
+                    amount = round_half_even(abs(pos) * self.current_mark * abs(r.bps), 1_000_000)
+                    pays = (pos > 0) == (r.bps > 0)
+                    self.free_cash[acc_id] += -amount if pays else amount
             elif r.kind == "ACCEPTED":
                 if event.kind == "BASKET":
                     leg = event.legs[leg_idx]

@@ -12,7 +12,10 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent
-B_TASKS = ["f1_fee_b", "f2_replace_b", "f3_fix_b", "f4_waterfall_b", "f5_basket_b", "f6_match_b"]
+B_TASKS = [
+    "f1_fee_b", "f2_replace_b", "f3_fix_b", "f4_waterfall_b", "f5_basket_b",
+    "f6_match_b", "f7_funding_b",
+]
 
 
 def _engine_members(path: Path) -> set[str]:

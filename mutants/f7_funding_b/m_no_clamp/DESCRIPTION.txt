@@ -1,0 +1,1 @@
+The rate is not clamped to +/-3000.

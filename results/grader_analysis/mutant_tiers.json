@@ -739,5 +739,164 @@
     },
     "first_failure": "D1",
     "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_floor_rounding",
+    "t1": 1.0,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.2,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1_FINAL": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_half_up_rounding",
+    "t1": 1.0,
+    "t2": 0.5,
+    "t3": 1.0,
+    "score": 0.85,
+    "caught_by": "T2",
+    "failing_seeds": 0,
+    "seed_labels": {},
+    "first_failure": null,
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_no_clamp",
+    "t1": 0.75,
+    "t2": 0.16666666666666666,
+    "t3": 0.0,
+    "score": 0.2,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_no_waterfall",
+    "t1": 0.75,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.15,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_residual_not_to_vault",
+    "t1": 1.0,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.2,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_sign_swapped",
+    "t1": 0.25,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.05,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 8,
+      "D1_FINAL": 12
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_skips_liq",
+    "t1": 1.0,
+    "t2": 0.8333333333333334,
+    "t3": 0.35,
+    "score": 0.625,
+    "caught_by": "T2",
+    "failing_seeds": 13,
+    "seed_labels": {
+      "D1": 13
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_skips_negative_cash",
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.5,
+    "caught_by": "T3",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_waterfall_only_if_rate",
+    "t1": 1.0,
+    "t2": 0.8333333333333334,
+    "t3": 0.0,
+    "score": 0.45,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
+    "mutant": "m_wrong_mark_in_waterfall",
+    "t1": 0.75,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.15,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
   }
 ]

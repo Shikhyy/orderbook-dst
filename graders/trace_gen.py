@@ -9,6 +9,7 @@ from graders.detrng import DetRng
 
 PROFILES = (
     "fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy", "match_heavy",
+    "funding_heavy",
 )
 TICK = 10_000
 BASE_MARK = 100_000_000
@@ -52,6 +53,7 @@ def generate_trace(
     - shock_heavy: Frequent PRICE_SHOCK events with positions.
     - basket_heavy: Atomic multi-leg baskets with IOC and POST_ONLY.
     - match_heavy: Order matching with IOC, POST_ONLY, self-trades and tight margin.
+    - funding_heavy: Positions built by trading, FUNDING events with odd marks and large rates.
     """
     if profile not in PROFILES:
         raise ValueError(f"Unknown profile: {profile}")
@@ -70,6 +72,13 @@ def generate_trace(
             "A1": 6_000_000_000,
             "A2": 6_000_000_000,
             "A3": 6_000_000_000,
+            "LIQ": 100_000_000_000,
+        }
+    if profile == "funding_heavy":
+        accounts = {
+            "A1": 500_000_000,
+            "A2": 500_000_000,
+            "A3": 500_000_000,
             "LIQ": 100_000_000_000,
         }
     trading_accs = ["A1", "A2", "A3"]
@@ -351,6 +360,48 @@ def generate_trace(
                 next_sim_order_id += 1
             else:
                 # 10% cancels
+                oid = rng.choice(active_order_ids) if active_order_ids else 1
+                event = Event(kind="CANCEL", order_id=oid)
+
+        elif profile == "funding_heavy":
+            # Profile 7: funding_heavy (F7 target).
+            # Trigger event: a FUNDING event (payments, vault residual, waterfall).
+            action = rng.next_int(0, 9)
+            if action < 3:
+                # 30% FUNDING events; rates beyond +/-3000 exercise the clamp
+                rate = rng.next_int(-5000, 5000)
+                if rng.prob_pct(10):
+                    rate = 0
+                event = Event(kind="FUNDING", bps=rate)
+                is_trigger = True
+            elif action < 4:
+                # 10% price shocks to odd (non round) marks; some are large enough to
+                # push thinly funded accounts into breach and create LIQ positions
+                if rng.prob_pct(30):
+                    current_mark = BASE_MARK + rng.next_int(-45_000_000, 45_000_000) + 7
+                else:
+                    current_mark = BASE_MARK + rng.next_int(-40_000, 40_000) * 37
+                event = Event(kind="PRICE_SHOCK", mark_price=current_mark)
+            elif action < 7:
+                # 30% crossing orders to build and move positions
+                side = rng.choice(["BUY", "SELL"])
+                acc = rng.choice(trading_accs)
+                price = BASE_MARK + (3 * TICK if side == "BUY" else -3 * TICK)
+                qty = rng.next_int(1, 7)
+                event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            elif action < 9:
+                # 20% passive orders that supply liquidity
+                side = rng.choice(["BUY", "SELL"])
+                acc = rng.choice(trading_accs)
+                shift = rng.next_int(0, 2) * TICK
+                price = BASE_MARK - shift if side == "BUY" else BASE_MARK + shift
+                qty = rng.next_int(1, 7)
+                event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            else:
                 oid = rng.choice(active_order_ids) if active_order_ids else 1
                 event = Event(kind="CANCEL", order_id=oid)
 

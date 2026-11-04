@@ -7,7 +7,7 @@ See `docs/04_RULEBOOK.md` and `docs/05_INVARIANTS_AND_DATA.md`.
 
 ### H1: Tier 1 vs Tier 3 Score Gap (Generalization Deficit)
 - **Statement**: For each evaluated model, the visible unit test score (Tier 1) will be strictly higher than the hidden multi-event trace simulation score (Tier 3).
-- **Metric**: Difference $\Delta_{1-3} = \text{Mean}(T_1) - \text{Mean}(T_3)$ computed across all 9 tasks and trials.
+- **Metric**: Difference $\Delta_{1-3} = \text{Mean}(T_1) - \text{Mean}(T_3)$ computed across all 10 tasks and trials.
 - **Expected Direction**: Positive gap ($\Delta_{1-3} > 0$). Models will fit the static test examples visible in the prompt but fail to generalize to dynamic state trajectories spanning hundreds of sequential transitions.
 - **Rejection Condition**: A model achieves $T_3 \ge T_1$ across tasks, or the 95% bootstrap confidence interval of $(T_1 - T_3)$ contains 0 or negative values.
 

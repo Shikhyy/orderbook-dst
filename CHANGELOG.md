@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-11-04: new task f7_funding_b (funding payments, coupled to the waterfall)
+
+- New event `FUNDING` (rules R-Y1 to R-Y5 in `docs/04_RULEBOOK.md` section 10b, handler `exchange_core/handlers/funding.py`, routed by `Engine.dispatch`). Clamped rate in ppm, per-account rounding of the absolute amount (half to even), payer and receiver by position sign, net rounding residual into `fee_vault` so cash stays conserved, then an always-run margin waterfall through `engine.dispatch`.
+- `tasks/f7_funding_b`: 4 public tests, 11-event hidden checkpoint trace (6 checkpoints, `tools/make_tier2_f7.py`; one mark price is searched so a funding payment alone pushes an account into liquidation), new `funding_heavy` profile (20 hidden seeds 10000-10019), 10 mutants (`tools/make_mutants_f7.py`): 4 caught by visible tests, 5 by checkpoints, 1 only by the hidden simulation. The suite now has 56 mutants and 79 checkpoints.
+- The clean-room implementation (`reference_alt_v2/f7_funding_b`) written from the instruction alone scores 1.00. Its report led to three wording fixes (clamp limits included; accounts with amount 0 still count in `qty`; "net rounding difference").
+- `tests/test_report_audit.py` now re-derives funding payments independently from the reports. `tests/test_differential.py` skips `funding_heavy`: `reference_alt` predates FUNDING and has no handler.
+- `author_signoff` for f7_funding_b is false until the author reviews the task.
+
 ## 2026-11-04: new task f6_match_b (harder, whole matching handler)
 
 Added because the strongest free models scored 1.00 on every task of the first run, which leaves no headroom to show a limitation.

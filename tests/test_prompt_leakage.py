@@ -43,6 +43,7 @@ TASKS = [
     "f4_waterfall_b",
     "f5_basket_b",
     "f6_match_b",
+    "f7_funding_b",
 ]
 
 
