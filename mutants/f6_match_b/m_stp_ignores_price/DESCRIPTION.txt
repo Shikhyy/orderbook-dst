@@ -1,0 +1,1 @@
+STP is tested before the price test, so an own resting order that does not cross is cancelled.

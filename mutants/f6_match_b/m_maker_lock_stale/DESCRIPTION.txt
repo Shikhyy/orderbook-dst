@@ -1,0 +1,1 @@
+A partially filled resting order keeps its old stored lock (cash moves, lock field does not).

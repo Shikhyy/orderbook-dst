@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2026-11-04: new task f6_match_b (harder, whole matching handler)
+
+Added because the strongest free models scored 1.00 on every task of the first run, which leaves no headroom to show a limitation.
+
+- `tasks/f6_match_b`: implement the whole NEW_LIMIT handler (validation order, counters, margin locks, price-time matching over several levels, self-trade prevention mid-sweep, IOC remainder, resting remainder), coupled to fee settlement through `settle_fill`. 8 public tests, a 19-event hidden checkpoint trace (12 checkpoints, built by `tools/make_tier2_f6.py`) and a new `match_heavy` trace profile (IOC, POST_ONLY, self-trades and tight margin; 20 hidden seeds 9000-9019).
+- 10 mutants in `mutants/f6_match_b` (built by `tools/make_mutants_f6.py`): 5 caught by visible tests, 3 by checkpoints, 2 only by the hidden simulation. The suite now has 46 mutants.
+- The clean-room implementation (`reference_alt_v2/f6_match_b`) was written by a separate agent from the instruction and the context files only; it scores 1.00. Its list of ambiguities led to two instruction fixes (the order's `flag` field is stored; `settle_fill` does not depend on call order).
+- `exchange_core.handlers.settle` added to the import allowlist (the F6 handler calls `settle_fill`).
+- Correction: earlier documents said 59 hidden checkpoints; the count of the first 8 tasks is 61. Total with F6: 73.
+- `author_signoff` for f6_match_b is false until the author reviews the task (`make preflight` reports it).
+
 ## [Unreleased]
 
 ### Added

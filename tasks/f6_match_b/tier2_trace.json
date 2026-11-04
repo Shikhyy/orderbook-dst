@@ -1,0 +1,1067 @@
+{
+  "accounts": {
+    "A1": 5000000000,
+    "A2": 5000000000,
+    "A3": 5000000000,
+    "LIQ": 20000000000
+  },
+  "mark_price": 100000000,
+  "events": [
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100010000,
+      "qty": 4,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 99990000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100010000,
+      "qty": 6,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "POST_ONLY",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 99990000,
+      "qty": 1,
+      "flag": "IOC",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 99990000,
+      "qty": 3,
+      "flag": "IOC",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100010000,
+      "qty": 1,
+      "flag": "POST_ONLY",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100010000,
+      "qty": 400,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100010000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "SET_MARGIN_RATE",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 3000,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 5,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100010000,
+      "qty": 10,
+      "flag": "IOC",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 100030000,
+      "qty": 4,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100030000,
+      "qty": 4,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 99980000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 99970000,
+      "qty": 5,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    }
+  ],
+  "checkpoints": [
+    {
+      "event_index": 3,
+      "name": "chk_book_built_locks",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 4
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4960004000,
+          "locked_margin": 39996000,
+          "position": 0,
+          "volume": 0
+        },
+        "A2": {
+          "free_cash": 4859992000,
+          "locked_margin": 140008000,
+          "position": 0,
+          "volume": 0
+        },
+        "A3": {
+          "free_cash": 4960000000,
+          "locked_margin": 40000000,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "1": {
+          "cum_qty": 0,
+          "lock": 60000000,
+          "prio_seq": 1,
+          "price": 100000000
+        },
+        "2": {
+          "cum_qty": 0,
+          "lock": 40000000,
+          "prio_seq": 2,
+          "price": 100000000
+        },
+        "3": {
+          "cum_qty": 0,
+          "lock": 80008000,
+          "prio_seq": 3,
+          "price": 100010000
+        },
+        "4": {
+          "cum_qty": 0,
+          "lock": 39996000,
+          "prio_seq": 4,
+          "price": 99990000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    },
+    {
+      "event_index": 4,
+      "name": "chk_sweep_price_time_priority",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 5
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 5,
+          "sell_order_id": 1,
+          "price": 100000000,
+          "qty": 3,
+          "taker_order_id": 5
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 5,
+          "sell_order_id": 2,
+          "price": 100000000,
+          "qty": 2,
+          "taker_order_id": 5
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 5,
+          "sell_order_id": 3,
+          "price": 100010000,
+          "qty": 1,
+          "taker_order_id": 5
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4358343972,
+          "locked_margin": 39996000,
+          "position": 6,
+          "volume": 600010000
+        },
+        "A2": {
+          "free_cash": 5340104002,
+          "locked_margin": 60006000,
+          "position": -4,
+          "volume": 400010000
+        },
+        "A3": {
+          "free_cash": 5200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 1,
+          "lock": 60006000,
+          "prio_seq": 3,
+          "price": 100010000
+        },
+        "4": {
+          "cum_qty": 0,
+          "lock": 39996000,
+          "prio_seq": 4,
+          "price": 99990000
+        }
+      },
+      "expected_fee_vault": 1500026,
+      "source": "engine"
+    },
+    {
+      "event_index": 5,
+      "name": "chk_post_only_rests_when_not_crossing",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 6
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4358343972,
+          "locked_margin": 39996000,
+          "position": 6,
+          "volume": 600010000
+        },
+        "A2": {
+          "free_cash": 5320104002,
+          "locked_margin": 80006000,
+          "position": -4,
+          "volume": 400010000
+        },
+        "A3": {
+          "free_cash": 5200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 1,
+          "lock": 60006000,
+          "prio_seq": 3,
+          "price": 100010000
+        },
+        "4": {
+          "cum_qty": 0,
+          "lock": 39996000,
+          "prio_seq": 4,
+          "price": 99990000
+        },
+        "6": {
+          "cum_qty": 0,
+          "lock": 20000000,
+          "prio_seq": 6,
+          "price": 100000000
+        }
+      },
+      "expected_fee_vault": 1500026,
+      "source": "engine"
+    },
+    {
+      "event_index": 6,
+      "name": "chk_ioc_fully_filled_no_remainder",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 7
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 6,
+          "sell_order_id": 7,
+          "price": 100000000,
+          "qty": 1,
+          "taker_order_id": 7
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4458068972,
+          "locked_margin": 39996000,
+          "position": 5,
+          "volume": 700010000
+        },
+        "A2": {
+          "free_cash": 5240129002,
+          "locked_margin": 60006000,
+          "position": -3,
+          "volume": 500010000
+        },
+        "A3": {
+          "free_cash": 5200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 1,
+          "lock": 60006000,
+          "prio_seq": 3,
+          "price": 100010000
+        },
+        "4": {
+          "cum_qty": 0,
+          "lock": 39996000,
+          "prio_seq": 4,
+          "price": 99990000
+        }
+      },
+      "expected_fee_vault": 1750026,
+      "source": "engine"
+    },
+    {
+      "event_index": 7,
+      "name": "chk_stp_then_ioc_remainder",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 8
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 4,
+          "reason": "STP"
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 8,
+          "reason": "IOC_REMAINDER"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4498064972,
+          "locked_margin": 0,
+          "position": 5,
+          "volume": 700010000
+        },
+        "A2": {
+          "free_cash": 5240129002,
+          "locked_margin": 60006000,
+          "position": -3,
+          "volume": 500010000
+        },
+        "A3": {
+          "free_cash": 5200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 1,
+          "lock": 60006000,
+          "prio_seq": 3,
+          "price": 100010000
+        }
+      },
+      "expected_fee_vault": 1750026,
+      "source": "engine"
+    },
+    {
+      "event_index": 8,
+      "name": "chk_post_only_rejected_when_crossing",
+      "expected_reports": [
+        {
+          "kind": "REJECTED",
+          "reason": "POST_ONLY_WOULD_CROSS"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4498064972,
+          "locked_margin": 0,
+          "position": 5,
+          "volume": 700010000
+        },
+        "A2": {
+          "free_cash": 5240129002,
+          "locked_margin": 60006000,
+          "position": -3,
+          "volume": 500010000
+        },
+        "A3": {
+          "free_cash": 5200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 1,
+          "lock": 60006000,
+          "prio_seq": 3,
+          "price": 100010000
+        }
+      },
+      "expected_fee_vault": 1750026,
+      "source": "engine"
+    },
+    {
+      "event_index": 9,
+      "name": "chk_margin_reject_uses_no_counter",
+      "expected_reports": [
+        {
+          "kind": "REJECTED",
+          "reason": "INSUFFICIENT_MARGIN"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4498064972,
+          "locked_margin": 0,
+          "position": 5,
+          "volume": 700010000
+        },
+        "A2": {
+          "free_cash": 5240129002,
+          "locked_margin": 60006000,
+          "position": -3,
+          "volume": 500010000
+        },
+        "A3": {
+          "free_cash": 5200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 1,
+          "lock": 60006000,
+          "prio_seq": 3,
+          "price": 100010000
+        }
+      },
+      "expected_fee_vault": 1750026,
+      "source": "engine"
+    },
+    {
+      "event_index": 10,
+      "name": "chk_counters_continue_after_rejects",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 9
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 9,
+          "sell_order_id": 3,
+          "price": 100010000,
+          "qty": 1,
+          "taker_order_id": 9
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4498064972,
+          "locked_margin": 0,
+          "position": 5,
+          "volume": 700010000
+        },
+        "A2": {
+          "free_cash": 5360166004,
+          "locked_margin": 40004000,
+          "position": -4,
+          "volume": 600020000
+        },
+        "A3": {
+          "free_cash": 5099764972,
+          "locked_margin": 0,
+          "position": -1,
+          "volume": 300010000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 2,
+          "lock": 40004000,
+          "prio_seq": 3,
+          "price": 100010000
+        }
+      },
+      "expected_fee_vault": 2000052,
+      "source": "engine"
+    },
+    {
+      "event_index": 13,
+      "name": "chk_maker_keeps_its_own_margin_rate",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 11
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 11,
+          "sell_order_id": 10,
+          "price": 100000000,
+          "qty": 2,
+          "taker_order_id": 11
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4297514972,
+          "locked_margin": 0,
+          "position": 7,
+          "volume": 900010000
+        },
+        "A2": {
+          "free_cash": 5470216004,
+          "locked_margin": 130004000,
+          "position": -6,
+          "volume": 800020000
+        },
+        "A3": {
+          "free_cash": 5099764972,
+          "locked_margin": 0,
+          "position": -1,
+          "volume": 300010000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "3": {
+          "cum_qty": 2,
+          "lock": 40004000,
+          "prio_seq": 3,
+          "price": 100010000
+        },
+        "10": {
+          "cum_qty": 2,
+          "lock": 90000000,
+          "prio_seq": 10,
+          "price": 100000000
+        }
+      },
+      "expected_fee_vault": 2500052,
+      "source": "engine"
+    },
+    {
+      "event_index": 14,
+      "name": "chk_ioc_sweeps_then_cancels_remainder",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 12
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 12,
+          "sell_order_id": 10,
+          "price": 100000000,
+          "qty": 3,
+          "taker_order_id": 12
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 12,
+          "sell_order_id": 3,
+          "price": 100010000,
+          "qty": 2,
+          "taker_order_id": 12
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 12,
+          "reason": "IOC_REMAINDER"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4297514972,
+          "locked_margin": 0,
+          "position": 7,
+          "volume": 900010000
+        },
+        "A2": {
+          "free_cash": 6100365009,
+          "locked_margin": 0,
+          "position": -11,
+          "volume": 1300040000
+        },
+        "A3": {
+          "free_cash": 4598369917,
+          "locked_margin": 0,
+          "position": 4,
+          "volume": 800030000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {},
+      "expected_fee_vault": 3750102,
+      "source": "engine"
+    },
+    {
+      "event_index": 16,
+      "name": "chk_stp_cancels_whole_lock_then_rests",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 14
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 13,
+          "reason": "STP"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 4177478972,
+          "locked_margin": 120036000,
+          "position": 7,
+          "volume": 900010000
+        },
+        "A2": {
+          "free_cash": 6100365009,
+          "locked_margin": 0,
+          "position": -11,
+          "volume": 1300040000
+        },
+        "A3": {
+          "free_cash": 4598369917,
+          "locked_margin": 0,
+          "position": 4,
+          "volume": 800030000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "14": {
+          "cum_qty": 0,
+          "lock": 120036000,
+          "prio_seq": 14,
+          "price": 100030000
+        }
+      },
+      "expected_fee_vault": 3750102,
+      "source": "engine"
+    },
+    {
+      "event_index": 18,
+      "name": "chk_sell_sweeps_bids_best_first_and_rests",
+      "expected_reports": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 16
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 14,
+          "sell_order_id": 16,
+          "price": 100030000,
+          "qty": 4,
+          "taker_order_id": 16
+        },
+        {
+          "kind": "FILL",
+          "buy_order_id": 15,
+          "sell_order_id": 16,
+          "price": 99980000,
+          "qty": 1,
+          "taker_order_id": 16
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 3897495002,
+          "locked_margin": 0,
+          "position": 11,
+          "volume": 1300130000
+        },
+        "A2": {
+          "free_cash": 5970416004,
+          "locked_margin": 29994000,
+          "position": -10,
+          "volume": 1400020000
+        },
+        "A3": {
+          "free_cash": 5097094642,
+          "locked_margin": 0,
+          "position": -1,
+          "volume": 1300130000
+        },
+        "LIQ": {
+          "free_cash": 20000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        }
+      },
+      "expected_orders": {
+        "15": {
+          "cum_qty": 1,
+          "lock": 29994000,
+          "prio_seq": 15,
+          "price": 99980000
+        }
+      },
+      "expected_fee_vault": 5000352,
+      "source": "engine"
+    }
+  ]
+}

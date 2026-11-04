@@ -7,7 +7,9 @@ from dataclasses import dataclass, field
 from exchange_core.types import BasketLeg, Event
 from graders.detrng import DetRng
 
-PROFILES = ("fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy")
+PROFILES = (
+    "fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy", "match_heavy",
+)
 TICK = 10_000
 BASE_MARK = 100_000_000
 
@@ -49,6 +51,7 @@ def generate_trace(
     - fix_noisy: FIX messages with gaps, duplicates, poss_dup, and resets.
     - shock_heavy: Frequent PRICE_SHOCK events with positions.
     - basket_heavy: Atomic multi-leg baskets with IOC and POST_ONLY.
+    - match_heavy: Order matching with IOC, POST_ONLY, self-trades and tight margin.
     """
     if profile not in PROFILES:
         raise ValueError(f"Unknown profile: {profile}")
@@ -61,6 +64,13 @@ def generate_trace(
             "A2": 1_000_000_000,
             "A3": 1_000_000_000,
             "LIQ": 50_000_000_000,
+        }
+    if profile == "match_heavy":
+        accounts = {
+            "A1": 6_000_000_000,
+            "A2": 6_000_000_000,
+            "A3": 6_000_000_000,
+            "LIQ": 100_000_000_000,
         }
     trading_accs = ["A1", "A2", "A3"]
 
@@ -292,6 +302,57 @@ def generate_trace(
                 event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
                 active_order_ids.append(next_sim_order_id)
                 next_sim_order_id += 1
+
+        elif profile == "match_heavy":
+            # Profile 6: match_heavy (F6 target).
+            # Trigger event: an order that crosses the book (fills, STP, IOC remainder,
+            # or a POST_ONLY that would cross).
+            action = rng.next_int(0, 9)
+            side = rng.choice(["BUY", "SELL"])
+            acc = rng.choice(trading_accs)
+            near = BASE_MARK + rng.next_int(-3, 3) * TICK
+            if action < 3:
+                # 30% resting orders, some POST_ONLY
+                flag = "POST_ONLY" if rng.prob_pct(30) else "NONE"
+                shift = rng.next_int(0, 3) * TICK
+                price = BASE_MARK - shift if side == "BUY" else BASE_MARK + shift
+                qty = rng.next_int(1, 6)
+                event = Event(
+                    kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty, flag=flag
+                )
+                is_trigger = flag == "POST_ONLY"
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            elif action < 6:
+                # 30% plain limit orders that often cross and rest the remainder
+                qty = rng.next_int(1, 9)
+                event = Event(kind="NEW_LIMIT", account=acc, side=side, price=near, qty=qty)
+                is_trigger = True
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            elif action < 8:
+                # 20% IOC orders (remainder is cancelled)
+                price = BASE_MARK + (rng.next_int(0, 4) * TICK if side == "BUY"
+                                     else -rng.next_int(0, 4) * TICK)
+                qty = rng.next_int(2, 10)
+                event = Event(
+                    kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty, flag="IOC"
+                )
+                is_trigger = True
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            elif action < 9:
+                # 10% large orders that sweep several levels and stress margin
+                price = BASE_MARK + (6 * TICK if side == "BUY" else -6 * TICK)
+                qty = rng.next_int(8, 20)
+                event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
+                is_trigger = True
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            else:
+                # 10% cancels
+                oid = rng.choice(active_order_ids) if active_order_ids else 1
+                event = Event(kind="CANCEL", order_id=oid)
 
         if is_trigger:
             trigger_indices.append(idx)

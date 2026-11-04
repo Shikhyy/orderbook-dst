@@ -42,6 +42,7 @@ TASKS = [
     "f3_fix_b",
     "f4_waterfall_b",
     "f5_basket_b",
+    "f6_match_b",
 ]
 
 

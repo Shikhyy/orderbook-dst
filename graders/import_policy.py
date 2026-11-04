@@ -1,7 +1,7 @@
 """graders/import_policy.py
 Enforce AST allowlist on candidate code submissions.
 Allowed: stdlib, exchange_core.types, .state, .intmath, .config, .book, .ledger, .engine,
-and exchange_core.handlers.new_limit.
+exchange_core.handlers.new_limit and exchange_core.handlers.settle.
 Forbidden: All other exchange_core modules (including exchange_core.rules.*),
 dynamic import calls (importlib, __import__, eval, exec), and relative imports
 targeting forbidden modules.
@@ -19,6 +19,7 @@ ALLOWED_MODULES = {
     "exchange_core.ledger",
     "exchange_core.engine",
     "exchange_core.handlers.new_limit",
+    "exchange_core.handlers.settle",
 }
 
 ALLOWED_TOP_NAMES = {"types", "state", "intmath", "config", "book", "ledger", "engine"}

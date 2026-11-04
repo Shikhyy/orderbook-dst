@@ -125,6 +125,18 @@ def handle_shock(engine: "Engine", event: Event) -> list[Report]:  # type: ignor
     """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
     raise NotImplementedError("Implement handle_shock")
 ''',
+    "exchange_core/handlers/new_limit.py": '''"""exchange_core/handlers/new_limit.py
+Handler for NEW_LIMIT events: validation, margin, matching and fill settlement.
+Rules R-B4, R-B5, R-M1 to R-M5. Target for task f6_match_b.
+"""
+from exchange_core.handlers.settle import settle_fill
+from exchange_core.types import Event, Report
+
+
+def handle_new_limit(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a NEW_LIMIT event."""
+    raise NotImplementedError("Implement handle_new_limit")
+''',
     "exchange_core/handlers/basket.py": '''"""exchange_core/handlers/basket.py
 Handler for atomic multi-leg basket orders.
 Rules R-A1 to R-A5. Target for task f5_basket_b.

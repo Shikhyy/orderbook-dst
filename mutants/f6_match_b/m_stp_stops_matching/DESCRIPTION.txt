@@ -1,0 +1,1 @@
+After an STP cancellation matching stops instead of continuing with the next resting order.

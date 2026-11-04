@@ -1,0 +1,1 @@
+STP cancels the resting order but leaves its margin locked.

@@ -1,0 +1,1 @@
+Self-trade prevention removed: an account trades with its own resting orders.

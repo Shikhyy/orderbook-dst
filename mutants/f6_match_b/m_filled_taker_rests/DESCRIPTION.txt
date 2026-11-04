@@ -1,0 +1,1 @@
+A completely filled incoming order is stored in the book with leaves 0.

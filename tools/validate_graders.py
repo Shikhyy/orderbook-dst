@@ -94,6 +94,12 @@ def get_hardcoded_files(task_id: str, meta: dict[str, Any]) -> dict[str, str]:
                 "def handle_basket(engine, event):\n"
                 "    return [Report.basket_committed()]\n"
             )
+        elif task_id == "f6_match_b":
+            files[rel_path] = (
+                "from exchange_core.types import Report\n"
+                "def handle_new_limit(engine, event):\n"
+                "    return [Report.rejected('INVALID_ORDER')]\n"
+            )
         else:
             files[rel_path] = "def dummy(*args, **kwargs):\n    return []\n"
     return files

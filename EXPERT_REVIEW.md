@@ -104,3 +104,10 @@ Authored and reviewed prior to candidate model runs per `docs/04_RULEBOOK.md` an
     2. 30-day cumulative volume counters.
     3. Global order ID generators and event sequence counters ($I_3$).
     4. Suppress all intermediate execution reports generated during trial execution so clients receive only a single clean rejection report.
+
+## 9. Task: f6_match_b (Family F6, Variant B - Coupled)
+- **Target Files**: `exchange_core/handlers/new_limit.py`
+- **Applicable Rules**: R-B4, R-B5, R-M1, R-M2, R-M3, R-M4, R-M5
+- **Interface**: `handle_new_limit(engine: Engine, event: Event) -> list[Report]`
+- **Difficulty Reason**: see `tasks/f6_match_b/task.toml`.
+- **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.

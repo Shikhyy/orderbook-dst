@@ -580,5 +580,164 @@
     },
     "first_failure": "I1",
     "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_fill_at_taker_price",
+    "t1": 0.875,
+    "t2": 0.08333333333333333,
+    "t3": 0.0,
+    "score": 0.2,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_filled_taker_rests",
+    "t1": 0.875,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.475,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I3": 20
+    },
+    "first_failure": "I3",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_ioc_lock_kept",
+    "t1": 0.875,
+    "t2": 0.3333333333333333,
+    "t3": 0.0,
+    "score": 0.275,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I2": 20
+    },
+    "first_failure": "I2",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_maker_lock_stale",
+    "t1": 1.0,
+    "t2": 0.08333333333333333,
+    "t3": 0.0,
+    "score": 0.225,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I2": 20
+    },
+    "first_failure": "I2",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_margin_default_rate",
+    "t1": 1.0,
+    "t2": 0.9166666666666666,
+    "t3": 1.0,
+    "score": 0.975,
+    "caught_by": "T2",
+    "failing_seeds": 0,
+    "seed_labels": {},
+    "first_failure": null,
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_no_stp",
+    "t1": 0.875,
+    "t2": 0.3333333333333333,
+    "t3": 0.0,
+    "score": 0.275,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_post_only_ignores_own",
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 0.3,
+    "score": 0.65,
+    "caught_by": "T3",
+    "failing_seeds": 14,
+    "seed_labels": {
+      "D1": 14
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_stp_ignores_price",
+    "t1": 1.0,
+    "t2": 0.16666666666666666,
+    "t3": 0.0,
+    "score": 0.25,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_stp_lock_not_released",
+    "t1": 0.875,
+    "t2": 0.3333333333333333,
+    "t3": 0.0,
+    "score": 0.275,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I2": 20
+    },
+    "first_failure": "I2",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_stp_stops_matching",
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 0.0,
+    "score": 0.5,
+    "caught_by": "T3",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20,
+      "I3": 12
+    },
+    "first_failure": "D1",
+    "error": null
   }
 ]

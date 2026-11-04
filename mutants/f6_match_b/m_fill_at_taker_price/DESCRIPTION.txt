@@ -1,0 +1,1 @@
+The fill price is the incoming order's limit, not the resting price.
