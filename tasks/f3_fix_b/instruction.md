@@ -40,7 +40,9 @@ The `Engine` class itself is not part of this task. Use only the members listed 
 ## 4. Rules
 
 ### R-S1 [Common, FIX semantics]
-A FIX session has an `epoch` counter and a `next_seq` counter. Both start at 1. Each message has: `session`, `epoch`, `seq`, `poss_dup`, and `body`.
+A FIX session has an `epoch` counter and a `next_seq` counter. `next_seq` starts at 1 and `epoch` starts at 0 (the first `SESSION_RESET` makes it 1). Each message has: `session`, `epoch`, `seq`, `poss_dup`, and `body`.
+
+In `handle_fix`, a session id that is not yet in `engine.state.sessions` is created on first use (for `FIX_MSG` and for `SESSION_RESET`) as `SessionState(epoch=0, next_seq=1, buffer={})` before the rules are applied.
 
 ### R-S2 [Common, FIX semantics]
 The engine rejects messages with `epoch != session.epoch` with `DISCARDED(EPOCH)`.
