@@ -48,3 +48,17 @@ F6 summary: flash_lite 3/3 pass, mistral_large 2/3 (+1 truncated), gemma_26b 1/3
 | ministral_8b, trials 0 and 1 (also) | I1 "total money != initial" on every hidden seed: the net rounding difference is never added to `fee_vault` (R-Y3). | Model fault. R-Y3 states it explicitly. |
 
 Lesson for the write-up: a clean-room read finds ambiguities, but the fix itself needs to be re-read cold. The first F7 results were a useful catch of my own wording error.
+
+### f7_funding_b, results on the corrected wording
+
+| model | trials | scores |
+|---|---|---|
+| mistral_large | 3 | 1.00, 1.00, 1.00 |
+| gemma_26b | 3 | 1.00, 1.00, 1.00 |
+| flash_lite | 3 | 1.00, 1.00, 1.00 |
+| ministral_8b | 3 | 0.20, 0.20, 0.20 |
+| gemini_35_flash, nemotron_ultra, nemotron_nano | 0 | not run yet (rate limits / daily cap) |
+
+ministral_8b fails all three with I1 ("total money != initial", off by 1 or 2 micro-units): it never books the net per-account rounding difference into `fee_vault` correctly (R-Y3 states it; two trials do not touch `fee_vault`, one does it wrongly). It passes all visible tests and gets 0 of 6 checkpoints, so it also misses the exact-tie and residual checkpoints. Model fault.
+
+Reading: on F7 the three stronger models are at 1.00 once the spec wording was fixed. F7 separates only the weakest model, so it adds little headroom at the top; its value is as a clean, well-specified coupled task where a failure is attributable.
