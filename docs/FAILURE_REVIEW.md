@@ -17,3 +17,8 @@ author confirms each verdict before it is used in the write-up.
 ## Reviewed and judged model faults
 
 - gemma_26b, f1_fee_b (3 trials): indexes `state.accounts` by an order id; its own comment says "This is wrong". The `Fill` schema is documented.
+
+## Output-token budget
+
+- mistral_large had `max_tokens = 8000`, lower than the 16000 given to the other reasoning models. One trial (f4_waterfall_b) ended with no visible answer after using the whole budget. The limit was raised to 16000 and that trial re-run: score 1.00. The other 23 mistral_large trials ran at 8000 and finished normally.
+- nemotron_nano (16000 tokens) ran out of tokens on f1_fee_b and f3_fix_a. Same budget as its peers, so these stay recorded as `OUTPUT_TRUNCATED` model behaviour (the model reasons without finishing).
