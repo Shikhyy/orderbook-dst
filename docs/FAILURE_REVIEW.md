@@ -22,3 +22,10 @@ author confirms each verdict before it is used in the write-up.
 
 - mistral_large had `max_tokens = 8000`, lower than the 16000 given to the other reasoning models. One trial (f4_waterfall_b) ended with no visible answer after using the whole budget. The limit was raised to 16000 and that trial re-run: score 1.00. The other 23 mistral_large trials ran at 8000 and finished normally.
 - nemotron_nano (16000 tokens) ran out of tokens on f1_fee_b and f3_fix_a. Same budget as its peers, so these stay recorded as `OUTPUT_TRUNCATED` model behaviour (the model reasons without finishing).
+
+## f6_match_b
+
+| trial | score | cause | verdict |
+|---|---|---|---|
+| gemma_26b, trial 1 (second trial) | 0.23 | Matching loop picks the best opposite order with `for ask in asks: if ask.price <= order.price: best_opp = ask else: break`, with no `break` after the assignment. It keeps overwriting, so it ends on the **last** crossing order (worst price) instead of the first. Passes all 8 visible tests (each has one crossing order); fails 11 of 12 checkpoints and all 20 hidden seeds at the first multi-level sweep. | Model fault. R-M1 says "matches the best price first". Clean example of H1: the visible tests never put two crossing orders in the book. |
+| mistral_large, trial 1 | 0.00 | `OUTPUT_TRUNCATED` at 16000 tokens on this larger task. | Not scored as wrong code. Token budget to be reviewed for F6 once all models have run. |
