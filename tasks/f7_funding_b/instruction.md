@@ -46,7 +46,7 @@ Locks, volume and positions do not change.
 
 **R-Y3.** The rounding is done per account, so the payments and receipts need not cancel. The engine adds the net of all payments (payments minus receipts; the net can be negative) to `state.fee_vault`. Total cash plus `fee_vault` is therefore unchanged.
 
-**R-Y4.** The first report is `Report(kind="FUNDING_APPLIED", bps=rate, qty=n)`, where `rate` is the clamped rate and `n` is the number of accounts processed in R-Y2: every account with `position != 0`, even when its `amount` is 0 (`n = 0` when `rate == 0`).
+**R-Y4.** The first report is `Report(kind="FUNDING_APPLIED", bps=rate, qty=n)`, where `rate` is the clamped rate and `n` is the number of accounts processed in R-Y2. If `rate == 0`, R-Y2 processes no account, so `n = 0` (even if some accounts hold positions). If `rate != 0`, `n` counts every account with `position != 0`, including an account whose `amount` rounds to 0.
 
 **R-Y5.** After the payments, the engine always runs the margin waterfall at the current mark price: it dispatches `Event(kind="PRICE_SHOCK", mark_price=state.mark_price)` through `engine.dispatch` and appends the returned reports, in their own order, after `FUNDING_APPLIED`. This also happens when `rate == 0`.
 

@@ -222,7 +222,7 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 
 **R-Y3 [Declared].** Rounding is done per account, so the payments and receipts need not cancel. The engine adds the net of all payments (payments minus receipts, which can be negative) to `fee_vault`. Total cash plus `fee_vault` is unchanged.
 
-**R-Y4 [Declared].** The first report is `FUNDING_APPLIED` with `bps = rate` (the clamped rate) and `qty` equal to the number of accounts processed in R-Y2 (every account with `position != 0`, even when its `amount` is 0; 0 when `rate == 0`).
+**R-Y4 [Declared].** The first report is `FUNDING_APPLIED` with `bps = rate` (the clamped rate) and `qty` equal to the number of accounts processed in R-Y2. If `rate == 0`, no account is processed and `qty` is 0, even if accounts hold positions. If `rate != 0`, `qty` counts every account with `position != 0`, including one whose `amount` rounds to 0.
 
 **R-Y5 [Declared].** After the payments, the engine always runs the margin waterfall at the current mark price, as if a PRICE_SHOCK event with `mark_price` equal to the current `mark_price` had arrived (rules R-W1 to R-W7). The reports of that waterfall follow `FUNDING_APPLIED`, in their own order (the first of them is `MARK_SET`). This also happens when `rate == 0`.
 
