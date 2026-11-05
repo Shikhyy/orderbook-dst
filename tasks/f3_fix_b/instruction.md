@@ -71,7 +71,7 @@ On `SESSION_RESET`:
 - Return `[Report.session_reset_done(session)]`.
 
 ### R-S9 [Declared]
-When message bodies are dispatched, the resulting reports are accumulated in order: the incoming message body reports first, followed by each drained buffered message's reports in ascending sequence order.
+When message bodies are dispatched, the resulting reports are accumulated in order: the incoming message body reports first, followed by each drained buffered message's reports in ascending sequence order. A message whose `body` is `None` carries no order event: it still advances the session state as usual, but nothing is dispatched for it and it adds no reports.
 
 ## 5. Output format
 

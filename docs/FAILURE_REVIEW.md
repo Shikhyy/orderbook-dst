@@ -76,3 +76,6 @@ Spec/harness defects: none found. Failures group as follows.
 
 ### gemini_35_flash f5_basket_b (3/3 at 0.50)
 The handler treats any CANCELLED report as a failed leg. Rule R-A3 fails the basket only on a rejection or an IOC remainder, so a self-trade-prevention cancel must not fail it. This is a model misreading, consistent across trials. No spec defect identified.
+
+### Spec defect: f3_fix_b body=None (found Nov 5)
+nemotron_nano f3_fix_b t0 scored 0.98: it failed one public test (test_epoch_mismatch) because it dispatched a message with `body=None`. The reference skips dispatch for a None body and 7 public tests rely on it, but the instruction never said so. This is a spec gap, not a model failure. R-S9 now states the rule. All f3_fix_b trials must be rerun on the corrected wording, as was done for the earlier F3 epoch defect.
