@@ -79,3 +79,8 @@ The handler treats any CANCELLED report as a failed leg. Rule R-A3 fails the bas
 
 ### Spec defect: f3_fix_b body=None (found Nov 5)
 nemotron_nano f3_fix_b t0 scored 0.98: it failed one public test (test_epoch_mismatch) because it dispatched a message with `body=None`. The reference skips dispatch for a None body and 7 public tests rely on it, but the instruction never said so. This is a spec gap, not a model failure. R-S9 now states the rule. All f3_fix_b trials must be rerun on the corrected wording, as was done for the earlier F3 epoch defect.
+
+### nemotron_nano logic failures, read (Nov 5)
+- f5_basket_b t0 (0.10) and t2 (0.39): when a leg is rejected (e.g. POST_ONLY_WOULD_CROSS) or leaves an IOC remainder, the model emits the per-leg ACCEPTED/REJECTED/CANCELLED reports instead of rolling the whole basket back with BASKET_ROLLED_BACK. It does not implement all-or-nothing atomicity. Genuine model limitation; the spec states the rollback rule.
+- f7_funding_b t0 (0.20): total money is 2 units below the initial total at event 34 (I1). Funding amounts are rounded so that the residual is not fully credited to the fee vault. Genuine rounding/conservation bug, caught by the conservation invariant.
+- f3_fix_b t1 (0.38): first report has order_id 0 instead of 1 (ids start at 1). It will be re-judged on the corrected rerun.
