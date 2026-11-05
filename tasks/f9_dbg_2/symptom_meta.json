@@ -1,0 +1,7 @@
+{
+  "trace": 90030,
+  "n_events": 25,
+  "kind": "reports",
+  "index": 10,
+  "source_mutant": "f4_waterfall_b/m_no_recheck_after_cancel"
+}

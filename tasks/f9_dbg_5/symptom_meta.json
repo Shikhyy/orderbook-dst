@@ -1,0 +1,7 @@
+{
+  "trace": 90026,
+  "n_events": 25,
+  "kind": "invariant",
+  "index": 13,
+  "source_mutant": "f7_funding_b/m_residual_not_to_vault"
+}

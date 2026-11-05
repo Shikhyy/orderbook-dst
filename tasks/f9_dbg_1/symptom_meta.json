@@ -1,0 +1,7 @@
+{
+  "trace": "handcrafted:fee_cross",
+  "n_events": 2,
+  "kind": "state",
+  "index": 1,
+  "source_mutant": "f1_fee_b/m_volume_before_fee"
+}

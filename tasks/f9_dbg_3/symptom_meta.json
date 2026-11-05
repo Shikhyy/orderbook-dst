@@ -1,0 +1,7 @@
+{
+  "trace": 90006,
+  "n_events": 25,
+  "kind": "reports",
+  "index": 1,
+  "source_mutant": "f5_basket_b/m_forgot_counter_restore"
+}
