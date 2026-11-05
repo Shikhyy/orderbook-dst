@@ -477,6 +477,12 @@ def grade_task(
                 error="FORBIDDEN_IMPORT",
             )
     meta = _load_task_metadata(task_id)
+    # A "diagnose and fix" task (family F9) is graded exactly like the task named in
+    # `grades_as`: same public tests, checkpoints, hidden seeds and profile. Only the
+    # prompt differs. Every other task grades as itself.
+    grading_id = str(meta.get("grades_as", task_id))
+    if grading_id != task_id:
+        meta = _load_task_metadata(grading_id)
     temp_dir = Path(tempfile.mkdtemp(prefix=f"grade_{task_id}_"))
 
     old_sys_path = list(sys.path)
@@ -505,7 +511,7 @@ def grade_task(
             )
 
         # Run T1
-        t1, err1, pub_output = grade_tier1(task_id, temp_dir)
+        t1, err1, pub_output = grade_tier1(grading_id, temp_dir)
         if err1:
             return ScoreRecord(
                 task_id=task_id,
@@ -519,7 +525,7 @@ def grade_task(
             )
 
         # Run T2
-        t2, err2 = grade_tier2(task_id, CandEngine, meta)
+        t2, err2 = grade_tier2(grading_id, CandEngine, meta)
         if err2:
             return ScoreRecord(
                 task_id=task_id,
@@ -533,7 +539,7 @@ def grade_task(
             )
 
         # Run T3
-        t3, first_failure, cov = grade_tier3(task_id, CandEngine, meta)
+        t3, first_failure, cov = grade_tier3(grading_id, CandEngine, meta)
 
         score = round(0.2 * t1 + 0.3 * t2 + 0.5 * t3, 4)
         passed = score == 1.0

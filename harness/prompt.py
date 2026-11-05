@@ -195,20 +195,37 @@ def build_prompt_for_task(task_id: str) -> BuiltPrompt:
         instruction_file.read_text(encoding="utf-8") if instruction_file.exists() else ""
     )
 
+    # A "diagnose and fix" task (mode = "debug", family F9) shows a bug report and the buggy
+    # file instead of a stub, and is graded like the task named in `grades_as`.
+    is_debug = meta.get("mode") == "debug"
+    test_task = str(meta.get("grades_as", task_id)) if is_debug else task_id
+
     parts: list[str] = []
     # 1. Instruction
     parts.append(instruction_text.strip())
 
+    # 1a. Bug report (debug tasks only)
+    if is_debug:
+        symptom_file = task_dir / "symptom.md"
+        parts.append("\n" + symptom_file.read_text(encoding="utf-8").strip())
+
     # 1b. Public tests (visible)
-    public_test_file = task_dir / "public_tests" / f"test_{task_id}.py"
+    public_test_file = REPO_ROOT / "tasks" / test_task / "public_tests" / f"test_{test_task}.py"
     if public_test_file.exists():
         test_content = public_test_file.read_text(encoding="utf-8")
         parts.append(f"\n## Public Tests (Visible)\n```python\n{test_content.strip()}\n```")
 
-    # 2. Target file stubs
-    parts.append("\n## Target Files to Implement\n")
+    # 2. Target file stubs (or, for debug tasks, the buggy files)
     target_files = meta.get("target_files", [])
-    for rel_path in target_files:
+    if is_debug:
+        parts.append("\n## Buggy Target Files (return the corrected file)\n")
+        for rel_path in target_files:
+            buggy_file = task_dir / "buggy" / rel_path
+            content = buggy_file.read_text(encoding="utf-8")
+            parts.append(f"### Buggy: {rel_path}\n```python\n{content.strip()}\n```")
+    else:
+        parts.append("\n## Target Files to Implement\n")
+    for rel_path in [] if is_debug else target_files:
         stub_file = task_dir / "workspace" / rel_path
         if stub_file.exists():
             content = stub_file.read_text(encoding="utf-8")
