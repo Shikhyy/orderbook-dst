@@ -62,3 +62,17 @@ Lesson for the write-up: a clean-room read finds ambiguities, but the fix itself
 ministral_8b fails all three with I1 ("total money != initial", off by 1 or 2 micro-units): it never books the net per-account rounding difference into `fee_vault` correctly (R-Y3 states it; two trials do not touch `fee_vault`, one does it wrongly). It passes all visible tests and gets 0 of 6 checkpoints, so it also misses the exact-tie and residual checkpoints. Model fault.
 
 Reading: on F7 the three stronger models are at 1.00 once the spec wording was fixed. F7 separates only the weakest model, so it adds little headroom at the top; its value is as a clean, well-specified coupled task where a failure is attributable.
+
+## Main run: remaining failures (Nov 5, nemotron_nano complete, gemini_35_flash in progress)
+
+### nemotron_nano (30/30 trials, 10 passed, mean 0.408)
+Spec/harness defects: none found. Failures group as follows.
+
+| category | count | tasks | verdict |
+|---|---|---|---|
+| OUTPUT_TRUNCATED at the shared max_tokens budget | 10 | f1_fee_b, f3_fix_a, f4_waterfall_b x2, f5_basket_b, f6_match_b x3, f7_funding_b x2 | Budget artifact, not a logic finding. Every model has the same budget. Report separately from logic failures. |
+| Tier 2 crash on invented attributes (Engine.orders / .accounts / .book / .release_lock, EngineState.adjust_position) | 5 | f1_fee_b x2, f2_replace_b x3 | Genuine model limitation: calls APIs that are not in the provided code. |
+| Wrong behaviour in the hidden traces (D1 report mismatch or I1 money conservation) | 5 | f3_fix_b t1 (0.38), f5_basket_b t0 (0.10) and t2 (0.39), f7_funding_b t0 (0.20), f3_fix_b t0 (0.98 near miss) | Logic failures. NOT YET READ in detail, so no root cause is claimed. f3_fix_b t0 at 0.98 needs a check for a spec gap. |
+
+### gemini_35_flash f5_basket_b (3/3 at 0.50)
+The handler treats any CANCELLED report as a failed leg. Rule R-A3 fails the basket only on a rejection or an IOC remainder, so a self-trade-prevention cancel must not fail it. This is a model misreading, consistent across trials. No spec defect identified.
