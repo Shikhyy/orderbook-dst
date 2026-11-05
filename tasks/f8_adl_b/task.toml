@@ -1,0 +1,9 @@
+id = "f8_adl_b"
+family = "F8"
+variant = "B"
+target_files = ["exchange_core/handlers/bankruptcy.py"]
+rules = ["R-L1", "R-L2", "R-L3", "R-L4", "R-L5"]
+profile = "crash_heavy"
+timeout_s = 60
+difficulty_reason = "Implements the bankruptcy procedure that runs after a liquidation: the deficit from the account's negative cash, a capped draw on the fee vault, then pro-rata sharing of the remainder among the accounts on the other side of the liquidated position (excluding LIQ and the ruined account), with floor division, leftover units handed out by weight and then by string order of the account id, reports in the required order, and exact money conservation. The handler must read the live state that the surrounding waterfall leaves it, and must not do the waterfall's work itself (R-L1 to R-L5)."
+author_signoff = false

@@ -100,6 +100,11 @@ def get_hardcoded_files(task_id: str, meta: dict[str, Any]) -> dict[str, str]:
                 "def handle_funding(engine, event):\n"
                 "    return [Report(kind='FUNDING_APPLIED', bps=event.bps, qty=0)]\n"
             )
+        elif task_id == "f8_adl_b":
+            files[rel_path] = (
+                "def handle_bankruptcy(engine, account_id, pre_position):\n"
+                "    return []\n"
+            )
         elif task_id == "f6_match_b":
             files[rel_path] = (
                 "from exchange_core.types import Report\n"

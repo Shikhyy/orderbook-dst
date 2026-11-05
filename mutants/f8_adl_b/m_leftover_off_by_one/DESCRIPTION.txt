@@ -1,0 +1,1 @@
+One unit too many is handed out, so the payers pay more than the account receives (money is destroyed).

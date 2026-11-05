@@ -1,0 +1,1 @@
+Each base share is rounded half to even instead of floored, so the shares can add up to more or less than the remaining loss.

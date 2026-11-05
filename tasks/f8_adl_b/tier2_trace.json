@@ -1,0 +1,2329 @@
+{
+  "accounts": {
+    "A1": 3000000000,
+    "A2": 3000000000,
+    "A3": 3000000000,
+    "A10": 3000000000,
+    "A11": 410000000,
+    "A12": 410000000,
+    "A13": 410000000,
+    "A14": 410000000,
+    "A15": 410000000,
+    "A5": 410000000,
+    "A16": 40000000,
+    "A4": 32000000,
+    "A0": 6000000,
+    "LIQ": 50000000000
+  },
+  "mark_price": 100000000,
+  "events": [
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 6,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A11",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 6,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 30858333,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A12",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 7,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 41620238,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 5,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A13",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 13,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 64031410,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 5,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 5,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A14",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 7,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 33203569,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A15",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 8,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 158085005,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A2",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 2,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A3",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 20,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A10",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A5",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 225140000,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A1",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 3,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "SET_MARGIN_RATE",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 100,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A4",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 31,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A0",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 5,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A16",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 36,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 90000000,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_CRASH",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 90000000,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "SET_MARGIN_RATE",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 2000,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    }
+  ],
+  "checkpoints": [
+    {
+      "event_index": 2,
+      "name": "chk_bad_debt_after_vault_is_empty",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 30858333
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": 6,
+          "account": "A11"
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "qty": 1500000,
+          "account": "A11"
+        },
+        {
+          "kind": "BAD_DEBT",
+          "qty": 5000002,
+          "account": "A11"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 3000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A2": {
+          "free_cash": 3000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A3": {
+          "free_cash": 3000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A10": {
+          "free_cash": 3000000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A13": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A14": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A15": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A5": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A16": {
+          "free_cash": 40000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A4": {
+          "free_cash": 32000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A0": {
+          "free_cash": 6000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 50415000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    },
+    {
+      "event_index": 8,
+      "name": "chk_vault_covers_whole_deficit",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 41620238
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": 7,
+          "account": "A12"
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "qty": 583334,
+          "account": "A12"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 3200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "A2": {
+          "free_cash": 3200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "A3": {
+          "free_cash": 3200050000,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 200000000
+        },
+        "A10": {
+          "free_cash": 3100025000,
+          "locked_margin": 0,
+          "position": -1,
+          "volume": 100000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A14": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A15": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A5": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A16": {
+          "free_cash": 40000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A4": {
+          "free_cash": 32000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A0": {
+          "free_cash": 6000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 50123658336,
+          "locked_margin": 0,
+          "position": 7,
+          "volume": 600000000
+        }
+      },
+      "expected_fee_vault": 1166666,
+      "source": "engine"
+    },
+    {
+      "event_index": 24,
+      "name": "chk_loss_sharing_pro_rata_leftover_and_tie",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 64031410
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": 13,
+          "account": "A13"
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "qty": 11166666,
+          "account": "A13"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 13636365,
+          "account": "A1"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 13636364,
+          "account": "A10"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 22727275,
+          "account": "A2"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 3285938635,
+          "locked_margin": 0,
+          "position": -3,
+          "volume": 700000000
+        },
+        "A2": {
+          "free_cash": 3476897725,
+          "locked_margin": 0,
+          "position": -5,
+          "volume": 900000000
+        },
+        "A3": {
+          "free_cash": 994000000,
+          "locked_margin": 0,
+          "position": 20,
+          "volume": 2400000000
+        },
+        "A10": {
+          "free_cash": 3286188636,
+          "locked_margin": 0,
+          "position": -3,
+          "volume": 500000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1300000000
+        },
+        "A14": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A15": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A5": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A16": {
+          "free_cash": 40000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A4": {
+          "free_cash": 32000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A0": {
+          "free_cash": 6000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 52191975006,
+          "locked_margin": 0,
+          "position": -9,
+          "volume": 3500000000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    },
+    {
+      "event_index": 38,
+      "name": "chk_equal_weights_string_order_of_ids",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 33203569
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": 7,
+          "account": "A14"
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "qty": 9500000,
+          "account": "A14"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 16666673,
+          "account": "A10"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 16666672,
+          "account": "A2"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 16666672,
+          "account": "A3"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 2985113635,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1000000000
+        },
+        "A2": {
+          "free_cash": 3158906053,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 1600000000
+        },
+        "A3": {
+          "free_cash": 3171883328,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 4600000000
+        },
+        "A10": {
+          "free_cash": 3168746963,
+          "locked_margin": 0,
+          "position": -2,
+          "volume": 1000000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1300000000
+        },
+        "A14": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A15": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A5": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A16": {
+          "free_cash": 40000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A4": {
+          "free_cash": 32000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A0": {
+          "free_cash": 6000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 51160350023,
+          "locked_margin": 0,
+          "position": 6,
+          "volume": 6700000000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    },
+    {
+      "event_index": 52,
+      "name": "chk_short_account_loss_goes_to_longs",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 158085005
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": -8,
+          "account": "A15"
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "qty": 6880010,
+          "account": "A15"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 14285723,
+          "account": "A1"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 21428585,
+          "account": "A10"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 14285722,
+          "account": "A2"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 2770877912,
+          "locked_margin": 0,
+          "position": 2,
+          "volume": 1200000000
+        },
+        "A2": {
+          "free_cash": 2744120331,
+          "locked_margin": 0,
+          "position": 2,
+          "volume": 2000000000
+        },
+        "A3": {
+          "free_cash": 4967453318,
+          "locked_margin": 0,
+          "position": -20,
+          "volume": 6800000000
+        },
+        "A10": {
+          "free_cash": 2646843378,
+          "locked_margin": 0,
+          "position": 3,
+          "volume": 1500000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1300000000
+        },
+        "A14": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A15": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 800000000
+        },
+        "A5": {
+          "free_cash": 410000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A16": {
+          "free_cash": 40000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A4": {
+          "free_cash": 32000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A0": {
+          "free_cash": 6000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 50925705063,
+          "locked_margin": 0,
+          "position": 13,
+          "volume": 9400000000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    },
+    {
+      "event_index": 63,
+      "name": "chk_liquidation_without_deficit",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 225140000
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": -3,
+          "account": "A5"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 2670402912,
+          "locked_margin": 0,
+          "position": 3,
+          "volume": 1700000000
+        },
+        "A2": {
+          "free_cash": 2943570331,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 2200000000
+        },
+        "A3": {
+          "free_cash": 2963753318,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 8800000000
+        },
+        "A10": {
+          "free_cash": 2946018378,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1800000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1300000000
+        },
+        "A14": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A15": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 800000000
+        },
+        "A5": {
+          "free_cash": 33755000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 300000000
+        },
+        "A16": {
+          "free_cash": 40000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A4": {
+          "free_cash": 32000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "A0": {
+          "free_cash": 6000000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
+        },
+        "LIQ": {
+          "free_cash": 52901800063,
+          "locked_margin": 0,
+          "position": -3,
+          "volume": 12100000000
+        }
+      },
+      "expected_fee_vault": 5700000,
+      "source": "engine"
+    },
+    {
+      "event_index": 70,
+      "name": "chk_loss_share_makes_accounts_insolvent_mid_sweep",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 90000000
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": 36,
+          "account": "A16"
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "qty": 15450000,
+          "account": "A16"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 43673611,
+          "account": "A0"
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "qty": 270776389,
+          "account": "A4"
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": -31,
+          "account": "A4"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 2969577912,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 2000000000
+        },
+        "A2": {
+          "free_cash": 2943570331,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 2200000000
+        },
+        "A3": {
+          "free_cash": 2963753318,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 8800000000
+        },
+        "A10": {
+          "free_cash": 2946018378,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1800000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1300000000
+        },
+        "A14": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A15": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 800000000
+        },
+        "A5": {
+          "free_cash": 33755000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 300000000
+        },
+        "A16": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 3600000000
+        },
+        "A4": {
+          "free_cash": 71998611,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 3100000000
+        },
+        "A0": {
+          "free_cash": 462451389,
+          "locked_margin": 0,
+          "position": -5,
+          "volume": 500000000
+        },
+        "LIQ": {
+          "free_cash": 52151875063,
+          "locked_margin": 0,
+          "position": 5,
+          "volume": 12400000000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    },
+    {
+      "event_index": 71,
+      "name": "chk_earlier_account_is_examined_in_the_next_event",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 90000000
+        },
+        {
+          "kind": "LIQUIDATED",
+          "qty": -5,
+          "account": "A0"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": 2969577912,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 2000000000
+        },
+        "A2": {
+          "free_cash": 2943570331,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 2200000000
+        },
+        "A3": {
+          "free_cash": 2963753318,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 8800000000
+        },
+        "A10": {
+          "free_cash": 2946018378,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1800000000
+        },
+        "A11": {
+          "free_cash": -5000002,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 600000000
+        },
+        "A12": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A13": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 1300000000
+        },
+        "A14": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 700000000
+        },
+        "A15": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 800000000
+        },
+        "A5": {
+          "free_cash": 33755000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 300000000
+        },
+        "A16": {
+          "free_cash": 0,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 3600000000
+        },
+        "A4": {
+          "free_cash": 71998611,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 3100000000
+        },
+        "A0": {
+          "free_cash": 12451389,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 500000000
+        },
+        "LIQ": {
+          "free_cash": 52601875063,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 12400000000
+        }
+      },
+      "expected_fee_vault": 0,
+      "source": "engine"
+    }
+  ]
+}

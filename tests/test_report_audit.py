@@ -48,6 +48,9 @@ class IndependentReportAuditTracker:
         self.current_bps = cfg.margin_bps_default
         self.current_mark = mark_price
         self.orders: dict[int, TrackedOrder] = {}
+        # The fee vault is fed by fills only (valid for profiles without FUNDING events).
+        self.vault = 0
+        self.expected_bankruptcy: list[tuple[str, str, int]] = []
 
     def on_event_reports(self, event: Event, reports: list[Report]) -> None:
         if event.kind == "FIX_MSG" and event.body:
@@ -64,6 +67,7 @@ class IndependentReportAuditTracker:
             new_qty = event.new_qty
 
         leg_idx = 0
+        self.expected_bankruptcy = []
         for r in reports:
             if r.kind == "MARK_SET":
                 self.current_mark = r.mark_price
@@ -138,6 +142,7 @@ class IndependentReportAuditTracker:
                 rebate = round_half_even(notional * self.cfg.maker_rebate_ppm, self.cfg.ppm)
                 self.free_cash[taker_acc] -= fee
                 self.free_cash[maker_acc] += rebate
+                self.vault += fee - rebate
 
             elif r.kind == "CANCELLED":
                 if r.order_id in self.orders:
@@ -175,6 +180,56 @@ class IndependentReportAuditTracker:
                     self.free_cash["LIQ"] += transfer
                     self.positions[acc] = 0
                     self.positions["LIQ"] += qty
+                if event.kind == "PRICE_CRASH":
+                    assert not self.expected_bankruptcy, "reports of the last bankruptcy missing"
+                    self.expected_bankruptcy = self._bankruptcy(acc, qty)
+
+            elif r.kind in ("INSURANCE_DRAWN", "ADL_APPLIED", "BAD_DEBT"):
+                # The amounts were derived independently at the LIQUIDATED report.
+                assert self.expected_bankruptcy, f"unexpected {r.kind} for {r.account}"
+                assert self.expected_bankruptcy.pop(0) == (r.kind, r.account, r.qty)
+
+
+    def _bankruptcy(self, victim: str, pre: int) -> list[tuple[str, str, int]]:
+        """Independent derivation of R-L1 to R-L5 from the tracker's own cash and positions.
+
+        Applies the effects to the tracker and returns the reports it expects, in order.
+        Leftover units are handed out one at a time (a loop), unlike the reference's slice.
+        """
+        deficit = max(0, -self.free_cash[victim])
+        expected: list[tuple[str, str, int]] = []
+        if deficit == 0:
+            return expected
+        cover = min(deficit, max(0, self.vault))
+        if cover:
+            self.vault -= cover
+            self.free_cash[victim] += cover
+            expected.append(("INSURANCE_DRAWN", victim, cover))
+        remaining = deficit - cover
+        if remaining == 0:
+            return expected
+        weight = {
+            a: abs(p) for a, p in self.positions.items()
+            if a not in ("LIQ", victim) and p != 0 and (p > 0) != (pre > 0)
+        }
+        if not weight:
+            expected.append(("BAD_DEBT", victim, remaining))
+            return expected
+        total = sum(weight.values())
+        share = {a: remaining * w // total for a, w in weight.items()}
+        queue = sorted(weight, key=lambda a: (-weight[a], a))
+        left = remaining - sum(share.values())
+        position = 0
+        while left > 0:
+            share[queue[position]] += 1
+            position += 1
+            left -= 1
+        for a in sorted(share):
+            if share[a] > 0:
+                self.free_cash[a] -= share[a]
+                expected.append(("ADL_APPLIED", a, share[a]))
+        self.free_cash[victim] += remaining
+        return expected
 
 
 AUDIT_SEEDS = [1, 2, 3, 4, 5, 100, 200, 300, 400, 500]
@@ -198,12 +253,15 @@ def test_report_audit_state_reconstruction(profile: str, seed: int) -> None:
         num_events=100,
         clean_fix=clean_fix,
     )
+    if profile == "crash_heavy":
+        accounts = dict(trace.accounts)  # the profile uses its own seven accounts
     engine = Engine(cfg, accounts, 100_000_000)
     tracker = IndependentReportAuditTracker(accounts, cfg, 100_000_000)
 
     for event in trace.events:
         reports = engine.process(event)
         tracker.on_event_reports(event, reports)
+        assert not tracker.expected_bankruptcy, f"missing bankruptcy reports after {event.kind}"
 
     for aid in accounts:
         eng_acc = engine.state.accounts[aid]

@@ -63,10 +63,10 @@ def alt_engine_cls() -> Any:
     return make_alt_engine_class()
 
 
-# reference_alt predates the FUNDING event and has no funding handler; funding is checked against
-# the independent clean-room implementation in reference_alt_v2 (grader validation V2) and by
-# the report audit, so the N-version comparison covers the other profiles.
-DIFFERENTIAL_PROFILES = [p for p in PROFILES if p != "funding_heavy"]
+# reference_alt predates the FUNDING and PRICE_CRASH events and has no handler for them; those are
+# checked against the independent clean-room implementations in reference_alt_v2 (grader
+# validation V2) and by the report audit, so the N-version comparison covers the other profiles.
+DIFFERENTIAL_PROFILES = [p for p in PROFILES if p not in ("funding_heavy", "crash_heavy")]
 
 
 @pytest.mark.parametrize("profile", DIFFERENTIAL_PROFILES)

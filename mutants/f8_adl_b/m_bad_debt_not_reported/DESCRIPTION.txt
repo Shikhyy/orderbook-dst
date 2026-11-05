@@ -1,0 +1,1 @@
+The BAD_DEBT report is not emitted when nobody can share the loss.

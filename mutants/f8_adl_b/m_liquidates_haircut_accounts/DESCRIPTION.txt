@@ -1,0 +1,1 @@
+An account that falls below the maintenance requirement after its loss share is liquidated at once inside the procedure (the waterfall must do that, later, itself).

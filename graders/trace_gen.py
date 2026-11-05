@@ -9,7 +9,7 @@ from graders.detrng import DetRng
 
 PROFILES = (
     "fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy", "match_heavy",
-    "funding_heavy",
+    "funding_heavy", "crash_heavy",
 )
 TICK = 10_000
 BASE_MARK = 100_000_000
@@ -54,6 +54,8 @@ def generate_trace(
     - basket_heavy: Atomic multi-leg baskets with IOC and POST_ONLY.
     - match_heavy: Order matching with IOC, POST_ONLY, self-trades and tight margin.
     - funding_heavy: Positions built by trading, FUNDING events with odd marks and large rates.
+    - crash_heavy: Positions built by trading, PRICE_CRASH events with deep drops and spikes that
+      bankrupt accounts (insurance draw, loss sharing, bad debt); account ids sort unlike numbers.
     """
     if profile not in PROFILES:
         raise ValueError(f"Unknown profile: {profile}")
@@ -82,6 +84,19 @@ def generate_trace(
             "LIQ": 100_000_000_000,
         }
     trading_accs = ["A1", "A2", "A3"]
+    if profile == "crash_heavy":
+        # Trading accounts "A10" to "A13" sort before "A2" as strings (rule R-W7).
+        trading_accs = ["A1", "A2", "A3", "A10", "A11", "A12", "A13"]
+        accounts = {
+            "A1": 600_000_000,
+            "A2": 600_000_000,
+            "A3": 600_000_000,
+            "A10": 600_000_000,
+            "A11": 600_000_000,
+            "A12": 600_000_000,
+            "A13": 600_000_000,
+            "LIQ": 100_000_000_000,
+        }
 
     events: list[Event] = []
     trigger_indices: list[int] = []
@@ -398,6 +413,49 @@ def generate_trace(
                 shift = rng.next_int(0, 2) * TICK
                 price = BASE_MARK - shift if side == "BUY" else BASE_MARK + shift
                 qty = rng.next_int(1, 7)
+                event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            else:
+                oid = rng.choice(active_order_ids) if active_order_ids else 1
+                event = Event(kind="CANCEL", order_id=oid)
+
+        elif profile == "crash_heavy":
+            # Profile 8: crash_heavy (F8 target).
+            # Trigger event: a PRICE_CRASH event (waterfall plus bankruptcy procedure).
+            action = rng.next_int(0, 99)
+            if action < 20:
+                # PRICE_CRASH events. Small steps leave small deficits (the insurance fund can
+                # cover them), deep drops ruin longs, spikes ruin shorts, resets let the book
+                # recover.
+                kind_roll = rng.next_int(0, 9)
+                if kind_roll < 4:
+                    step = rng.next_int(-9, 9)
+                    current_mark = max(10_000_000, current_mark + current_mark * step // 100)
+                elif kind_roll < 6:
+                    current_mark = rng.next_int(20_000_000, 70_000_000) + rng.next_int(0, 9) * 7
+                elif kind_roll < 8:
+                    current_mark = rng.next_int(150_000_000, 400_000_000) + rng.next_int(0, 9) * 7
+                else:
+                    current_mark = BASE_MARK
+                event = Event(kind="PRICE_CRASH", mark_price=current_mark)
+                is_trigger = True
+            elif action < 88:
+                # crossing orders to build positions on both sides
+                side = rng.choice(["BUY", "SELL"])
+                acc = rng.choice(trading_accs)
+                price = BASE_MARK + (3 * TICK if side == "BUY" else -3 * TICK)
+                qty = rng.next_int(1, 8)
+                event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
+                active_order_ids.append(next_sim_order_id)
+                next_sim_order_id += 1
+            elif action < 95:
+                # passive orders that supply liquidity
+                side = rng.choice(["BUY", "SELL"])
+                acc = rng.choice(trading_accs)
+                shift = rng.next_int(0, 2) * TICK
+                price = BASE_MARK - shift if side == "BUY" else BASE_MARK + shift
+                qty = rng.next_int(1, 8)
                 event = Event(kind="NEW_LIMIT", account=acc, side=side, price=price, qty=qty)
                 active_order_ids.append(next_sim_order_id)
                 next_sim_order_id += 1

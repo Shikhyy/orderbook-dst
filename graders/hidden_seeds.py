@@ -13,6 +13,7 @@ BASE_SEEDS: dict[str, int] = {
     "f5_basket_b": 8000,
     "f6_match_b": 9000,
     "f7_funding_b": 10000,
+    "f8_adl_b": 11000,
 }
 
 

@@ -1,0 +1,1 @@
+The ADL_APPLIED report is emitted but the share is not taken from the account (money is created).
