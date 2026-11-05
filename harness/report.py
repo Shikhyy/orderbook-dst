@@ -25,6 +25,10 @@ TASK_ORDER = [
     "f3_fix_a", "f3_fix_b", "f4_waterfall_b", "f5_basket_b",
 ]
 NUM_HIDDEN_SEEDS = 20
+# "Diagnose and fix" tasks (family F9) are exploratory and reported in their own section.
+# They are kept out of the headline numbers and out of H1-H5, which are pre-registered for
+# the implementation tasks (F1-F8).
+DEBUG_TASK_PREFIX = "f9_"
 # Labels that mean a conservation / consistency law broke (secondary-state class
 # in H5). D1 alone means the reports or final state differ from the reference
 # with no invariant broken at that event (primary-logic class).
@@ -225,6 +229,54 @@ def compute_model_summary(model_label: str, trials: list[dict[str, Any]]) -> dic
         "h2_a_vs_b_score": family_a_vs_b(tasks_dict, metric="score"),
         "seed_stats": _seed_label_stats(trials),
     }
+
+
+def _is_debug_task(task_id: Any) -> bool:
+    return str(task_id).startswith(DEBUG_TASK_PREFIX)
+
+
+def _graded_as(task_id: str) -> Optional[str]:
+    """The task a diagnose-and-fix task is graded as (its `grades_as`), if readable."""
+    try:
+        import tomllib as tomli
+    except ImportError:  # pragma: no cover
+        import tomli  # type: ignore
+    toml_path = Path(__file__).resolve().parent.parent / "tasks" / task_id / "task.toml"
+    try:
+        return str(tomli.loads(toml_path.read_text(encoding="utf-8")).get("grades_as") or "")
+    except Exception:
+        return None
+
+
+def compute_debug_summary(
+    debug_trials: list[dict[str, Any]], impl_trials: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Per model and F9 task: passes, mean score, and the same model on the base task."""
+    by_model: dict[str, dict[str, list[dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
+    for t in debug_trials:
+        by_model[t.get("model", "unknown")][t["task_id"]].append(t)
+    impl_by: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for t in impl_trials:
+        impl_by[(t.get("model", "unknown"), t["task_id"])].append(t)
+    out = []
+    for model, tasks in by_model.items():
+        rows = []
+        for tid in sorted(tasks):
+            tr = tasks[tid]
+            base = _graded_as(tid)
+            base_rows = impl_by.get((model, base or ""), [])
+            rows.append({
+                "task_id": tid,
+                "graded_as": base,
+                "trials": len(tr),
+                "passes": sum(1 for x in tr if x.get("passed", False)),
+                "mean_score": round(sum(float(x.get("score", 0.0)) for x in tr) / len(tr), 4),
+                "outcomes": dict(Counter(_failure_class(x) for x in tr)),
+                "base_trials": len(base_rows),
+                "base_passes": sum(1 for x in base_rows if x.get("passed", False)),
+            })
+        out.append({"model": model, "tasks": rows})
+    return out
 
 
 TIER_RANK = {"small": 0, "mid": 1, "frontier": 2}
@@ -430,6 +482,30 @@ def format_full_markdown(report: dict[str, Any]) -> str:
         "classification and must be checked against the transcripts.",
         "",
     ]
+    debug = report.get("debug") or []
+    if debug:
+        out += ["## F9: diagnose and fix (exploratory; not part of H1–H5)", "",
+                "The model gets the specification, a handler with one defect and the first "
+                "failing step of a short trace, and returns the corrected file. Each task is "
+                "graded exactly like the task it is graded as. These trials are not in the "
+                "headline table or in H1–H5. `impl` is the same model's passes on the "
+                "implementation task (written from scratch) that the F9 task is graded as.", ""]
+        tids = sorted({r["task_id"] for d in debug for r in d["tasks"]})
+        out.append("| Task (graded as) | " + " | ".join(d["model"] for d in debug) + " |")
+        out.append("|---|" + "---|" * len(debug))
+        for tid in tids:
+            cells = []
+            graded_as = ""
+            for d in debug:
+                r = next((x for x in d["tasks"] if x["task_id"] == tid), None)
+                if r is None:
+                    cells.append("–")
+                    continue
+                graded_as = r["graded_as"] or ""
+                impl = f", impl {r['base_passes']}/{r['base_trials']}" if r["base_trials"] else ""
+                cells.append(f"{r['passes']}/{r['trials']} ({r['mean_score']:.2f}){impl}")
+            out.append(f"| `{tid}` (`{graded_as}`) | " + " | ".join(cells) + " |")
+        out.append("")
     fb = [f for f in report.get("feedback", []) if f.get("trials")]
     if fb:
         out += ["## H3: invariant feedback loop (paired: same trial, first vs final turn)", "",
@@ -451,7 +527,12 @@ def generate_report(
     in_dir: Path, out_dir: Path, task_filter: Optional[set[str]] = None
 ) -> dict[str, Any]:
     """Load trials, generate summaries, write markdown and json reports."""
-    trials = load_trials(in_dir / "trials.jsonl", task_filter=task_filter)
+    all_trials = load_trials(in_dir / "trials.jsonl", task_filter=task_filter)
+    trials = [t for t in all_trials if not _is_debug_task(t.get("task_id"))]
+    debug_trials = [
+        t for t in all_trials
+        if _is_debug_task(t.get("task_id")) and t.get("mode") != "feedback_loop"
+    ]
     meta_file = in_dir / "run_meta.json"
     run_meta = json.loads(meta_file.read_text(encoding="utf-8")) if meta_file.exists() else {}
 
@@ -464,7 +545,10 @@ def generate_report(
     report_data: dict[str, Any] = {
         "models": [compute_model_summary(m, rows) for m, rows in single.items()],
         "feedback": [compute_feedback_summary(m, rows) for m, rows in feedback.items()],
-        "total_trials": len(trials),
+        "total_trials": len(all_trials),
+        "debug": compute_debug_summary(
+            debug_trials, [t for t in trials if t.get("mode") != "feedback_loop"]
+        ),
         "run_meta": {k: run_meta.get(k) for k in ("date", "git_sha", "models")},
     }
     # Feedback-loop trials also have a final single score; summarise those too.
