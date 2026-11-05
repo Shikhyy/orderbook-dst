@@ -116,6 +116,58 @@ def get_hardcoded_files(task_id: str, meta: dict[str, Any]) -> dict[str, str]:
     return files
 
 
+def validate_debug_task(task_id: str, meta: dict[str, Any]) -> bool:
+    """Checks for a "diagnose and fix" task (family F9, see tools/make_f9.py).
+
+    D1: the reference scores 1.00 under this task id (so `grades_as` reaches the base task).
+    D2: the clean-room alternative of the base task scores 1.00.
+    D3: the minimal hand-written fix of the buggy file scores 1.00.
+    D4: the buggy file scores below 1.00 and exactly like the mutant it was made from.
+    D5: the stored symptom is what the stored visible trace produces.
+    """
+    from tools import make_f9
+
+    inst = next(i for i in make_f9.INSTANCES if i["id"] == task_id)
+    base = inst["base"]
+    ok = True
+
+    r_ref = grade_task(task_id, make_f9.reference_files(base), is_candidate=True)
+    d1 = r_ref.score == 1.00 and r_ref.passed is True
+    print(f"  [D1] Reference fix:        {'PASS' if d1 else 'FAIL'} (score={r_ref.score:.2f})")
+
+    alt_files = {
+        rel: (REPO_ROOT / "reference_alt_v2" / base / Path(rel).name).read_text(encoding="utf-8")
+        for rel in meta.get("target_files", [])
+    }
+    r_alt = grade_task(task_id, alt_files, is_candidate=True)
+    d2 = r_alt.score == 1.00 and r_alt.passed is True
+    print(f"  [D2] Clean-room alt (v2):  {'PASS' if d2 else 'FAIL'} (score={r_alt.score:.2f})")
+
+    r_fix = grade_task(task_id, make_f9.fixed_sources(inst), is_candidate=True)
+    d3 = r_fix.score == 1.00 and r_fix.passed is True
+    print(f"  [D3] Minimal hand fix:     {'PASS' if d3 else 'FAIL'} (score={r_fix.score:.2f})")
+
+    r_bug = grade_task(task_id, make_f9.buggy_sources(inst), is_candidate=True)
+    r_mut = grade_task(base, make_f9.mutant_files(base, inst["mutant"]), is_candidate=True)
+    d4 = (
+        r_bug.score < 1.00
+        and r_bug.error is None
+        and (r_bug.t1, r_bug.t2, r_bug.t3) == (r_mut.t1, r_mut.t2, r_mut.t3)
+    )
+    print(
+        f"  [D4] Buggy file:           {'PASS' if d4 else 'FAIL'} "
+        f"(score={r_bug.score:.2f}, T1={r_bug.t1:.2f} T2={r_bug.t2:.2f} T3={r_bug.t3:.2f})"
+    )
+
+    _, text, _ = make_f9.symptom_for(inst)
+    stored = (REPO_ROOT / "tasks" / task_id / "symptom.md").read_text(encoding="utf-8")
+    d5 = stored == text
+    print(f"  [D5] Symptom reproduces:   {'PASS' if d5 else 'FAIL'}")
+
+    ok = d1 and d2 and d3 and d4 and d5
+    return ok
+
+
 def run_validation() -> bool:
     tasks_dir = REPO_ROOT / "tasks"
     task_dirs = sorted([
@@ -140,6 +192,11 @@ def run_validation() -> bool:
 
         fam, var = meta.get("family"), meta.get("variant")
         print(f"\n--- Validating Task: {task_id} (Family {fam}, Variant {var}) ---")
+
+        if meta.get("mode") == "debug":
+            if not validate_debug_task(task_id, meta):
+                all_passed = False
+            continue
 
         # V1: Reference solution scores 1.00
         t0 = time.time()
