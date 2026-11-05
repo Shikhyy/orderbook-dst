@@ -118,3 +118,10 @@ Authored and reviewed prior to candidate model runs per `docs/04_RULEBOOK.md` an
 - **Interface**: `handle_funding(engine: Engine, event: Event) -> list[Report]`
 - **Difficulty Reason**: see `tasks/f7_funding_b/task.toml`.
 - **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.
+
+## 11. Task: f8_adl_b (Family F8, Variant B - Coupled)
+- **Target Files**: `exchange_core/handlers/bankruptcy.py`
+- **Applicable Rules**: R-L1, R-L2, R-L3, R-L4, R-L5 (R-L0 describes the existing caller)
+- **Interface**: `handle_bankruptcy(engine: Engine, account_id: str, pre_position: int) -> list[Report]`
+- **Difficulty Reason**: see `tasks/f8_adl_b/task.toml`.
+- **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.

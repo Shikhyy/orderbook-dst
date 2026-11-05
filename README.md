@@ -28,7 +28,7 @@ A model that writes plausible-looking settlement code which silently credits a r
 
 ## 3. Tasks
 
-10 tasks in 7 families. Families F1–F3 have an isolated rule function (**A**) and an engine handler that must also update the surrounding state (**B**). Everything the grader checks is stated in the task's instruction and in [`docs/04_RULEBOOK.md`](docs/04_RULEBOOK.md).
+11 tasks in 8 families. Families F1–F3 have an isolated rule function (**A**) and an engine handler that must also update the surrounding state (**B**). Everything the grader checks is stated in the task's instruction and in [`docs/04_RULEBOOK.md`](docs/04_RULEBOOK.md).
 
 | Task | Variant | File the model writes | Why it is hard (stated before any model run) |
 |---|---|---|---|
@@ -40,6 +40,9 @@ A model that writes plausible-looking settlement code which silently credits a r
 | `f3_fix_b` | B | `handlers/fix.py` | Couple the session to engine dispatch: no message dispatched twice, reset epochs handled (I4). |
 | `f4_waterfall_b` | B | `handlers/shock.py` | Stage 1 cancels orders and re-checks solvency *before* Stage 2 liquidates, in the specified account order. |
 | `f5_basket_b` | B | `handlers/basket.py` | An aborted basket must restore every piece of state — book, cash, locks, volume, counters — and emit no reports. |
+| `f6_match_b` | B | `handlers/new_limit.py` | The whole matching handler: validation order, price-time matching across levels, self-trade prevention that cancels resting orders mid-sweep, IOC remainder, all coupled with fee settlement. |
+| `f7_funding_b` | B | `handlers/funding.py` | Funding between longs and shorts: clamped rate, rounding on the absolute amount, payer by position and rate sign, the rounding residual into the fee vault, and a mandatory waterfall afterwards. |
+| `f8_adl_b` | B | `handlers/bankruptcy.py` | After a liquidation leaves negative cash: a capped fee-vault draw, then pro-rata loss sharing among the other side (excluding `LIQ`), floor shares, leftover units by weight then string id order, reports in order, money conserved exactly. |
 
 All data is synthetic: the rulebook, accounts and event traces are generated for this benchmark.
 
@@ -50,7 +53,7 @@ All data is synthetic: the rulebook, accounts and event traces are generated for
 **score = 0.2 · T1 + 0.3 · T2 + 0.5 · T3**, pass = score 1.0
 
 - **T1, visible tests** (in the prompt): the public pytest file for the task.
-- **T2, checkpoints** (hidden): 79 targeted multi-step scenarios across the 10 tasks (exact tie rounding, partial-fill replaces, gap closure, rollback).
+- **T2, checkpoints** (hidden): 87 targeted multi-step scenarios across the 11 tasks (exact tie rounding, partial-fill replaces, gap closure, rollback).
 - **T3, hidden simulation** : 20 seeded traces × 200 events. After each event the candidate engine must emit the same reports as the reference (D1) and satisfy I1 cash/position conservation, I2 margin locks match resting orders, I3 order IDs and priorities strictly increase, and I4 FIX replay with duplicates and gaps gives the same state.
 
 Partial credit is built in (tier scores are fractions of tests, checkpoints and seeds passed). The grader checks the final behaviour of the code, not how it was written.
@@ -59,21 +62,21 @@ Partial credit is built in (tier scores are fractions of tests, checkpoints and 
 
 | Check | Result |
 |---|---|
-| V1 Reference solution passes every tier, all 10 tasks, graded exactly as a model's answer (same import allowlist) | PASS |
-| V2 Clean-room second reference (`reference_alt_v2/`, written without seeing `reference/`) passes, all 10 tasks, same rules | PASS |
-| V3 All 56 hand-written bug mutants fail, each with the invariant its `expect.toml` predicts | PASS |
+| V1 Reference solution passes every tier, all 11 tasks, graded exactly as a model's answer (same import allowlist) | PASS |
+| V2 Clean-room second reference (`reference_alt_v2/`, written without seeing `reference/`) passes, all 11 tasks, same rules | PASS |
+| V3 All 75 hand-written bug mutants fail, each with the invariant its `expect.toml` predicts | PASS |
 | V4 / V5 Empty stub and hard-coded-answer stub score near 0 (cannot game T3) | PASS |
 | V6 Grading is deterministic (same code → same score) | PASS |
 | V7 Every hidden trace exercises the task's code path ≥ 10 times | PASS |
 | V8 Mutants trigger I1 and I2, not only report mismatches | PASS |
 
-Also tested (`make test`, 309 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
+Also tested (`make test`, 476 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
 
 ### Which tier catches which bug (`make mutant-tiers`, no API calls)
 
-Running all 56 mutants through the grader ([`results/grader_analysis/mutant_tiers.md`](results/grader_analysis/mutant_tiers.md)):
+Running all 75 mutants through the grader ([`results/grader_analysis/mutant_tiers.md`](results/grader_analysis/mutant_tiers.md)):
 
-- **42 / 56** fail at least one *visible* test; 10 more are caught first by the hidden checkpoints; **4** pass every visible test and every checkpoint and are caught only by the hidden simulation: `f2_replace_b/m_lock_uses_current_rate` (a one-token change, `state.margin_bps` for `order.margin_bps`, that fails all 20 seeds on I2; run `make demo` to see it) two in `f6_match_b` (`m_post_only_ignores_own`, 14 of 20 seeds; `m_stp_stops_matching`, 20 of 20) and one in `f7_funding_b` (`m_skips_negative_cash`: skipping funding for accounts whose cash is already negative).
+- **54 / 75** fail at least one *visible* test; 17 more are caught first by the hidden checkpoints; **4** pass every visible test and every checkpoint and are caught only by the hidden simulation: `f2_replace_b/m_lock_uses_current_rate` (a one-token change, `state.margin_bps` for `order.margin_bps`, that fails all 20 seeds on I2; run `make demo` to see it) two in `f6_match_b` (`m_post_only_ignores_own`, 14 of 20 seeds; `m_stp_stops_matching`, 20 of 20) and one in `f7_funding_b` (`m_skips_negative_cash`: skipping funding for accounts whose cash is already negative).
 - So for the bugs the author anticipated, the visible tests are already strong. The open question the model runs answer is whether **model** bugs look like these, or are the kind only long simulations reveal.
 - The hidden simulation also compares the **whole final engine state** with the reference's (not only balances). This was added after the first real run: a model skipped a required state update (storing the new mark price) that no report, invariant or balance revealed, and still scored a perfect T3. `f4_waterfall_b/m_mark_price_not_stored` reproduces it and fails all 20 seeds.
 - The grader compares reports before checking invariants, so a bug that breaks conservation *and* changes a report would be labelled D1. The grader now also records every invariant broken at each seed's first failing event; this does not change any score, but it is what the H5 analysis uses.
@@ -111,10 +114,10 @@ Requirements: Python 3.12 or newer (tested on 3.12 and 3.14), dependencies pinne
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-make test            # 309 tests, ~5 s
+make test            # 476 tests, ~15 s
 make validate        # grader validation V1-V8, ~45 s
 make demo            # one bug that only the hidden simulation catches, ~3 s
-make mutant-tiers    # which tier catches each of the 56 bugs, ~20 s
+make mutant-tiers    # which tier catches each of the 75 bugs, ~20 s
 ```
 
 Clean environment with Docker:
@@ -133,7 +136,7 @@ make list-models                          # exact model IDs your keys can use ->
 make dry-run                              # calls per model, no API calls
 make pilot                                # 1 trial per task: checks reply format, truncation, headroom
 make watch                                # in a second terminal: live progress, current wait, ETA (make status = one snapshot)
-make run                                  # 10 tasks x 3 trials per model -> results/main
+make run                                  # 11 tasks x 3 trials per model -> results/main
 #   (add ONLY=label1,label2 to run some models, e.g. while one provider is down)
 make feedback TASKS=f1_fee_b,f2_replace_b,f3_fix_b,f4_waterfall_b,f5_basket_b TRIALS=3
 make report transcripts                   # tables, sanity checks, representative transcripts
@@ -152,7 +155,7 @@ Optional reasoning-effort ablation (more effort should not score worse; if it do
 - **Synthetic rules.** The rulebook is invented, so models cannot rely on memorised exchange behaviour. This measures careful spec-following in a financial domain more than prior domain knowledge.
 - **A vs B is confounded.** B tasks are longer and touch more state, and F4/F5 have no A variant. H2 reports the difference as designed, not a pure coupling effect.
 - **Output format.** Replies that do not contain the required file block score 0 and are counted separately (`FORMAT_ERROR`, `MISSING_FILE`) so formatting failures are not mistaken for reasoning failures.
-- **Checkpoint provenance.** All 79 T2 checkpoint values come from the reference engine (`source = "engine"`). Some are hand-checked from engine pre-states in the author's audit worksheets (not in the ZIP); a fully independent hand derivation is not complete (see `CHANGELOG.md`). The clean-room reference passing every checkpoint is the main independent check.
+- **Checkpoint provenance.** All 87 T2 checkpoint values come from the reference engine (`source = "engine"`). Some are hand-checked from engine pre-states in the author's audit worksheets (not in the ZIP); a fully independent hand derivation is not complete (see `CHANGELOG.md`). The clean-room reference passing every checkpoint is the main independent check.
 - **Sampling.** 5 trials per task and 20 hidden seeds; CIs are reported and should be read as wide.
 - **Free-tier models.** Free endpoints can change the model behind an ID without notice. Every trial records the model ID the provider reported serving and the run date; results describe those exact versions.
 - **One author.** Domain review is by the author (`EXPERT_REVIEW.md`); a blinded human audit of grader verdicts on model outputs (`make audit`, Cohen's κ) runs once real trials exist.
@@ -169,7 +172,7 @@ Optional reasoning-effort ablation (more effort should not score worse; if it do
 tasks/<id>/            instruction.md, task.toml, public_tests/, tier2_trace.json
 exchange_core/         the engine the model's file plugs into
 reference/             reference solutions        reference_alt_v2/  clean-room second reference
-mutants/<id>/<bug>/    56 hand-written bugs + expected grader verdicts
+mutants/<id>/<bug>/    75 hand-written bugs + expected grader verdicts
 graders/               3-tier grader, trace generator, import policy, sandbox
 harness/               run_eval.py (single-turn, feedback loop), adapters, stats, report
 tools/                 validation, mutant tiers, transcript export, packaging, secrets scan

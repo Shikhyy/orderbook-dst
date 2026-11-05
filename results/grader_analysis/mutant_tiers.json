@@ -898,5 +898,311 @@
     },
     "first_failure": "D1",
     "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_adl_reports_numeric_order",
+    "t1": 1.0,
+    "t2": 0.625,
+    "t3": 0.35,
+    "score": 0.5625,
+    "caught_by": "T2",
+    "failing_seeds": 13,
+    "seed_labels": {
+      "D1": 13
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_bad_debt_not_reported",
+    "t1": 0.8333333333333334,
+    "t2": 0.875,
+    "t3": 0.0,
+    "score": 0.4292,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_insurance_ignores_vault_limit",
+    "t1": 0.3333333333333333,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.0667,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_insurance_report_last",
+    "t1": 0.6666666666666666,
+    "t2": 0.5,
+    "t3": 0.0,
+    "score": 0.2833,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_insurance_skipped",
+    "t1": 0.5,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.1,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_leftover_ignores_weight",
+    "t1": 1.0,
+    "t2": 0.25,
+    "t3": 0.2,
+    "score": 0.375,
+    "caught_by": "T2",
+    "failing_seeds": 16,
+    "seed_labels": {
+      "D1": 16
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_leftover_largest_remainder",
+    "t1": 1.0,
+    "t2": 0.625,
+    "t3": 0.05,
+    "score": 0.4125,
+    "caught_by": "T2",
+    "failing_seeds": 19,
+    "seed_labels": {
+      "D1": 19
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_leftover_not_distributed",
+    "t1": 1.0,
+    "t2": 0.25,
+    "t3": 0.0,
+    "score": 0.275,
+    "caught_by": "T2",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20,
+      "I1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_leftover_off_by_one",
+    "t1": 0.5,
+    "t2": 0.25,
+    "t3": 0.0,
+    "score": 0.175,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20,
+      "I1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_liq_eligible",
+    "t1": 0.6666666666666666,
+    "t2": 0.25,
+    "t3": 0.05,
+    "score": 0.2333,
+    "caught_by": "T1",
+    "failing_seeds": 19,
+    "seed_labels": {
+      "D1": 19
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_liquidates_haircut_accounts",
+    "t1": 0.8333333333333334,
+    "t2": 0.75,
+    "t3": 0.7,
+    "score": 0.7417,
+    "caught_by": "T1",
+    "failing_seeds": 6,
+    "seed_labels": {
+      "D1": 6
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_same_side_eligible",
+    "t1": 0.5,
+    "t2": 0.25,
+    "t3": 0.0,
+    "score": 0.175,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_share_not_charged",
+    "t1": 0.8333333333333334,
+    "t2": 0.25,
+    "t3": 0.0,
+    "score": 0.2417,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_shares_rounded_half_even",
+    "t1": 1.0,
+    "t2": 0.25,
+    "t3": 0.1,
+    "score": 0.325,
+    "caught_by": "T2",
+    "failing_seeds": 18,
+    "seed_labels": {
+      "D1": 18,
+      "I1": 4
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_tie_numeric_id_order",
+    "t1": 1.0,
+    "t2": 0.375,
+    "t3": 0.95,
+    "score": 0.7875,
+    "caught_by": "T2",
+    "failing_seeds": 1,
+    "seed_labels": {
+      "D1": 1
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_ties_descending_id",
+    "t1": 1.0,
+    "t2": 0.375,
+    "t3": 0.65,
+    "score": 0.6375,
+    "caught_by": "T2",
+    "failing_seeds": 7,
+    "seed_labels": {
+      "D1": 7
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_vault_not_decreased",
+    "t1": 0.6666666666666666,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.1333,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "D1": 12,
+      "I1": 20
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_victim_not_credited",
+    "t1": 0.6666666666666666,
+    "t2": 0.25,
+    "t3": 0.0,
+    "score": 0.2083,
+    "caught_by": "T1",
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I1": 20
+    },
+    "first_failure": "I1",
+    "error": null
+  },
+  {
+    "task_id": "f8_adl_b",
+    "variant": "B",
+    "mutant": "m_zero_position_eligible",
+    "t1": 0.8333333333333334,
+    "t2": 0.0,
+    "t3": 0.0,
+    "score": 0.16666666666666669,
+    "caught_by": "T1",
+    "failing_seeds": 0,
+    "seed_labels": {},
+    "first_failure": null,
+    "error": "Tier 2 error: Exception at event 2: division by zero"
   }
 ]
