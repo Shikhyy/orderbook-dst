@@ -1,0 +1,1 @@
+ADL_APPLIED reports (and payments) are ordered by the number in the account id.

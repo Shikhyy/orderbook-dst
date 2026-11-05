@@ -1,0 +1,1 @@
+The insurance draw is not limited by the vault balance (the vault can go negative).

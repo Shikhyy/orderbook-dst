@@ -1,0 +1,1 @@
+The fee vault is never used: the whole deficit goes to the loss sharing.

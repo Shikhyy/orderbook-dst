@@ -1,0 +1,1 @@
+Accounts with no position count as eligible (weight 0); with nobody else the total weight is 0.

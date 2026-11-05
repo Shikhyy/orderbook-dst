@@ -1,0 +1,1 @@
+Equal weights are ordered by the number in the account id, so A2 comes before A10.

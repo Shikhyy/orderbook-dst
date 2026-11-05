@@ -13,7 +13,7 @@ class TestTraceGen:
     def test_all_profiles_supported(self):
         expected_profiles = {
             "fee_heavy", "replace_heavy", "fix_noisy", "shock_heavy", "basket_heavy", "match_heavy",
-            "funding_heavy",
+            "funding_heavy", "crash_heavy",
         }
         assert set(PROFILES) == expected_profiles
 
