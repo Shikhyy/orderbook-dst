@@ -28,7 +28,7 @@ A model that writes plausible-looking settlement code which silently credits a r
 
 ## 3. Tasks
 
-11 tasks in 8 families. Families F1–F3 have an isolated rule function (**A**) and an engine handler that must also update the surrounding state (**B**). Everything the grader checks is stated in the task's instruction and in [`docs/04_RULEBOOK.md`](docs/04_RULEBOOK.md).
+17 tasks in 9 families: 11 implementation tasks (F1–F8) and 6 diagnose-and-fix tasks (F9). Families F1–F3 have an isolated rule function (**A**) and an engine handler that must also update the surrounding state (**B**). Everything the grader checks is stated in the task's instruction and in [`docs/04_RULEBOOK.md`](docs/04_RULEBOOK.md).
 
 | Task | Variant | File the model writes | Why it is hard (stated before any model run) |
 |---|---|---|---|
@@ -44,6 +44,21 @@ A model that writes plausible-looking settlement code which silently credits a r
 | `f7_funding_b` | B | `handlers/funding.py` | Funding between longs and shorts: clamped rate, rounding on the absolute amount, payer by position and rate sign, the rounding residual into the fee vault, and a mandatory waterfall afterwards. |
 | `f8_adl_b` | B | `handlers/bankruptcy.py` | After a liquidation leaves negative cash: a capped fee-vault draw, then pro-rata loss sharing among the other side (excluding `LIQ`), floor shares, leftover units by weight then string id order, reports in order, money conserved exactly. |
 
+### F9: diagnose and fix (6 tasks, exploratory)
+
+The 11 tasks above ask a model to *implement* a handler from a written specification. F9 asks for a different skill: *finding a defect from its symptom*. Each `f9_dbg_N` task gives the model the specification of an existing task, the handler file with **one defect** (a sanitised copy of one of the hand-written mutants), and a bug report: a short fixed event trace and the first thing that goes wrong when the buggy engine runs it (a wrong report, a broken invariant, or a wrong balance). The model returns the corrected file. It is graded by the grader of the task it is graded as (`grades_as` in `task.toml`): same public tests, checkpoints and hidden seeds, so a correct fix scores 1.0.
+
+| Task | Graded as | Defect (never shown to the model) |
+|---|---|---|
+| `f9_dbg_1` | `f1_fee_b` | Volume is added before the taker fee is computed, so the tier comes from a volume that already contains the fill. |
+| `f9_dbg_2` | `f4_waterfall_b` | No breach re-check after stage 1, so a cured account is still liquidated. |
+| `f9_dbg_3` | `f5_basket_b` | A rolled-back basket keeps the advanced order-id counter. |
+| `f9_dbg_4` | `f6_match_b` | A partially filled resting order releases margin but keeps its old stored lock. |
+| `f9_dbg_5` | `f7_funding_b` | The rounding residual of the funding payments is never booked to the fee vault. |
+| `f9_dbg_6` | `f8_adl_b` | Leftover loss units go to the largest fractional remainders instead of the largest weights. |
+
+Per-instance notes (why the symptom is not obvious, why the fix is unique) are in [`docs/F9_INSTANCES.md`](docs/F9_INSTANCES.md). The symptom comes from `tools/make_f9.py` (run the buggy and the reference engine on a fixed visible trace; no model involved), so it is reproducible. F9 is **not** part of the pre-registered hypotheses H1–H5 and is kept out of the headline table; `make report` lists it in its own section next to the same model's result on the implementation task. Whether models are weaker at diagnosis than at implementation is an open question until the runs exist.
+
 All data is synthetic: the rulebook, accounts and event traces are generated for this benchmark.
 
 ## 4. Grading and grader validation
@@ -58,16 +73,17 @@ All data is synthetic: the rulebook, accounts and event traces are generated for
 
 Partial credit is built in (tier scores are fractions of tests, checkpoints and seeds passed). The grader checks the final behaviour of the code, not how it was written.
 
-### How the grader was validated (run it: `make validate`, ~45 s)
+### How the grader was validated (run it: `make validate`, ~2 min)
 
 | Check | Result |
 |---|---|
 | V1 Reference solution passes every tier, all 11 tasks, graded exactly as a model's answer (same import allowlist) | PASS |
 | V2 Clean-room second reference (`reference_alt_v2/`, written without seeing `reference/`) passes, all 11 tasks, same rules | PASS |
-| V3 All 75 hand-written bug mutants fail, each with the invariant its `expect.toml` predicts | PASS |
+| V3 All 77 hand-written bug mutants fail, each with the invariant its `expect.toml` predicts | PASS |
 | V4 / V5 Empty stub and hard-coded-answer stub score near 0 (cannot game T3) | PASS |
 | V6 Grading is deterministic (same code → same score) | PASS |
 | V7 Every hidden trace exercises the task's code path ≥ 10 times | PASS |
+| D1–D5 (each F9 task): the reference, the clean-room alternative and a minimal hand-written fix score 1.0; the buggy file scores below 1.0 exactly like its source mutant; the stored symptom reproduces | PASS |
 | V8 Mutants trigger I1 and I2, not only report mismatches | PASS |
 
 Also tested (`make test`, 476 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
@@ -136,7 +152,7 @@ make list-models                          # exact model IDs your keys can use ->
 make dry-run                              # calls per model, no API calls
 make pilot                                # 1 trial per task: checks reply format, truncation, headroom
 make watch                                # in a second terminal: live progress, current wait, ETA (make status = one snapshot)
-make run                                  # 11 tasks x 3 trials per model -> results/main
+make run                                  # 17 tasks x 3 trials per model -> results/main
 #   (add ONLY=label1,label2 to run some models, e.g. while one provider is down)
 make feedback TASKS=f1_fee_b,f2_replace_b,f3_fix_b,f4_waterfall_b,f5_basket_b TRIALS=3
 make report transcripts                   # tables, sanity checks, representative transcripts

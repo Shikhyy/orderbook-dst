@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2026-11-05: new family F9, diagnose and fix (6 tasks)
+
+Added because implementation tasks alone saturate at the top: the strongest free model passes every task it has been given, and a model that can follow a written specification may still be weak at the different skill of finding a defect from its symptom. F9 tests that skill with no new grader code path to trust.
+
+- `tasks/f9_dbg_1` to `f9_dbg_6`: the prompt is the specification of an existing task, a bug report (a short fixed trace and the first divergence of the buggy engine from the reference), the public tests of that task, and the handler file with one defect. The model returns the corrected file. The defect is a sanitised copy of an existing hand-written mutant (settle/fees, waterfall, basket rollback, matching lock, funding residual, bankruptcy leftover order); the instances and the reasons each symptom is not obvious and each fix is unique are in `docs/F9_INSTANCES.md`.
+- Grading: `task.toml` has `mode = "debug"` and `grades_as = "<base task>"`; `graders/dst_grader.py` then uses the public tests, checkpoints, hidden seeds and profile of the base task. Nothing else in the grader changed. `harness/prompt.py` has a debug branch (bug report and buggy file instead of a stub); the prompts of the 11 earlier tasks are byte-identical (`tests/f9_baseline_prompt_hashes.json`, `tests/test_f9.py`).
+- `tools/make_f9.py` generates every F9 file: it sanitises the mutant (removes comments and docstrings that name the bug), runs it and the reference on a fixed visible trace (seeds from 90000 up, disjoint from every hidden range, or one hand-written trace for the fee task) and renders the first divergence. `--check` fails if a committed file is stale.
+- Validation (`make validate`, checks D1 to D5 per F9 task): the reference, the clean-room `reference_alt_v2` and a minimal hand-written fix score 1.0; the buggy file scores below 1.0 and exactly like its source mutant; the stored symptom reproduces. Tests check the prompt for the words "mutant" and "bug", the mutant name, its description, the hidden seeds and every executable reference line that the buggy file lacks.
+- `harness/report.py` keeps F9 trials out of the headline table and out of H1–H5 (Amendment A3 in `HYPOTHESES.md`) and adds a section that sets each F9 result next to the same model's result on the implementation task it is graded as.
+- Not known: whether any model fails these tasks more often than the implementation tasks; no model has been run on F9. `author_signoff` is false for all six.
+- Mutants, hidden checkpoints and the 11 implementation tasks are unchanged (77 mutants, 87 checkpoints).
+
 ## 2026-11-05: grader gaps closed in f6_match_b and f7_funding_b
 
 Found in review by probing the grader with bugs that the mutant suite did not contain. Both probes scored a perfect 1.0 before this change.

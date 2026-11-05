@@ -125,3 +125,11 @@ Authored and reviewed prior to candidate model runs per `docs/04_RULEBOOK.md` an
 - **Interface**: `handle_bankruptcy(engine: Engine, account_id: str, pre_position: int) -> list[Report]`
 - **Difficulty Reason**: see `tasks/f8_adl_b/task.toml`.
 - **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.
+
+## 12. Tasks: f9_dbg_1 to f9_dbg_6 (Family F9, diagnose and fix)
+- **Target Files**: the file of the task each is graded as (`graders` use `grades_as`): `settle.py`, `shock.py`, `basket.py`, `new_limit.py`, `funding.py`, `bankruptcy.py`.
+- **Tasks**: `f9_dbg_1` (graded as f1_fee_b), `f9_dbg_2` (f4_waterfall_b), `f9_dbg_3` (f5_basket_b), `f9_dbg_4` (f6_match_b), `f9_dbg_5` (f7_funding_b), `f9_dbg_6` (f8_adl_b).
+- **Applicable Rules**: those of the task each is graded as.
+- **Interface**: unchanged from the task each is graded as; the model returns the corrected file.
+- **Difficulty Reason**: see `tasks/f9_dbg_N/task.toml` and `docs/F9_INSTANCES.md`.
+- **Author Audit**: PENDING for all six. Drafted by the AI assistant; the author has not reviewed these tasks yet. `author_signoff` stays false until they do. What to check is in `docs/REVIEW_PACKET.md` section C.
