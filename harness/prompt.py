@@ -148,6 +148,19 @@ def handle_funding(engine: "Engine", event: Event) -> list[Report]:  # type: ign
     """Process a FUNDING event."""
     raise NotImplementedError("Implement handle_funding")
 ''',
+    "exchange_core/handlers/bankruptcy.py": '''"""exchange_core/handlers/bankruptcy.py
+Bankruptcy procedure after a liquidation: insurance draw, then loss sharing.
+Rules R-L1 to R-L5. Target for task f8_adl_b.
+"""
+from exchange_core.types import Report
+
+
+def handle_bankruptcy(
+    engine: "Engine", account_id: str, pre_position: int  # type: ignore # noqa: F821
+) -> list[Report]:
+    """Cover the deficit of a just-liquidated account and return the reports in order."""
+    raise NotImplementedError("Implement handle_bankruptcy")
+''',
     "exchange_core/handlers/basket.py": '''"""exchange_core/handlers/basket.py
 Handler for atomic multi-leg basket orders.
 Rules R-A1 to R-A5. Target for task f5_basket_b.
