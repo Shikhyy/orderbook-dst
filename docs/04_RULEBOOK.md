@@ -226,6 +226,20 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 
 **R-Y5 [Declared].** After the payments, the engine always runs the margin waterfall at the current mark price, as if a PRICE_SHOCK event with `mark_price` equal to the current `mark_price` had arrived (rules R-W1 to R-W7). The reports of that waterfall follow `FUNDING_APPLIED`, in their own order (the first of them is `MARK_SET`). This also happens when `rate == 0`.
 
+## 10c. Bankruptcy
+
+**R-L0 [Declared].** A PRICE_CRASH event carries a `mark_price` and behaves exactly like PRICE_SHOCK (rules R-W1 to R-W7), with one addition. Right after each `LIQUIDATED` report for an account X, the engine runs the bankruptcy procedure of this section for X and appends its reports directly after that `LIQUIDATED` report, before it examines the next account. The procedure receives X and `pre_position`, the signed position of X before the liquidation (the `qty` of the `LIQUIDATED` report). The accounts are examined in the order of R-W1 and the live state is read: cash that the procedure takes from an account that comes later in the order counts when that account is examined. An account that was already examined is not examined again. PRICE_SHOCK never runs the procedure.
+
+**R-L1 [Declared].** After the liquidation, X has `position == 0` and no resting order. The deficit of X is `max(0, -free_cash)` of X at that moment. If the deficit is 0, nothing changes and the procedure returns no report.
+
+**R-L2 [Declared].** The fee vault pays first. `cover = min(deficit, max(0, fee_vault))`. If `cover > 0`, `fee_vault` decreases by `cover`, `free_cash` of X increases by `cover`, and the procedure reports `INSURANCE_DRAWN(account=X, qty=cover)`. The rest is `remaining = deficit - cover`. If `remaining == 0`, the procedure ends.
+
+**R-L3 [Declared].** The rest is shared by the accounts on the other side of the liquidated position. An account is eligible when it is neither `LIQ` nor X and its position is not 0 and has the opposite sign to `pre_position`. The weight of an eligible account is `abs(position)`. With `total` the sum of all weights, each eligible account first gets `base = remaining * weight // total` (floor). The units that remain, `leftover = remaining - sum(base)`, are always fewer than the number of eligible accounts. Sort the eligible accounts by descending weight; accounts with the same weight are sorted by ascending account id (string order, as in R-W7). Each of the first `leftover` accounts in this order gets one more unit. The result is the `share` of each account. Each eligible account pays its `share` from `free_cash` (the cash can become negative; no waterfall, no cancel and no other check runs for it at this time). `free_cash` of X increases by `remaining`. For each account with `share > 0`, in ascending account-id order (string order), the procedure reports `ADL_APPLIED(account, qty=share)`.
+
+**R-L4 [Declared].** If `remaining > 0` and no account is eligible, nothing else changes: X keeps its negative cash and the procedure reports `BAD_DEBT(account=X, qty=remaining)`.
+
+**R-L5 [Declared].** Order of the reports of the procedure: `INSURANCE_DRAWN` (if any), then all `ADL_APPLIED` reports, or `BAD_DEBT`; never both. Total cash plus `fee_vault` is unchanged by the procedure.
+
 ## 11. Report reference
 
 | Report | Fields |
@@ -244,6 +258,9 @@ Example: Account A is short 10 units. `free_cash = 1,050,000,000`. The mark move
 | `BASKET_COMMITTED` | none |
 | `BASKET_ROLLED_BACK` | `leg_index` |
 | `FUNDING_APPLIED` | `bps` (clamped rate), `qty` (accounts processed) |
+| `INSURANCE_DRAWN` | `account`, `qty` (amount paid from the fee vault) |
+| `ADL_APPLIED` | `account`, `qty` (loss share paid by that account) |
+| `BAD_DEBT` | `account`, `qty` (loss that nobody could take) |
 
 ## 12. Development and operational conventions
 

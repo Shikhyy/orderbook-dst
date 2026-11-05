@@ -6,6 +6,7 @@ from exchange_core.canonical import canonical_state_hash
 from exchange_core.config import EngineConfig
 from exchange_core.handlers.basket import handle_basket
 from exchange_core.handlers.cancel import handle_cancel
+from exchange_core.handlers.crash import handle_crash
 from exchange_core.handlers.fix import handle_fix
 from exchange_core.handlers.funding import handle_funding
 from exchange_core.handlers.margin_rate import handle_margin_rate
@@ -61,6 +62,7 @@ class Engine:
             "SESSION_RESET": handle_fix,
             "BASKET": handle_basket,
             "FUNDING": handle_funding,
+            "PRICE_CRASH": handle_crash,
         }
         handler = handlers.get(event.kind)
         if handler:
