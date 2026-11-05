@@ -1,0 +1,12 @@
+id = "f9_dbg_5"
+family = "F9"
+variant = "debug"
+mode = "debug"
+grades_as = "f7_funding_b"
+source_mutant = "f7_funding_b/m_residual_not_to_vault"
+target_files = ["exchange_core/handlers/funding.py"]
+rules = ["R-Y1", "R-Y2", "R-Y3", "R-Y4", "R-Y5"]
+profile = "funding_heavy"
+timeout_s = 60
+difficulty_reason = "Diagnosis instead of implementation: the model gets the specification, a handler with one injected defect and the first failing step of a short trace, and has to localise and fix it. The numbers are off by a few micro-units of cash, long after the first FUNDING event that caused it, and the reports are correct. The code that is missing is an omission, so there is no wrong line to point at (an accumulator is left unused, which is the one hint)."
+author_signoff = false

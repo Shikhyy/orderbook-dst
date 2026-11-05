@@ -115,6 +115,10 @@ A1 above was written before any model run. The first pilot runs found grader and
 
 ---
 
+## Amendment A3 (2026-11-05, before any model ran an F9 task): scope of H1–H5
+
+The six diagnose-and-fix tasks (family F9, `f9_dbg_1` to `f9_dbg_6`) were added after H1–H5 were registered. They test a different skill (finding a defect from its symptom) and reuse the grader, hidden seeds and mutants of existing tasks. H1–H5 are computed over the 11 implementation tasks (F1–F8) only, exactly as registered; `harness/report.py` keeps F9 trials out of every H1–H5 number and the headline table and reports them in a separate, exploratory section. No prediction about F9 is registered. Any statement about F9 in the README is descriptive.
+
 ## 3. Post-Run Analysis: What Was Wrong in My Predictions
 
 *(To be written by the author after the real model runs, from the transcripts in

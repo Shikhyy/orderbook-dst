@@ -139,3 +139,18 @@ Output: `results/human_audit.md` with the agreement matrix and kappa.
 ### What to report afterwards
 Raw agreement, kappa, and each disagreement with your reasoning. Put them in
 `README.md` section 5 or 7 and in `EXPERT_REVIEW.md`.
+
+## C. Sign-off for f8_adl_b and the six F9 tasks (added later)
+
+Same rules as section A: read, reproduce by hand, then sign. In `tasks/<id>/task.toml` set `author_signoff = true`, rewrite `difficulty_reason` in your own words and replace PENDING in `EXPERT_REVIEW.md` (sections 11 and 12).
+
+### f8_adl_b (rules R-L1 to R-L5, `docs/04_RULEBOOK.md` section 10c)
+Check by hand: the deficit is `max(0, -free_cash)` after liquidation; the vault draw is capped by a non-negative vault; shares are floor divisions, leftover units go to the largest weights and then by ascending string order of the account id (`A10` before `A2`); `LIQ` and the ruined account are never charged; the report order is `LIQUIDATED`, `INSURANCE_DRAWN`, `ADL_APPLIED` in ascending id order, then `BAD_DEBT`; money is conserved exactly. Take one small example with two equal weights and a leftover of 1 and compute it yourself. Ask whether the instruction, not only the reference, states every convention (it is the task with the longest chain of small conventions).
+
+### F9: diagnose and fix (`f9_dbg_1` to `f9_dbg_6`)
+Each task = specification of an existing task + bug report + the handler with one defect; graded like that task. What to review for each:
+1. **The bug is real and single.** Open `tasks/<id>/buggy/<path>` and compare with `reference/<base task>/<file>`. The difference should be one defect only (the lines are listed in `docs/F9_INSTANCES.md`).
+2. **The symptom is honest.** Read `tasks/<id>/symptom.md`. Re-run the trace by hand for the first events if you can; the numbers come from the reference engine, not from the fix.
+3. **The prompt does not give the answer away.** Read the whole prompt (`python -c "from harness.prompt import build_prompt_for_task as b; print(b('f9_dbg_5').user_prompt)"`). Look for comments, names or stale text that point at the fix. One known hint: in `f9_dbg_5` the variable `residual` is computed and never used.
+4. **The fix is unique.** Is there more than one behaviour a careful engineer could defend? The grader accepts exactly the reference behaviour, so a second defensible reading would make a correct answer fail.
+5. **The difficulty is real.** Decide for each task whether you would call it a diagnosis task or just a reading task. No model has been run on F9; do not claim it is hard until trials exist.

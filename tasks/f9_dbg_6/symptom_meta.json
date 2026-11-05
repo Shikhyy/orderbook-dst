@@ -1,0 +1,7 @@
+{
+  "trace": 90004,
+  "n_events": 25,
+  "kind": "reports",
+  "index": 6,
+  "source_mutant": "f8_adl_b/m_leftover_largest_remainder"
+}

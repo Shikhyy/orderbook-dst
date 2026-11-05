@@ -1,0 +1,12 @@
+id = "f9_dbg_1"
+family = "F9"
+variant = "debug"
+mode = "debug"
+grades_as = "f1_fee_b"
+source_mutant = "f1_fee_b/m_volume_before_fee"
+target_files = ["exchange_core/handlers/settle.py"]
+rules = ["R-M4", "R-F1", "R-F2", "R-F3", "R-U2"]
+profile = "fee_heavy"
+timeout_s = 60
+difficulty_reason = "Diagnosis instead of implementation: the model gets the specification, a handler with one injected defect and the first failing step of a short trace, and has to localise and fix it. No report, invariant or conservation check can see it: the FILL report is correct and money is conserved (the fee goes to the vault either way). Only the taker's cash differs, and only for a fill that crosses the tier threshold."
+author_signoff = false

@@ -10,7 +10,7 @@ cash and margin conservation, price-time priority on replace, FIX sequence-gap
 handling, liquidation waterfalls and atomic basket rollback.
 
 ### Tasks & Evaluation Architecture
-- **11 Tasks across 8 Mechanism Families**:
+- **17 Tasks across 9 Mechanism Families** (11 implementation tasks in F1–F8, 6 diagnose-and-fix tasks in F9):
   - `F1`: Fee ladders with piecewise rate interpolation, bankers' rounding, and fee vault conservation.
   - `F2`: Order cancel/replace with asymmetric price-time priority retention and locked margin adjustments.
   - `F3`: FIX protocol session sequencing, out-of-order gap buffering, and reset epochs.
@@ -19,13 +19,14 @@ handling, liquidation waterfalls and atomic basket rollback.
   - `F6`: The whole order-matching handler: validation order, price-time matching, self-trade prevention mid-sweep, IOC remainder, fee settlement.
   - `F7`: Funding payments between longs and shorts with clamped rates, per-account rounding and fee-vault residual, followed by a mandatory waterfall.
   - `F8`: Bankruptcy after liquidation: capped insurance draw from the fee vault, then pro-rata loss sharing with deterministic leftover distribution, exact money conservation.
+  - `F9`: Diagnose and fix. The model gets the specification, a handler with one defect and the first failing step of a short trace, and must return the corrected file. Graded by the grader of the task it is graded as. Exploratory, reported separately from H1–H5.
 - **3-Tier Code Grader**:
   - Tier 1: Visible unit tests.
   - Tier 2: 87 targeted edge checkpoints.
   - Tier 3: 20 pseudo-random hidden event traces (200 events each) asserting 4 physical conservation laws ($I_1$ Cash Conservation, $I_2$ Margin Lock Conservation, $I_3$ Order ID Monotonicity, $I_4$ Message Deduplication).
 - **Grader Reliability** (`make validate`):
-  - The reference and a clean-room second reference both score 1.0 on all 11 tasks.
-  - All 75 hand-written bug mutants fail with the predicted invariant; empty and hard-coded stubs score near 0; grading is deterministic.
+  - The reference and a clean-room second reference both score 1.0 on all 11 implementation tasks. For each F9 task the reference, the clean-room alternative and a minimal hand-written fix score 1.0, and the buggy file scores below 1.0 exactly like its source mutant.
+  - All 77 hand-written bug mutants fail with the predicted invariant; empty and hard-coded stubs score near 0; grading is deterministic.
   - 33 of the 36 bugs already fail a visible test; one (`m_lock_uses_current_rate`) passes every visible test and checkpoint and is caught only by the hidden simulation (`make demo`).
 
 ### Models Evaluated & Headline Results

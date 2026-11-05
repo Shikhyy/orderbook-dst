@@ -26,6 +26,7 @@ conftest.py
 # Allowed docs
 docs/04_RULEBOOK.md
 docs/05_INVARIANTS_AND_DATA.md
+docs/F9_INSTANCES.md
 
 # Source packages
 exchange_core/*.py
@@ -42,6 +43,9 @@ tools/publish_allowlist.txt
 tasks/*/instruction.md
 tasks/*/task.toml
 tasks/*/tier2_trace.json
+tasks/*/symptom.md
+tasks/*/symptom_meta.json
+tasks/*/buggy/**/*.py
 tasks/*/public_tests/*.py
 tasks/*/public_tests/**/*.py
 
@@ -59,6 +63,7 @@ mutants/**/expect.toml
 # Tests
 tests/*.py
 tests/**/*.py
+tests/*.json
 
 # Evaluation Results and Transcripts
 results/**

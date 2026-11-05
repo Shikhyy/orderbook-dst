@@ -1,0 +1,12 @@
+id = "f9_dbg_4"
+family = "F9"
+variant = "debug"
+mode = "debug"
+grades_as = "f6_match_b"
+source_mutant = "f6_match_b/m_maker_lock_stale"
+target_files = ["exchange_core/handlers/new_limit.py"]
+rules = ["R-B4", "R-B5", "R-M1", "R-M2", "R-M3", "R-M4", "R-M5"]
+profile = "match_heavy"
+timeout_s = 60
+difficulty_reason = "Diagnosis instead of implementation: the model gets the specification, a handler with one injected defect and the first failing step of a short trace, and has to localise and fix it. The reports are all correct; the symptom is a margin invariant on the resting order after a partial fill. Fully filled orders are fine, so simple fills do not show it, and the visible tests pass."
+author_signoff = false

@@ -19,6 +19,12 @@ def _targets(task: str) -> list[str]:
     return tomllib.loads((REPO / "tasks" / task / "task.toml").read_text())["target_files"]
 
 
+def _reference_task(task: str) -> str:
+    """A diagnose-and-fix task (F9) has no reference of its own: it is graded as another."""
+    meta = tomllib.loads((REPO / "tasks" / task / "task.toml").read_text())
+    return str(meta.get("grades_as", task))
+
+
 @pytest.mark.parametrize("task", TASKS)
 def test_instruction_example_uses_the_same_layout_as_the_system_message(task: str):
     lines = (REPO / "tasks" / task / "instruction.md").read_text().splitlines()
@@ -37,7 +43,7 @@ def test_instruction_example_uses_the_same_layout_as_the_system_message(task: st
 @pytest.mark.parametrize("task", TASKS)
 def test_both_layouts_extract_the_reference_solution(task: str):
     target = _targets(task)[0]
-    ref_dir = REPO / "reference" / task
+    ref_dir = REPO / "reference" / _reference_task(task)
     code = next(ref_dir.glob("*.py")).read_text()
     above = f"### FILE: {target}\n```python\n{code}\n```\n"
     inside = f"```python\n### FILE: {target}\n{code}\n```\n"

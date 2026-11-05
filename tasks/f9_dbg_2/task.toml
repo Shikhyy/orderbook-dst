@@ -1,0 +1,12 @@
+id = "f9_dbg_2"
+family = "F9"
+variant = "debug"
+mode = "debug"
+grades_as = "f4_waterfall_b"
+source_mutant = "f4_waterfall_b/m_no_recheck_after_cancel"
+target_files = ["exchange_core/handlers/shock.py"]
+rules = ["R-W1", "R-W2", "R-W3", "R-W4", "R-W5", "R-W6"]
+profile = "shock_heavy"
+timeout_s = 60
+difficulty_reason = "Diagnosis instead of implementation: the model gets the specification, a handler with one injected defect and the first failing step of a short trace, and has to localise and fix it. The symptom is one extra LIQUIDATED report at the last event of an 11-event trace; it does not say which rule was skipped or that stage 1 had cancelled orders first. (The public tests, which the model cannot run, do cover the case.)"
+author_signoff = false
