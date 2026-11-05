@@ -1,0 +1,1 @@
+After a partial fill the resting order's lock is recomputed with the current engine margin rate instead of the rate stored in the order.

@@ -57,6 +57,9 @@ def build() -> dict[str, tuple[str, str]]:
     m["m_skips_negative_cash"] = (
         sub("            if acc.position == 0:\n", "            if acc.position == 0 or acc.free_cash < 0:\n"),
         "Accounts whose free_cash is already negative are skipped.")
+    m["m_qty_skips_zero_amount"] = (
+        sub("            paid += 1\n", "            paid += 1 if amount else 0\n"),
+        "FUNDING_APPLIED.qty leaves out accounts whose amount rounds to 0.")
     return m
 
 

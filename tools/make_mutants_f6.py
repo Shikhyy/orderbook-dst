@@ -53,6 +53,11 @@ def build() -> dict[str, tuple[str, str]]:
         sub("state.margin_bps, 10_000)\n    if acc.free_cash < lock",
             "cfg.margin_bps_default, 10_000)\n    if acc.free_cash < lock"),
         "The new order's lock uses the default margin rate instead of the current engine rate.")
+    m["m_relock_current_rate"] = (
+        sub("best_resting.leaves * best_resting.price * best_resting.margin_bps",
+            "best_resting.leaves * best_resting.price * state.margin_bps"),
+        "After a partial fill the resting order's lock is recomputed with the current engine "
+        "margin rate instead of the rate stored in the order.")
     stp_at = sub(PRICE_BLOCK, "")
     m["m_stp_ignores_price"] = (
         sub(STP_BLOCK_END, STP_BLOCK_END + PRICE_BLOCK, stp_at),

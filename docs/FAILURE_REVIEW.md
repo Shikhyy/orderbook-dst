@@ -56,10 +56,12 @@ Lesson for the write-up: a clean-room read finds ambiguities, but the fix itself
 | mistral_large | 3 | 1.00, 1.00, 1.00 |
 | gemma_26b | 3 | 1.00, 1.00, 1.00 |
 | flash_lite | 3 | 1.00, 1.00, 1.00 |
-| ministral_8b | 3 | 0.20, 0.20, 0.20 |
+| ministral_8b | 3 | 0.20, 0.225, 0.20 |
 | gemini_35_flash, nemotron_ultra, nemotron_nano | 0 | not run yet (rate limits / daily cap) |
 
 ministral_8b fails all three with I1 ("total money != initial", off by 1 or 2 micro-units): it never books the net per-account rounding difference into `fee_vault` correctly (R-Y3 states it; two trials do not touch `fee_vault`, one does it wrongly). It passes all visible tests and gets 0 of 6 checkpoints, so it also misses the exact-tie and residual checkpoints. Model fault.
+
+Regrade on the new `funding_heavy` traces (Nov 5, after the R-Y4 grader gap was closed; see CHANGELOG): no trial changed pass/fail. For trials 0 and 2 the first failure is now a D1 at event 39 of seed 10000: at `rate == 0` the model reports `qty = 3` instead of 0 (R-Y4 says `n = 0` when `rate == 0`). The new traces simply reach that zero-rate event before the I1 drift. Trial 1 still fails first on I1 (now at event 73) and scores 0.225. Model fault in all three.
 
 Reading: on F7 the three stronger models are at 1.00 once the spec wording was fixed. F7 separates only the weakest model, so it adds little headroom at the top; its value is as a clean, well-specified coupled task where a failure is attributable.
 
@@ -72,7 +74,7 @@ Spec/harness defects: none found. Failures group as follows.
 |---|---|---|---|
 | OUTPUT_TRUNCATED at the shared max_tokens budget | 10 | f1_fee_b, f3_fix_a, f4_waterfall_b x2, f5_basket_b, f6_match_b x3, f7_funding_b x2 | Budget artifact, not a logic finding. Every model has the same budget. Report separately from logic failures. |
 | Tier 2 crash on invented attributes (Engine.orders / .accounts / .book / .release_lock, EngineState.adjust_position) | 5 | f1_fee_b x2, f2_replace_b x3 | Genuine model limitation: calls APIs that are not in the provided code. |
-| Wrong behaviour in the hidden traces (D1 report mismatch or I1 money conservation) | 5 | f3_fix_b t1 (0.38), f5_basket_b t0 (0.10) and t2 (0.39), f7_funding_b t0 (0.20), f3_fix_b t0 (0.98 near miss) | Logic failures. NOT YET READ in detail, so no root cause is claimed. f3_fix_b t0 at 0.98 needs a check for a spec gap. |
+| Wrong behaviour in the hidden traces (D1 report mismatch or I1 money conservation) | 5 | f3_fix_b t1 (0.38), f5_basket_b t0 (0.10) and t2 (0.39), f7_funding_b t0 (0.225), f3_fix_b t0 (0.98 near miss) | Logic failures. NOT YET READ in detail, so no root cause is claimed. f3_fix_b t0 at 0.98 needs a check for a spec gap. |
 
 ### gemini_35_flash f5_basket_b (3/3 at 0.50)
 The handler treats any CANCELLED report as a failed leg. Rule R-A3 fails the basket only on a rejection or an IOC remainder, so a self-trade-prevention cancel must not fail it. This is a model misreading, consistent across trials. No spec defect identified.
@@ -82,5 +84,5 @@ nemotron_nano f3_fix_b t0 scored 0.98: it failed one public test (test_epoch_mis
 
 ### nemotron_nano logic failures, read (Nov 5)
 - f5_basket_b t0 (0.10) and t2 (0.39): when a leg is rejected (e.g. POST_ONLY_WOULD_CROSS) or leaves an IOC remainder, the model emits the per-leg ACCEPTED/REJECTED/CANCELLED reports instead of rolling the whole basket back with BASKET_ROLLED_BACK. It does not implement all-or-nothing atomicity. Genuine model limitation; the spec states the rollback rule.
-- f7_funding_b t0 (0.20): total money is 2 units below the initial total at event 34 (I1). Funding amounts are rounded so that the residual is not fully credited to the fee vault. Genuine rounding/conservation bug, caught by the conservation invariant.
+- f7_funding_b t0 (0.225 after the Nov 5 regrade, was 0.20): total money is 2 units below the initial total at event 73 of seed 10000 on the regraded traces (event 34 on the old ones) (I1). Funding amounts are rounded so that the residual is not fully credited to the fee vault. Genuine rounding/conservation bug, caught by the conservation invariant.
 - f3_fix_b t1 (0.38): first report has order_id 0 instead of 1 (ids start at 1). It will be re-judged on the corrected rerun.

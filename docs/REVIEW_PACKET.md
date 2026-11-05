@@ -43,9 +43,9 @@ a resting SELL 10 @ 100,000,000 and an incoming BUY 4 @ 101,000,000 from another
 The fill is 4 @ 100,000,000 (resting price). Buyer pays 4 x 100,000,000, position +4.
 Recompute the lock for each side from `leaves` with the formula in R-M4 step 4.
 
-Mutants (all 10 are expected to be caught): `m_fill_at_taker_price`,
+Mutants (all 11 are expected to be caught): `m_fill_at_taker_price`,
 `m_filled_taker_rests`, `m_ioc_lock_kept`, `m_maker_lock_stale`, `m_margin_default_rate`,
-`m_no_stp`, `m_post_only_ignores_own`, `m_stp_ignores_price`,
+`m_no_stp`, `m_post_only_ignores_own`, `m_relock_current_rate`, `m_stp_ignores_price`,
 `m_stp_lock_not_released`, `m_stp_stops_matching`. Check that each is a plausible real
 bug and not a contrived one.
 
@@ -77,8 +77,8 @@ Hand-check examples:
 - half-even: if `notional * |rate| / 1,000,000` is exactly 2.5 the amount is 2; if 3.5 it
   is 4. Half-up would give 3 and 4, which is what `m_half_up_rounding` does.
 
-Mutants (all 10 expected to be caught): `m_floor_rounding`, `m_half_up_rounding`,
-`m_no_clamp`, `m_no_waterfall`, `m_residual_not_to_vault`, `m_sign_swapped`,
+Mutants (all 11 expected to be caught): `m_floor_rounding`, `m_half_up_rounding`,
+`m_no_clamp`, `m_no_waterfall`, `m_qty_skips_zero_amount`, `m_residual_not_to_vault`, `m_sign_swapped`,
 `m_skips_liq`, `m_skips_negative_cash`, `m_waterfall_only_if_rate`,
 `m_wrong_mark_in_waterfall`.
 

@@ -651,12 +651,14 @@
     "mutant": "m_margin_default_rate",
     "t1": 1.0,
     "t2": 0.9166666666666666,
-    "t3": 1.0,
-    "score": 0.975,
+    "t3": 0.0,
+    "score": 0.475,
     "caught_by": "T2",
-    "failing_seeds": 0,
-    "seed_labels": {},
-    "first_failure": null,
+    "failing_seeds": 20,
+    "seed_labels": {
+      "I2": 20
+    },
+    "first_failure": "I2",
     "error": null
   },
   {
@@ -681,14 +683,30 @@
     "mutant": "m_post_only_ignores_own",
     "t1": 1.0,
     "t2": 1.0,
-    "t3": 0.3,
-    "score": 0.65,
+    "t3": 0.35,
+    "score": 0.675,
     "caught_by": "T3",
-    "failing_seeds": 14,
+    "failing_seeds": 13,
     "seed_labels": {
-      "D1": 14
+      "D1": 13
     },
     "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f6_match_b",
+    "variant": "B",
+    "mutant": "m_relock_current_rate",
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 0.05,
+    "score": 0.525,
+    "caught_by": "T3",
+    "failing_seeds": 19,
+    "seed_labels": {
+      "I2": 19
+    },
+    "first_failure": "I2",
     "error": null
   },
   {
@@ -735,7 +753,7 @@
     "failing_seeds": 20,
     "seed_labels": {
       "D1": 20,
-      "I3": 12
+      "I3": 13
     },
     "first_failure": "D1",
     "error": null
@@ -762,12 +780,14 @@
     "mutant": "m_half_up_rounding",
     "t1": 1.0,
     "t2": 0.5,
-    "t3": 1.0,
-    "score": 0.85,
+    "t3": 0.95,
+    "score": 0.825,
     "caught_by": "T2",
-    "failing_seeds": 0,
-    "seed_labels": {},
-    "first_failure": null,
+    "failing_seeds": 1,
+    "seed_labels": {
+      "D1_FINAL": 1
+    },
+    "first_failure": "D1",
     "error": null
   },
   {
@@ -805,15 +825,31 @@
   {
     "task_id": "f7_funding_b",
     "variant": "B",
+    "mutant": "m_qty_skips_zero_amount",
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 0.6,
+    "score": 0.8,
+    "caught_by": "T3",
+    "failing_seeds": 8,
+    "seed_labels": {
+      "D1": 8
+    },
+    "first_failure": "D1",
+    "error": null
+  },
+  {
+    "task_id": "f7_funding_b",
+    "variant": "B",
     "mutant": "m_residual_not_to_vault",
     "t1": 1.0,
     "t2": 0.0,
-    "t3": 0.0,
-    "score": 0.2,
+    "t3": 0.05,
+    "score": 0.225,
     "caught_by": "T2",
-    "failing_seeds": 20,
+    "failing_seeds": 19,
     "seed_labels": {
-      "I1": 20
+      "I1": 19
     },
     "first_failure": "I1",
     "error": null
@@ -829,8 +865,8 @@
     "caught_by": "T1",
     "failing_seeds": 20,
     "seed_labels": {
-      "D1": 8,
-      "D1_FINAL": 12
+      "D1_FINAL": 8,
+      "D1": 12
     },
     "first_failure": "D1",
     "error": null
@@ -841,12 +877,12 @@
     "mutant": "m_skips_liq",
     "t1": 1.0,
     "t2": 0.8333333333333334,
-    "t3": 0.35,
-    "score": 0.625,
+    "t3": 0.05,
+    "score": 0.475,
     "caught_by": "T2",
-    "failing_seeds": 13,
+    "failing_seeds": 19,
     "seed_labels": {
-      "D1": 13
+      "D1": 19
     },
     "first_failure": "D1",
     "error": null

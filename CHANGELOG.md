@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-11-05: grader gaps closed in f6_match_b and f7_funding_b
+
+Found in review by probing the grader with bugs that the mutant suite did not contain. Both probes scored a perfect 1.0 before this change.
+
+- **f6_match_b, stored margin rate never exercised.** Recomputing a resting order's lock after a partial fill with the current `state.margin_bps` instead of the `margin_bps` stored in the order (R-B5 step 2, R-M4 step 4) passed every tier: the `match_heavy` profile never emitted `SET_MARGIN_RATE`, so the rate never changed while orders were resting. Half of the profile's cancel slot (5% of events) is now a `SET_MARGIN_RATE` to 1000, 1500, 2500 or 3000 bps. New mutant `m_relock_current_rate` fails 19 of 20 seeds on I2. `m_margin_default_rate` is now caught by I2 on more seeds (T3 0.97 to 0.47).
+- **f7_funding_b, R-Y4 "including one whose amount rounds to 0" never exercised.** Leaving such accounts out of `FUNDING_APPLIED.qty` passed every tier: at marks near 100,000,000 no integer rate gives an amount that rounds to 0. 15% of the profile's price shocks now go to a tiny mark (1,000 to 400,000), and while the mark is below 1,000,000 most FUNDING events use a rate of -2 to +2 ppm. New mutant `m_qty_skips_zero_amount` fails 8 of 20 seeds on D1.
+- Only the `match_heavy` and `funding_heavy` profiles change, so the hidden traces of f6_match_b and f7_funding_b change and the traces of every other task are unchanged. The reference and the clean-room `reference_alt_v2` still score 1.0, and all 22 F6/F7 mutants are still caught (`make validate`). Existing F6 and F7 trials must be regraded (`make regrade`). The suite now has 77 mutants.
+
 ## 2026-11-05: new task f8_adl_b (bankruptcy: insurance draw and loss sharing)
 
 Added because the strongest free model scored 1.00 on every earlier task: this one composes several rules that must stay consistent and conserve money exactly, and it is the first task whose correct answer depends on a long chain of small conventions (cap, floor, leftover order, string order of ids, report order).

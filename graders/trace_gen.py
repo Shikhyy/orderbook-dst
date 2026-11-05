@@ -373,8 +373,14 @@ def generate_trace(
                 is_trigger = True
                 active_order_ids.append(next_sim_order_id)
                 next_sim_order_id += 1
+            elif rng.prob_pct(50):
+                # 5% margin-rate changes: resting orders keep the margin_bps stored at
+                # entry, so later partial fills must recompute locks with that stored
+                # rate, not the current one (R-B5 step 2, R-M4 step 4)
+                bps = rng.choice([1000, 1500, 2500, 3000])
+                event = Event(kind="SET_MARGIN_RATE", bps=bps)
             else:
-                # 10% cancels
+                # 5% cancels
                 oid = rng.choice(active_order_ids) if active_order_ids else 1
                 event = Event(kind="CANCEL", order_id=oid)
 
@@ -387,12 +393,19 @@ def generate_trace(
                 rate = rng.next_int(-5000, 5000)
                 if rng.prob_pct(10):
                     rate = 0
+                elif current_mark < 1_000_000 and rng.prob_pct(60):
+                    # Tiny rate at a tiny mark: some per-account amounts round to 0 and
+                    # must still be counted in FUNDING_APPLIED.qty (R-Y4)
+                    rate = rng.choice([-2, -1, 1, 2])
                 event = Event(kind="FUNDING", bps=rate)
                 is_trigger = True
             elif action < 4:
                 # 10% price shocks to odd (non round) marks; some are large enough to
                 # push thinly funded accounts into breach and create LIQ positions
-                if rng.prob_pct(30):
+                if rng.prob_pct(15):
+                    # Tiny mark so that small positions at small rates round to 0 (R-Y4)
+                    current_mark = rng.next_int(1_000, 400_000)
+                elif rng.prob_pct(30):
                     current_mark = BASE_MARK + rng.next_int(-45_000_000, 45_000_000) + 7
                 else:
                     current_mark = BASE_MARK + rng.next_int(-40_000, 40_000) * 37

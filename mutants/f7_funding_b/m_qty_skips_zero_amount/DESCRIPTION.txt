@@ -1,0 +1,1 @@
+FUNDING_APPLIED.qty leaves out accounts whose amount rounds to 0.
