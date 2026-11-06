@@ -99,9 +99,9 @@ Running all 81 mutants through the grader ([`results/grader_analysis/mutant_tier
 
 ## 5. Results
 
-Copied unchanged from [`results/main/summary.md`](results/main/summary.md) (`make report` at `c07d5a4`, 326 trials, single-turn, 3 trials per task and model; graded with the Nov 6 grader, see `CHANGELOG.md`). Every trial's prompt, raw reply, extracted files and score are under `results/main/raw/`.
+Copied unchanged from [`results/main/summary.md`](results/main/summary.md) (`make report`, 329 trials, regraded with the current grader at `e781834`+, single-turn, 3 trials per task and model; graded with the Nov 6 grader, see `CHANGELOG.md`). Every trial's prompt, raw reply, extracted files and score are under `results/main/raw/`.
 
-**The run is not complete.** `nemotron_nano` has 33 of 33 headline and 16 of 18 F9 trials; `gemini_35_flash` has 23 of 33 headline and 0 of 18 F9 trials. Their rows are over the trials that exist, so they are not directly comparable with the complete rows.
+**One model is incomplete.** `gemini_35_flash` has 23 of 33 headline trials and 0 of 18 F9 trials: the free Gemini tier returned HTTP 429 repeatedly and the harness gave up after 6 retries per trial, across several resumes. Its row is over the trials that exist, so it is not directly comparable with the complete rows; it is missing all trials of `f3_fix_b`, `f7_funding_b` and `f8_adl_b` and one `f6_match_b` trial. Every other model has all of its trials.
 
 ### Headline results (F1 to F8, 11 tasks)
 
@@ -143,16 +143,17 @@ The model gets the specification, a handler with one defect and the first failin
 | `f9_dbg_2` (`f4_waterfall_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 1/3 | 3/3 (1.00), impl 0/3 | 0/3 (0.00), impl 1/3 |
 | `f9_dbg_3` (`f5_basket_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 0/3 (0.38), impl 2/3 | 3/3 (1.00), impl 1/3 | 0/3 (0.38), impl 0/3 | 1/3 (0.33), impl 0/3 |
 | `f9_dbg_4` (`f6_match_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 2/3 | 3/3 (1.00), impl 1/3 | 3/3 (1.00), impl 3/3 | 2/3 (0.74), impl 0/3 | 1/3 (0.33), impl 0/3 |
-| `f9_dbg_5` (`f7_funding_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 2/3 (0.68), impl 0/3 | 1/2 (0.50), impl 0/3 |
-| `f9_dbg_6` (`f8_adl_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 2/3 | 3/3 (1.00), impl 0/3 | 1/1 (1.00), impl 1/3 |
+| `f9_dbg_5` (`f7_funding_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 2/3 (0.68), impl 0/3 | 2/3 (0.67), impl 0/3 |
+| `f9_dbg_6` (`f8_adl_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 2/3 | 3/3 (1.00), impl 0/3 | 3/3 (1.00), impl 1/3 |
 
 ### H3: invariant feedback loop
 
-From [`results/feedback/summary.md`](results/feedback/summary.md) (`--mode feedback_loop`, run in progress):
+From [`results/feedback/summary.md`](results/feedback/summary.md) (`--mode feedback_loop`, 30 trials: `gemma_26b` and `flash_lite` on `f1_fee_b`, `f2_replace_b`, `f4_waterfall_b`, `f5_basket_b`, `f6_match_b`, 3 trials each; graded with the current grader):
 
 | Model | Trials | Turn 0 pass | Final pass | Mean score gain | Fixed / broken | McNemar p | Mean revisions |
 |---|---|---|---|---|---|---|---|
-| gemma_26b | 14 | 57.1% | 100.0% | +0.371 | 6 / 0 | 0.031 | 0.50 |
+| gemma_26b | 15 | 60.0% | 100.0% | +0.347 | 6 / 0 | 0.031 | 0.47 |
+| flash_lite | 15 | 60.0% | 93.3% | +0.243 | 5 / 0 | 0.062 | 0.67 |
 
 ## 6. Pre-registered hypotheses
 
