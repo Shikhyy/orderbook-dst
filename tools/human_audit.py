@@ -102,6 +102,28 @@ def load_candidate_code(
     return "\n\n".join(snippets) if snippets else "(No python files found)"
 
 
+NO_CODE_ERRORS = ("OUTPUT_TRUNCATED", "FORMAT_ERROR")
+
+
+def is_judgeable(trial: dict[str, Any], raw_dir: Path) -> bool:
+    """A trial can be judged by a human only if it produced code to read.
+
+    Truncated or malformed replies have no Python file, so a human verdict on them would
+    trivially agree with the grader and inflate kappa.
+    """
+    err = str(trial.get("error") or "")
+    if any(err.startswith(e) for e in NO_CODE_ERRORS):
+        return False
+    files = (
+        raw_dir
+        / trial.get("model", "")
+        / trial.get("task_id", "")
+        / str(trial.get("trial", 0))
+        / "files"
+    )
+    return files.exists() and any(files.rglob("*.py"))
+
+
 def format_audit_report(
     sampled_trials: list[dict[str, Any]],
     audit_verdicts: list[dict[str, Any]],
@@ -215,6 +237,8 @@ def run_audit(
     auto_agree: bool = False,
     export_sheet: Optional[Path] = None,
     max_chars: int = 6000,
+    exclude_prefixes: tuple[str, ...] = ("f9_",),
+    force: bool = False,
 ) -> bool:
     """Execute human audit session.
 
@@ -240,12 +264,28 @@ def run_audit(
         by_key = {f"{t['model']}:{t['task_id']}:{t.get('trial', 0)}": t for t in trials}
         sampled = [by_key[k] for k in order if k in by_key]
     else:
-        sampled = sample_trials(trials, n_pass=n_pass, n_fail=n_fail, seed=seed)
+        pool = [
+            t
+            for t in trials
+            if not any(t.get("task_id", "").startswith(x) for x in exclude_prefixes if x)
+            and is_judgeable(t, raw_dir)
+        ]
+        print(
+            f"Sampling pool: {len(pool)} of {len(trials)} trials "
+            f"(excluded: trials with no code to read, tasks starting with {exclude_prefixes})"
+        )
+        sampled = sample_trials(pool, n_pass=n_pass, n_fail=n_fail, seed=seed)
     if not sampled:
         print("ERROR: No trials available to sample.")
         return False
 
     if export_sheet is not None:
+        if key_path.exists() and not force:
+            print(
+                f"ERROR: {key_path} already exists. The sample is drawn once; re-drawing after "
+                "seeing results defeats the blinding. Pass --force only to start over on purpose."
+            )
+            return False
         return _export_sheet(sampled, raw_dir, export_sheet, key_path)
 
     print(
@@ -390,8 +430,20 @@ def main() -> int:
     parser.add_argument(
         "--export-sheet",
         type=Path,
+        nargs="?",
+        const=REPO_ROOT / "results" / "audit_sheet.md",
         default=None,
-        help="Write a blinded reading sheet (ids T01.., full code) and exit",
+        help="Write a blinded sheet (default results/audit_sheet.md) and the key, then stop",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Allow --export-sheet to overwrite an existing audit_key.json",
+    )
+    parser.add_argument(
+        "--include-f9",
+        action="store_true",
+        help="Include the F9 diagnose-and-fix tasks (excluded by default; report them separately)",
     )
     parser.add_argument(
         "--max-chars",
@@ -412,6 +464,8 @@ def main() -> int:
         auto_agree=args.auto_agree,
         export_sheet=args.export_sheet,
         max_chars=args.max_chars,
+        exclude_prefixes=() if args.include_f9 else ("f9_",),
+        force=args.force,
     )
     return 0 if success else 1
 

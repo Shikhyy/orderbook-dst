@@ -87,10 +87,11 @@ def test_run_audit_end_to_end(tmp_path: Path) -> None:
         for t in trials:
             f.write(json.dumps(t) + "\n")
 
-    # Create dummy code file
-    code_file = raw_dir / "m1" / "f1_fee_a" / "1" / "files" / "fee_rule.py"
-    code_file.parent.mkdir(parents=True, exist_ok=True)
-    code_file.write_text("# dummy implementation", encoding="utf-8")
+    # Create dummy code files (trials without code are not judgeable and are skipped)
+    for t in trials:
+        code_file = raw_dir / t["model"] / t["task_id"] / str(t["trial"]) / "files" / "x.py"
+        code_file.parent.mkdir(parents=True, exist_ok=True)
+        code_file.write_text("# dummy implementation", encoding="utf-8")
 
     success = run_audit(
         trials_path=trials_file,
@@ -136,3 +137,45 @@ def test_export_sheet_is_blind_and_ids_score(tmp_path: Path) -> None:
     )
     assert run_audit(tf, raw, out, n_pass=2, n_fail=2, verdicts_json=verdicts)
     assert "Cohen" in out.read_text(encoding="utf-8")
+
+
+def _make_trials(tmp_path: Path, specs: list[dict]) -> tuple[Path, Path]:
+    raw = tmp_path / "raw"
+    for t in specs:
+        if t.pop("code", True):
+            d = raw / t["model"] / t["task_id"] / str(t["trial"]) / "files"
+            d.mkdir(parents=True)
+            (d / "mod.py").write_text("x = 1\n", encoding="utf-8")
+    tf = tmp_path / "trials.jsonl"
+    tf.write_text("\n".join(json.dumps(t) for t in specs), encoding="utf-8")
+    return tf, raw
+
+
+def test_sample_skips_trials_without_code_and_f9(tmp_path: Path) -> None:
+    """Truncated or empty trials and F9 tasks are not sampled by default."""
+    specs = [
+        {"model": "a", "task_id": "f1_fee_b", "trial": 0, "passed": True},
+        {"model": "b", "task_id": "f1_fee_b", "trial": 0, "passed": False},
+        {"model": "c", "task_id": "f7_funding_b", "trial": 0, "passed": False,
+         "error": "OUTPUT_TRUNCATED", "code": False},
+        {"model": "d", "task_id": "f9_dbg_1", "trial": 0, "passed": True},
+        {"model": "e", "task_id": "f2_replace_b", "trial": 0, "passed": False, "code": False},
+    ]
+    tf, raw = _make_trials(tmp_path, specs)
+    out, sheet = tmp_path / "human_audit.md", tmp_path / "sheet.md"
+    assert run_audit(tf, raw, out, n_pass=5, n_fail=5, export_sheet=sheet)
+    keys = json.loads((tmp_path / "audit_key.json").read_text(encoding="utf-8"))
+    assert sorted(keys) == ["a:f1_fee_b:0", "b:f1_fee_b:0"]
+
+
+def test_export_refuses_to_overwrite_key(tmp_path: Path) -> None:
+    """The sample is drawn once; a second export needs --force."""
+    specs = [
+        {"model": "a", "task_id": "f1_fee_b", "trial": 0, "passed": True},
+        {"model": "b", "task_id": "f1_fee_b", "trial": 0, "passed": False},
+    ]
+    tf, raw = _make_trials(tmp_path, specs)
+    out, sheet = tmp_path / "human_audit.md", tmp_path / "sheet.md"
+    assert run_audit(tf, raw, out, n_pass=1, n_fail=1, export_sheet=sheet)
+    assert not run_audit(tf, raw, out, n_pass=1, n_fail=1, export_sheet=sheet)
+    assert run_audit(tf, raw, out, n_pass=1, n_fail=1, export_sheet=sheet, force=True)
