@@ -34,7 +34,7 @@ Points to check by hand:
    released, and matching continues. Is "continues" clear (it must not stop the sweep)?
 3. **R-M4 step 4 / R-M5.** The lock is recomputed per fill with `ceil_div`, and fully
    filled orders release the whole lock. Check one example by hand (below).
-4. **R-B5 step 2. DECISION NEEDED before you sign.** The order stores the engine's current
+4. **R-B5 step 2. DECIDED (Nov 6): accepted as implied, no F6 rerun.** The order stores the engine's current
    `margin_bps` at entry, and R-M4 says "using the margin_bps stored in that order". That
    implies a later `SET_MARGIN_RATE` does not change an existing order's lock, but the
    instruction never says so in one sentence. `m_relock_current_rate` is a plausible
@@ -44,7 +44,7 @@ Points to check by hand:
    margin_bps or lock of an existing order; only new orders use the new rate", **which
    changes the prompt and means every F6 trial must be rerun on the new wording** (21
    trials, as for F3 and F7), or (b) consciously accept it as implied and say so in your
-   sign-off notes. Do not sign F6 as "no ambiguity" without choosing one.
+   sign-off notes. The author chose (b): the instruction is left unchanged, and the sign-off notes for F6 should say that a later `SET_MARGIN_RATE` not altering existing orders is implied by R-B5 step 2 and R-M4 step 4, not stated in one sentence, and that `m_relock_current_rate` (caught only by the hidden seeds) is the matching bug. Do not sign F6 as "no ambiguity".
 5. **Fills at the resting price** (R-M2), and a fill can drive `free_cash` negative.
 
 Hand-check example (do this yourself, then compare with the reference). Default
