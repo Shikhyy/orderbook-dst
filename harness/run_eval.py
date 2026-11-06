@@ -259,9 +259,23 @@ def run_regrade(out_dir: Path) -> None:
         (trial_dir / "score.json").write_text(new_score.to_json(), encoding="utf-8")
         updated_records.append(record)
 
+    # A run may have appended records while this regrade was working (a regrade takes minutes).
+    # Re-read the file and keep every record that was not in the first read, so that they are
+    # not overwritten. Their scores are not regraded: run the regrade again for those.
+    seen = {(r["model"], r["task_id"], r["trial"]) for r in updated_records}
+    appended = 0
+    for line in trials_file.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        rec = json.loads(line)
+        if (rec["model"], rec["task_id"], rec["trial"]) not in seen:
+            updated_records.append(rec)
+            appended += 1
     content = "\n".join(json.dumps(r) for r in updated_records) + "\n"
     trials_file.write_text(content, encoding="utf-8")
-    print(f"Regraded {len(updated_records)} trials successfully.")
+    print(f"Regraded {len(updated_records) - appended} trials successfully.")
+    if appended:
+        print(f"Kept {appended} record(s) appended during the regrade (not regraded).")
 
 
 def run_single_turn_eval(

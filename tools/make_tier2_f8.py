@@ -28,12 +28,21 @@ THIN = 410_000_000  # buying 6 units at P with the default 20% lock leaves negat
 ACCOUNTS = {
     "A1": 3_000_000_000, "A2": 3_000_000_000, "A3": 3_000_000_000, "A10": 3_000_000_000,
     "A11": THIN, "A12": THIN, "A13": THIN, "A14": THIN, "A15": THIN, "A5": THIN,
+    "A6": THIN, "A7": THIN, "A8": THIN,
     "A16": 40_000_000,  # the lock of 36 units at a 1% rate is 36,000,000: nearly no capital
     "A4": 32_000_000,   # the lock of a 31-unit short is 31,000,000: nearly no capital of its own
     "A0": 6_000_000,    # a 5-unit short (lock 5,000,000), examined before "A16" by the waterfall
     "LIQ": 50_000_000_000,
 }
 POOL = ("A1", "A2", "A3", "A10")
+
+
+class NeedAdjust(Exception):
+    """The initial cash of "A7" has to change by `adj` so that a deficit can leave exactly 2."""
+
+    def __init__(self, adj):
+        super().__init__(adj)
+        self.adj = adj
 
 
 def nl(acc, side, qty):
@@ -78,6 +87,12 @@ def split_largest_remainder(remaining, weights):
     return shares
 
 
+def _vault_after_funding(eng, rate):
+    probe = copy.deepcopy(eng)
+    probe.process(Event(kind="FUNDING", bps=rate))
+    return probe.state.fee_vault
+
+
 class Scenario:
     def __init__(self):
         self.eng = Engine(EngineConfig(), dict(ACCOUNTS), P)
@@ -88,7 +103,7 @@ class Scenario:
     def st(self):
         return self.eng.state
 
-    def do(self, ev, name=None):
+    def do(self, ev, name=None, exact=False):
         reports = self.eng.process(ev)
         assert not check_invariants(self.st, len(self.events)), "invariant broken in scenario"
         idx = len(self.events)
@@ -105,6 +120,7 @@ class Scenario:
                 },
                 "expected_fee_vault": self.st.fee_vault,
                 "source": "engine",
+                **({"exact_reports": True} if exact else {}),
             })
         return reports
 
@@ -282,6 +298,58 @@ def main() -> Scenario:  # noqa: C901 - one linear script, one block per case
     assert kinds(reps) == ["LIQUIDATED"] and reps[1].account == "A0"
     sc.do(Event(kind="SET_MARGIN_RATE", bps=2000))
 
+    # chk8 to chk10: the fee vault can be negative (a funding residual, R-Y3). Insurance never
+    # draws on a negative vault (R-L2 caps the draw at max(0, vault)).
+    # Setup: "A6" (thin) buys 6 from three pool accounts; "A10" buys 6 from the thin short "A8".
+    sc.flatten()
+    sc.sweep("A6", "BUY", [("A1", 2), ("A2", 2), ("A3", 2)])
+    sc.sweep("A10", "BUY", [("A8", 6)])
+    assert st.accounts["A8"].position == -6 and st.accounts["A10"].position == 6
+    m1 = sc.find_mark("A6", lambda d, v: d > v + 5_000_000, 1_000_000, 90_000_000)
+    reps = sc.do(crash(m1), "chk_crash_drains_the_fee_vault")
+    assert kinds(reps)[:3] == ["LIQUIDATED", "INSURANCE_DRAWN", "ADL_APPLIED"], kinds(reps)
+    assert st.fee_vault == 0
+
+    # A funding event whose per-account rounding pays out more than it collects: with an empty
+    # vault the residual leaves it below zero. The rate is searched.
+    rate = next(r for r in list(range(1, 400)) + list(range(-399, 0))
+                if _vault_after_funding(sc.eng, r) < 0)
+    sc.do(Event(kind="FUNDING", bps=rate), "chk_funding_residual_makes_the_vault_negative")
+    assert st.fee_vault < 0, st.fee_vault
+
+    # "A8" (short 6, thin) is ruined by a price spike. The vault is negative, so no insurance is
+    # drawn and the WHOLE deficit is shared; the vault stays as it is. The only eligible account
+    # is the long "A10" (LIQ is never eligible).
+    vault_neg = st.fee_vault
+    m2 = sc.find_mark("A8", lambda d, v: d > 5_000_000, 160_000_000, 900_000_000)
+    deficit8 = sc.deficit_at("A8", m2)
+    reps = sc.do(crash(m2), "chk_negative_vault_is_not_insurance")
+    adl = [r for r in reps if r.kind == "ADL_APPLIED"]
+    assert kinds(reps) == ["LIQUIDATED", "ADL_APPLIED"], kinds(reps)
+    assert adl[0].account == "A10" and adl[0].qty == deficit8
+    assert st.fee_vault == vault_neg
+    sc.flatten()
+
+    # chk11: the remainder after the insurance draw is 2, smaller than the number of eligible
+    # accounts. Weights 1, 4, 1: the shares are 0, 2, 0 (the leftover goes to the heaviest). Only
+    # accounts with share > 0 get an ADL_APPLIED report (R-L3), and no other report appears
+    # (exact_reports). The initial cash of "A7" is adjusted (see NeedAdjust) so that a mark exists
+    # at which the deficit exceeds the vault by exactly 2.
+    sc.sweep("A7", "BUY", [("A1", 1), ("A2", 4), ("A3", 1)])
+    a7 = st.accounts["A7"]
+    adj = (-a7.free_cash - st.fee_vault - 2) % 6
+    if adj:
+        raise NeedAdjust(adj)
+    m3 = (-a7.free_cash - st.fee_vault - 2) // 6
+    assert sc.deficit_at("A7", m3) - st.fee_vault == 2
+    w = sc.weights("A7")
+    assert w == {"A1": 1, "A2": 4, "A3": 1}, w
+    assert 0 in split(2, w)[0].values()
+    reps = sc.do(crash(m3), "chk_zero_share_is_not_reported", exact=True)
+    assert kinds(reps) == ["LIQUIDATED", "INSURANCE_DRAWN", "ADL_APPLIED"], kinds(reps)
+    assert [(r.account, r.qty) for r in reps if r.kind == "ADL_APPLIED"] == [("A2", 2)]
+    assert st.fee_vault == 0
+
     return sc
 
 
@@ -293,8 +361,17 @@ def write(sc: Scenario) -> Path:
     return path
 
 
+def build() -> Scenario:
+    """main(), run again with a changed initial cash for "A7" if the scenario asks for it."""
+    try:
+        return main()
+    except NeedAdjust as need:
+        ACCOUNTS["A7"] += need.adj
+        return main()
+
+
 if __name__ == "__main__":
-    scenario = main()
+    scenario = build()
     path = write(scenario)
     print(f"wrote {path} ({len(scenario.events)} events, {len(scenario.checkpoints)} checkpoints)")
     for cp in scenario.checkpoints:

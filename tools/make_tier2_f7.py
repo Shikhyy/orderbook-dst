@@ -7,6 +7,7 @@ a PRICE_SHOCK and falls into breach only because of the funding payment that fol
 
     python tools/make_tier2_f7.py
 """
+import copy
 import dataclasses
 import json
 import sys
@@ -21,7 +22,8 @@ from exchange_core.intmath import ceil_div  # noqa: E402
 from exchange_core.types import Event  # noqa: E402
 
 P = 100_000_000
-ACCOUNTS = {"A1": 1_000_000_000, "A2": 1_000_000_000, "A3": 1_000_000_000,
+THIN = 410_000_000  # buying 6 units at P with the default 20% lock leaves negative cash
+ACCOUNTS = {"A1": 1_000_000_000, "A2": 1_000_000_000, "A3": 1_000_000_000, "A4": THIN,
             "LIQ": 20_000_000_000}
 
 
@@ -67,6 +69,38 @@ SUFFIX = [
 ]
 
 
+def negative_vault_tail(scenario):
+    """Events that drain the fee vault with a bankruptcy and then make a funding residual push
+    it below zero (R-Y3: the net can be negative). A handler that floors the vault at 0 creates
+    money here. The mark and the rate are searched on a live reference engine."""
+    eng = Engine(EngineConfig(), dict(ACCOUNTS), P)
+    for ev, _ in scenario:
+        eng.process(ev)
+    lead = [nl("LIQ", "SELL", P, 6), nl("A4", "BUY", P, 6)]
+    for ev in lead:
+        eng.process(ev)
+    a4 = eng.state.accounts["A4"]
+    vault = eng.state.fee_vault
+    assert a4.position == 6 and vault > 0, (a4.position, vault)
+    rates = list(range(1, 200)) + list(range(-199, 0))
+    for mark in range(1_000_000, 60_000_000, 1_000):
+        if -(a4.free_cash + 6 * mark) <= vault:  # the deficit must exceed the vault
+            continue
+        crashed = copy.deepcopy(eng)
+        crashed.process(Event(kind="PRICE_CRASH", mark_price=mark))
+        if crashed.state.fee_vault != 0:
+            continue
+        for rate in rates:
+            probe = copy.deepcopy(crashed)
+            probe.process(funding(rate))
+            if probe.state.fee_vault < 0:
+                return [(lead[0], None), (lead[1], None),
+                        (Event(kind="PRICE_CRASH", mark_price=mark),
+                         "chk_bankruptcy_drains_the_fee_vault"),
+                        (funding(rate), "chk_vault_may_go_negative")]
+    raise AssertionError("no (mark, rate) found for a negative vault")
+
+
 def report_dict(r):
     d = {k: v for k, v in dataclasses.asdict(r).items() if v not in (None, 0, "")}
     d["kind"] = r.kind
@@ -78,6 +112,7 @@ def main():
     for ev, _ in PREFIX:
         eng.process(ev)
     scenario = PREFIX + [(shock(edge_mark(eng)), None)] + SUFFIX
+    scenario = scenario + negative_vault_tail(scenario)
 
     eng = Engine(EngineConfig(), dict(ACCOUNTS), P)
     events, checkpoints = [], []

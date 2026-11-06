@@ -79,6 +79,12 @@ def build() -> dict[str, tuple[str, str]]:
     m["m_vault_not_decreased"] = (
         sub("        state.fee_vault -= cover\n", ""),
         "The insurance amount is credited to the account but not taken from the fee vault.")
+    m["m_vault_not_floored"] = (
+        sub("cover = min(deficit, max(0, state.fee_vault))", "cover = min(deficit, state.fee_vault)"),
+        "The insurance draw is capped by the vault balance without a floor at 0: a negative vault adds to the amount shared among the other accounts.")
+    m["m_zero_share_reported"] = (
+        sub("        if shares[acc_id] > 0:", "        if shares[acc_id] >= 0:"),
+        "An ADL_APPLIED report is also written for an account whose share is 0.")
     m["m_insurance_report_last"] = (
         sub("    victim.free_cash += remaining\n    return reports\n", "    victim.free_cash += remaining\n    return sorted(reports, key=lambda r: r.kind)\n"),
         "The reports are sorted by kind, so INSURANCE_DRAWN comes after the ADL_APPLIED reports.")

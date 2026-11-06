@@ -200,6 +200,12 @@ def grade_tier2(
                         if not matched:
                             chk_ok = False
                             break
+                    # Opt-in per checkpoint: no report other than the expected ones may
+                    # appear (the default allows extra reports between the expected ones).
+                    if chk_ok and chk.get("exact_reports") and (
+                        len(cand_reports) != len(chk["expected_reports"])
+                    ):
+                        chk_ok = False
 
                 if chk_ok and "expected_accounts" in chk:
                     for acc_id, exp_acc in chk["expected_accounts"].items():

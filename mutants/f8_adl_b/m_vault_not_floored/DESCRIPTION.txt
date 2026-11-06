@@ -1,0 +1,1 @@
+The insurance draw is capped by the vault balance without a floor at 0: a negative vault adds to the amount shared among the other accounts.

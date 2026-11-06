@@ -86,26 +86,73 @@ Partial credit is built in (tier scores are fractions of tests, checkpoints and 
 | D1–D5 (each F9 task): the reference, the clean-room alternative and a minimal hand-written fix score 1.0; the buggy file scores below 1.0 exactly like its source mutant; the stored symptom reproduces | PASS |
 | V8 Mutants trigger I1 and I2, not only report mismatches | PASS |
 
-Also tested (`make test`, 476 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
+Also tested (`make test`, 547 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
 
 ### Which tier catches which bug (`make mutant-tiers`, no API calls)
 
-Running all 77 mutants through the grader ([`results/grader_analysis/mutant_tiers.md`](results/grader_analysis/mutant_tiers.md)):
+Running all 81 mutants through the grader ([`results/grader_analysis/mutant_tiers.md`](results/grader_analysis/mutant_tiers.md)):
 
-- **54 / 77** fail at least one *visible* test; 17 more are caught first by the hidden checkpoints; **6** pass every visible test and every checkpoint and are caught only by the hidden simulation: `f2_replace_b/m_lock_uses_current_rate` (a one-token change, `state.margin_bps` for `order.margin_bps`, that fails all 20 seeds on I2; run `make demo` to see it), three in `f6_match_b` (`m_post_only_ignores_own`, 13 of 20 seeds; `m_relock_current_rate`, the same one-token bug in the resting-order relock, 19 of 20; `m_stp_stops_matching`, 20 of 20) and two in `f7_funding_b` (`m_skips_negative_cash`: skipping funding for accounts whose cash is already negative, 20 of 20; `m_qty_skips_zero_amount`: not counting accounts whose amount rounds to 0, 8 of 20).
+- **54 / 81** fail at least one *visible* test; 21 more are caught first by the hidden checkpoints; **6** pass every visible test and every checkpoint and are caught only by the hidden simulation: `f2_replace_b/m_lock_uses_current_rate` (a one-token change, `state.margin_bps` for `order.margin_bps`, that fails all 20 seeds on I2; run `make demo` to see it), three in `f6_match_b` (`m_post_only_ignores_own`, 13 of 20 seeds; `m_relock_current_rate`, the same one-token bug in the resting-order relock, 19 of 20; `m_stp_stops_matching`, 20 of 20) and two in `f7_funding_b` (`m_skips_negative_cash`: skipping funding for accounts whose cash is already negative, 20 of 20; `m_qty_skips_zero_amount`: not counting accounts whose amount rounds to 0, 8 of 20).
 - So for the bugs the author anticipated, the visible tests are already strong. The open question the model runs answer is whether **model** bugs look like these, or are the kind only long simulations reveal.
 - The hidden simulation also compares the **whole final engine state** with the reference's (not only balances). This was added after the first real run: a model skipped a required state update (storing the new mark price) that no report, invariant or balance revealed, and still scored a perfect T3. `f4_waterfall_b/m_mark_price_not_stored` reproduces it and fails all 20 seeds.
 - The grader compares reports before checking invariants, so a bug that breaks conservation *and* changes a report would be labelled D1. The grader now also records every invariant broken at each seed's first failing event; this does not change any score, but it is what the H5 analysis uses.
 
 ## 5. Results
 
-*Pending real model runs.* `make report` writes `results/main/summary.md` with, per model: exact model ID and settings, trials per task, pass rate with a hierarchical-bootstrap 95% CI, pass@k, pass^k, mean score, T1/T2/T3, and cost; a per-task table; each trial's failure type; and the hypothesis metrics in §6. The README table will be copied from that file unchanged.
+Copied unchanged from [`results/main/summary.md`](results/main/summary.md) (`make report` at `c07d5a4`, 326 trials, single-turn, 3 trials per task and model; graded with the Nov 6 grader, see `CHANGELOG.md`). Every trial's prompt, raw reply, extracted files and score are under `results/main/raw/`.
 
-| Model (exact ID, settings) | Trials / task | Pass rate [95% CI] | pass^5 | Mean score | T1 | T2 | T3 | Cost / run |
-|---|---|---|---|---|---|---|---|---|
-| frontier model A | 5 | – | – | – | – | – | – | – |
-| frontier model B | 5 | – | – | – | – | – | – | – |
-| smaller / open model | 5 | – | – | – | – | – | – | – |
+**The run is not complete.** `nemotron_nano` has 33 of 33 headline and 16 of 18 F9 trials; `gemini_35_flash` has 23 of 33 headline and 0 of 18 F9 trials. Their rows are over the trials that exist, so they are not directly comparable with the complete rows.
+
+### Headline results (F1 to F8, 11 tasks)
+
+| Model (ID, settings) | Trials / task | Pass rate | 95% CI | pass@k | pass^k | Mean score | 95% CI | T1 | T2 | T3 | Cost (run) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| **nemotron_ultra** (`nvidia/nemotron-3-ultra-550b-a55b:free`, max_tokens=16000, api_key_env=OPENROUTER_API_KEY) | 3 | 100.0% | [1.00, 1.00] | 100.0% | 100.0% | 1.000 | [1.00, 1.00] | 1.00 | 1.00 | 1.00 | $0.00 |
+| **mistral_large** (`mistral-large-4`, max_tokens=8000, api_key_env=MISTRAL_API_KEY) | 3 | 93.9% | [0.82, 1.00] | 100.0% | 81.8% | 0.960 | [0.87, 1.00] | 0.97 | 0.97 | 0.95 | $0.00 |
+| **gemma_26b** (`gemma-4-26b-a4b-it`, max_tokens=8000, api_key_env=GEMINI_API_KEY) | 3 | 81.8% | [0.58, 1.00] | 90.9% | 72.7% | 0.846 | [0.63, 1.00] | 0.91 | 0.85 | 0.82 | $0.00 |
+| **flash_lite** (`gemini-3.1-flash-lite`, max_tokens=8000, api_key_env=GEMINI_API_KEY) | 3 | 78.8% | [0.58, 0.97] | 100.0% | 63.6% | 0.861 | [0.71, 0.98] | 0.96 | 0.87 | 0.82 | $0.00 |
+| **nemotron_nano** (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, max_tokens=16000, api_key_env=OPENROUTER_API_KEY) | 3 | 36.4% | [0.12, 0.61] | 54.5% | 18.2% | 0.420 | [0.19, 0.67] | 0.49 | 0.41 | 0.40 | $0.00 |
+| **ministral_8b** (`ministral-8b-latest`, max_tokens=8000, api_key_env=MISTRAL_API_KEY) | 3 | 36.4% | [0.09, 0.64] | 45.5% | 27.3% | 0.508 | [0.30, 0.73] | 0.80 | 0.56 | 0.37 | $0.00 |
+| **gemini_35_flash** (`gemini-3.5-flash`, max_tokens=16000, api_key_env=GEMINI_API_KEY) | 3 | 87.5% | [0.62, 1.00] | 87.5% | 87.5% | 0.935 | [0.81, 1.00] | 1.00 | 1.00 | 0.87 | $0.00 |
+
+Pass = score 1.0 (all public tests, all checkpoints and all 20 hidden seeds). pass@k: at least one of k trials passes; pass^k: all k pass. CIs are a hierarchical bootstrap over tasks, then trials. Cost uses the per-model prices in `models.toml` (0 if not set).
+
+### Per task (passes / trials, mean score)
+
+| Task | nemotron_ultra | mistral_large | gemma_26b | flash_lite | nemotron_nano | ministral_8b | gemini_35_flash |
+|---|---|---|---|---|---|---|---|
+| `f1_fee_a` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) |
+| `f1_fee_b` | 3/3 (1.00) | 3/3 (1.00) | 0/3 (0.00) | 3/3 (1.00) | 0/3 (0.00) | 2/3 (0.67) | 3/3 (1.00) |
+| `f2_replace_a` | 3/3 (1.00) | 2/3 (0.89) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) |
+| `f2_replace_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 1/3 (0.43) | 0/3 (0.07) | 0/3 (0.30) | 3/3 (1.00) |
+| `f3_fix_a` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 2/3 (0.67) | 3/3 (1.00) | 3/3 (1.00) |
+| `f3_fix_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 2/3 (0.67) | 1/3 (0.63) | – |
+| `f4_waterfall_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 1/3 (0.68) | 1/3 (0.33) | 0/3 (0.09) | 3/3 (1.00) |
+| `f5_basket_b` | 3/3 (1.00) | 3/3 (1.00) | 2/3 (0.73) | 1/3 (0.63) | 0/3 (0.16) | 0/3 (0.42) | 0/3 (0.50) |
+| `f6_match_b` | 3/3 (1.00) | 2/3 (0.67) | 1/3 (0.57) | 3/3 (1.00) | 0/3 (0.00) | 0/3 (0.09) | 2/2 (1.00) |
+| `f7_funding_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 0/3 (0.07) | 0/3 (0.21) | – |
+| `f8_adl_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 2/3 (0.72) | 1/3 (0.65) | 0/3 (0.18) | – |
+
+### F9: diagnose and fix (exploratory, not in the headline table or H1 to H5)
+
+The model gets the specification, a handler with one defect and the first failing step of a short trace, and returns the corrected file. Each task is graded exactly like the task it is graded as. These trials are not in the headline table or in H1–H5. `impl` is the same model's passes on the implementation task (written from scratch) that the F9 task is graded as.
+
+| Task (graded as) | nemotron_ultra | mistral_large | gemma_26b | flash_lite | ministral_8b | nemotron_nano |
+|---|---|---|---|---|---|---|
+| `f9_dbg_1` (`f1_fee_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 0/3 | 3/3 (1.00), impl 3/3 | 0/3 (0.08), impl 2/3 | 3/3 (1.00), impl 0/3 |
+| `f9_dbg_2` (`f4_waterfall_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 1/3 | 3/3 (1.00), impl 0/3 | 0/3 (0.00), impl 1/3 |
+| `f9_dbg_3` (`f5_basket_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 0/3 (0.38), impl 2/3 | 3/3 (1.00), impl 1/3 | 0/3 (0.38), impl 0/3 | 1/3 (0.33), impl 0/3 |
+| `f9_dbg_4` (`f6_match_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 2/3 | 3/3 (1.00), impl 1/3 | 3/3 (1.00), impl 3/3 | 2/3 (0.74), impl 0/3 | 1/3 (0.33), impl 0/3 |
+| `f9_dbg_5` (`f7_funding_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 2/3 (0.68), impl 0/3 | 1/2 (0.50), impl 0/3 |
+| `f9_dbg_6` (`f8_adl_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 2/3 | 3/3 (1.00), impl 0/3 | 1/1 (1.00), impl 1/3 |
+
+### H3: invariant feedback loop
+
+From [`results/feedback/summary.md`](results/feedback/summary.md) (`--mode feedback_loop`, run in progress):
+
+| Model | Trials | Turn 0 pass | Final pass | Mean score gain | Fixed / broken | McNemar p | Mean revisions |
+|---|---|---|---|---|---|---|---|
+| gemma_26b | 14 | 57.1% | 100.0% | +0.371 | 6 / 0 | 0.031 | 0.50 |
 
 ## 6. Pre-registered hypotheses
 
@@ -118,6 +165,22 @@ Written and committed (`3fea5fd`) before any model run; see [`HYPOTHESES.md`](HY
 | H3 | Invariant feedback lets a model repair a failed attempt | First vs final turn on the *same* trial (`--mode feedback_loop`), exact McNemar test |
 | H4 | Frontier models break I1/I2 less than small models | Share of hidden seeds without each invariant violated |
 | H5 | Most Variant B failures are missed side effects, not wrong core logic | Share of failing B seeds where a conservation invariant broke vs report mismatch only (an automatic proxy; checked against transcripts) |
+
+Computed values (from `results/main/summary.md`; the reading of each hypothesis is in [`HYPOTHESES.md`](HYPOTHESES.md) section 3, still to be written by the author):
+
+| Model | H1: T1 − T3 [95% CI] | H2: A − B pass rate (p) | H2: A − B score (p) | H4: I1 / I2 seed survival | H5: conservation share of B failing seeds |
+|---|---|---|---|---|---|
+| nemotron_ultra | 0.000 [0.00, 0.00] | 0.000 (p=1.000) | 0.000 (p=1.000) | 1.00 / 1.00 | – of 0 |
+| mistral_large | 0.015 [0.00, 0.06] | -0.111 (p=1.000) | -0.036 (p=1.000) | 1.00 / 1.00 | – of 0 |
+| gemma_26b | 0.096 [0.00, 0.27] | 0.333 (p=0.053) | 0.333 (p=0.053) | 1.00 / 1.00 | 33% of 60 |
+| flash_lite | 0.143 [0.02, 0.31] | 0.222 (p=0.207) | 0.189 (p=0.207) | 0.97 / 1.00 | 20% of 101 |
+| nemotron_nano | 0.202 [0.00, 0.48] | 0.667 (p=0.009) | 0.644 (p=0.009) | 0.94 / 1.00 | 32% of 59 |
+| ministral_8b | 0.504 [0.26, 0.74] | 0.667 (p=0.005) | 0.468 (p=0.005) | 0.81 / 0.90 | 67% of 299 |
+| gemini_35_flash | 0.125 [0.00, 0.38] | 0.000 (p=1.000) | 0.000 (p=1.000) | 1.00 / 1.00 | 0% of 60 |
+
+- H1 is paired within each trial; trials with extraction or tier 1/2 errors are excluded.
+- H2 uses only families with both variants (F1–F3) and a one-sided stratified permutation test. A and B are different tasks, so this is not a paired test, and B tasks are also larger, so the gap is not attributable to coupling alone.
+- H4/H5 use every failing hidden seed, with all labels seen at its first failing event. H5's split (conservation law broken vs report mismatch only) is an automatic proxy for the pre-registered 'secondary omission vs primary logic' classification and must be checked against the transcripts.
 
 ## 7. Failure analysis
 

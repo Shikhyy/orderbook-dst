@@ -77,9 +77,9 @@ Hand-check examples:
 - half-even: if `notional * |rate| / 1,000,000` is exactly 2.5 the amount is 2; if 3.5 it
   is 4. Half-up would give 3 and 4, which is what `m_half_up_rounding` does.
 
-Mutants (all 11 expected to be caught): `m_floor_rounding`, `m_half_up_rounding`,
+Mutants (all 12 expected to be caught): `m_floor_rounding`, `m_half_up_rounding`,
 `m_no_clamp`, `m_no_waterfall`, `m_qty_skips_zero_amount`, `m_residual_not_to_vault`, `m_sign_swapped`,
-`m_skips_liq`, `m_skips_negative_cash`, `m_waterfall_only_if_rate`,
+`m_skips_liq`, `m_skips_negative_cash`, `m_vault_floor_zero`, `m_waterfall_only_if_rate`,
 `m_wrong_mark_in_waterfall`.
 
 ### Sign-off checklist (tick only what you verified)
@@ -146,6 +146,13 @@ Same rules as section A: read, reproduce by hand, then sign. In `tasks/<id>/task
 
 ### f8_adl_b (rules R-L1 to R-L5, `docs/04_RULEBOOK.md` section 10c)
 Check by hand: the deficit is `max(0, -free_cash)` after liquidation; the vault draw is capped by a non-negative vault; shares are floor divisions, leftover units go to the largest weights and then by ascending string order of the account id (`A10` before `A2`); `LIQ` and the ruined account are never charged; the report order is `LIQUIDATED`, `INSURANCE_DRAWN`, `ADL_APPLIED` in ascending id order, then `BAD_DEBT`; money is conserved exactly. Take one small example with two equal weights and a leftover of 1 and compute it yourself. Ask whether the instruction, not only the reference, states every convention (it is the task with the longest chain of small conventions).
+
+Open points from the independent review (Nov 6), for your sign-off notes. The three grader gaps behind them are closed (see `CHANGELOG.md`); these are wording and design points that are yours to decide:
+- `pre_position == 0` is not defined in R-L3 (the reference treats it as short). The engine never calls the procedure with 0, so it cannot happen, but the instruction could say `pre_position != 0`.
+- The instruction's R-L5 adds "Positions, locks and volumes do not change"; the rulebook's R-L5 does not. They agree in substance.
+- "neither `LIQ` nor X" in R-L3: the X part never matters, because X has position 0 after the liquidation and the zero-position clause already excludes it.
+- The reference docstring says "Rules R-L1 to R-L4"; the task covers R-L5 as well.
+- Mutants of f8_adl_b now include `m_vault_not_floored` and `m_zero_share_reported` (21 in total).
 
 ### F9: diagnose and fix (`f9_dbg_1` to `f9_dbg_6`)
 Each task = specification of an existing task + bug report + the handler with one defect; graded like that task. What to review for each:

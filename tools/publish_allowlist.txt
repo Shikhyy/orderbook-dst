@@ -27,6 +27,8 @@ conftest.py
 docs/04_RULEBOOK.md
 docs/05_INVARIANTS_AND_DATA.md
 docs/F9_INSTANCES.md
+docs/FAILURE_REVIEW.md
+docs/REVIEW_PACKET.md
 
 # Source packages
 exchange_core/*.py
@@ -59,6 +61,7 @@ reference_alt_v2/**/*.py
 mutants/*.py
 mutants/**/*.py
 mutants/**/expect.toml
+mutants/**/DESCRIPTION.txt
 
 # Tests
 tests/*.py

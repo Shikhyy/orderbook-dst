@@ -3,7 +3,8 @@
     "A1": 300000000,
     "A2": 300000000,
     "A3": 500000000,
-    "LIQ": 50000000000
+    "LIQ": 50000000000,
+    "A4": 425275000
   },
   "mark_price": 100000000,
   "events": [
@@ -405,6 +406,101 @@
       "poss_dup": false,
       "body": null,
       "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "LIQ",
+      "side": "BUY",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A4",
+      "side": "SELL",
+      "price": 100000000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "NEW_LIMIT",
+      "account": "A4",
+      "side": "BUY",
+      "price": 99950000,
+      "qty": 1,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 0,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_SHOCK",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 500000000,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
+    },
+    {
+      "kind": "PRICE_SHOCK",
+      "account": "",
+      "side": "",
+      "price": 0,
+      "qty": 0,
+      "flag": "NONE",
+      "order_id": 0,
+      "new_price": 0,
+      "new_qty": 0,
+      "bps": 0,
+      "mark_price": 500000000,
+      "session": "",
+      "epoch": 0,
+      "seq": 0,
+      "poss_dup": false,
+      "body": null,
+      "legs": []
     }
   ],
   "checkpoints": [
@@ -444,6 +540,12 @@
           "locked_margin": 0,
           "position": 4,
           "volume": 400000000
+        },
+        "A4": {
+          "free_cash": 425275000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
         }
       },
       "expected_fee_vault": 1000000,
@@ -513,6 +615,12 @@
           "locked_margin": 0,
           "position": 4,
           "volume": 400000000
+        },
+        "A4": {
+          "free_cash": 425275000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
         }
       },
       "expected_fee_vault": 1000000,
@@ -582,6 +690,12 @@
           "locked_margin": 0,
           "position": 0,
           "volume": 400000000
+        },
+        "A4": {
+          "free_cash": 425275000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
         }
       },
       "expected_fee_vault": 1000000,
@@ -623,6 +737,12 @@
           "locked_margin": 0,
           "position": 0,
           "volume": 400000000
+        },
+        "A4": {
+          "free_cash": 425275000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
         }
       },
       "expected_fee_vault": 1000000,
@@ -678,6 +798,12 @@
           "locked_margin": 0,
           "position": 3,
           "volume": 1270000000
+        },
+        "A4": {
+          "free_cash": 425275000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
         }
       },
       "expected_fee_vault": 3175000,
@@ -733,9 +859,108 @@
           "locked_margin": 0,
           "position": 0,
           "volume": 1270000000
+        },
+        "A4": {
+          "free_cash": 425275000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 0
         }
       },
       "expected_fee_vault": 3175000,
+      "source": "engine"
+    },
+    {
+      "event_index": 24,
+      "name": "chk_stage1_exact_requirement_is_not_breach",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 500000000
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 18,
+          "reason": "RISK"
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": -60550000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 200000000
+        },
+        "A2": {
+          "free_cash": -60550000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 200000000
+        },
+        "A3": {
+          "free_cash": -132392500,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 870000000
+        },
+        "LIQ": {
+          "free_cash": 51250342500,
+          "locked_margin": 0,
+          "position": 1,
+          "volume": 1370000000
+        },
+        "A4": {
+          "free_cash": 525000000,
+          "locked_margin": 0,
+          "position": -1,
+          "volume": 100000000
+        }
+      },
+      "expected_fee_vault": 3425000,
+      "source": "engine"
+    },
+    {
+      "event_index": 25,
+      "name": "chk_exact_requirement_at_first_test_is_not_breach",
+      "expected_reports": [
+        {
+          "kind": "MARK_SET",
+          "mark_price": 500000000
+        }
+      ],
+      "expected_accounts": {
+        "A1": {
+          "free_cash": -60550000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 200000000
+        },
+        "A2": {
+          "free_cash": -60550000,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 200000000
+        },
+        "A3": {
+          "free_cash": -132392500,
+          "locked_margin": 0,
+          "position": 0,
+          "volume": 870000000
+        },
+        "LIQ": {
+          "free_cash": 51250342500,
+          "locked_margin": 0,
+          "position": 1,
+          "volume": 1370000000
+        },
+        "A4": {
+          "free_cash": 525000000,
+          "locked_margin": 0,
+          "position": -1,
+          "volume": 100000000
+        }
+      },
+      "expected_fee_vault": 3425000,
       "source": "engine"
     }
   ]
