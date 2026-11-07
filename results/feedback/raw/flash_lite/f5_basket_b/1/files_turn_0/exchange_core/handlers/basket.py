@@ -1,0 +1,64 @@
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report, BasketLeg
+from exchange_core.handlers.new_limit import handle_new_limit
+
+
+def handle_basket(engine: Any, event: Event) -> list[Report]:
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    snapshot = engine.state.snapshot()
+    all_reports: list[Report] = []
+
+    for i, leg in enumerate(event.legs):
+        # Translate BASKET leg to NEW_LIMIT event
+        # Rule R-A2: process each leg as a NEW_LIMIT event for the account
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        leg_reports = handle_new_limit(engine, leg_event)
+        
+        # Rule R-A3: Check success condition
+        failed = False
+        if not leg_reports:
+            failed = True
+        else:
+            # Rule R-A3 verification
+            last_rep = leg_reports[-1]
+            if leg.flag == "IOC":
+                # Must have been accepted and no IOC_REMAINDER cancellation.
+                # Since handle_new_limit handles the logic, we verify acceptance
+                # and check if the order fully filled.
+                # Per engine logic, an accepted IOC returns ACCEPTED then FILLs,
+                # if there is remainder it returns CANCELLED(IOC_REMAINDER).
+                for r in leg_reports:
+                    if r.kind == "CANCELLED" and r.reason == "IOC_REMAINDER":
+                        failed = True
+            elif leg.flag == "POST_ONLY":
+                # Must not cross (rejected if crossing)
+                # handle_new_limit returns REJECTED if cross
+                for r in leg_reports:
+                    if r.kind == "REJECTED":
+                        failed = True
+            
+            # General rule: if rejected leg fails
+            for r in leg_reports:
+                if r.kind == "REJECTED":
+                    failed = True
+
+        if failed:
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        all_reports.extend(leg_reports)
+
+    all_reports.append(Report.basket_committed())
+    return all_reports

@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-06T07:08:57.325595+00:00",
+  "git_sha": "c07d5a4ca1124aa3bdcaa68380382226f39ef4db",
+  "harness_version": "1.0",
+  "mode": "feedback_loop",
+  "max_revisions": 3,
+  "python_version": "3.14.0 (v3.14.0:ebf955df7a8, Oct  7 2025, 08:20:14) [Clang 16.0.0 (clang-1600.0.26.6)]",
+  "trials_override": 3,
+  "tasks": [
+    "f1_fee_b",
+    "f2_replace_b",
+    "f4_waterfall_b",
+    "f5_basket_b",
+    "f6_match_b"
+  ],
+  "models": [
+    {
+      "label": "gemma_26b",
+      "tier": "small",
+      "adapter": "openai_compat",
+      "model_id": "gemma-4-26b-a4b-it",
+      "settings": {
+        "max_tokens": 8000
+      },
+      "price_in_per_mtok": null,
+      "price_out_per_mtok": null
+    },
+    {
+      "label": "flash_lite",
+      "tier": "small",
+      "adapter": "openai_compat",
+      "model_id": "gemini-3.1-flash-lite",
+      "settings": {
+        "max_tokens": 8000
+      },
+      "price_in_per_mtok": null,
+      "price_out_per_mtok": null
+    }
+  ]
+}

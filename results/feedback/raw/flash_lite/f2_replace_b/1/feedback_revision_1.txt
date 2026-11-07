@@ -1,0 +1,38 @@
+Your previous code submission failed verification.
+
+Here is the test feedback on your submission:
+
+### Public Unit Test Output:
+```
+.F........                                                               [100%]
+=================================== FAILURES ===================================
+________________________ test_2_increase_loses_priority ________________________
+
+engine = <exchange_core.engine.Engine object at 0x106fa8410>
+
+    def test_2_increase_loses_priority(engine: Engine) -> None:
+        engine.process(Event(kind="NEW_LIMIT", account="A1", side="BUY", price=100_000_000, qty=10))
+        prio_before = engine.state.orders[1].prio_seq
+        ev = Event(kind="REPLACE", order_id=1, new_price=100_000_000, new_qty=12)
+        reps = handle_replace(engine, ev)
+        assert [r.kind for r in reps] == ["REPLACED"]
+>       assert engine.state.orders[1].prio_seq > prio_before
+E       AssertionError: assert 1 > 1
+E        +  where 1 = Order(order_id=1, account='A1', side='BUY', price=100000000, qty=12, cum_qty=0, prio_seq=1, margin_bps=2000, lock=240000000, flag='NONE').prio_seq
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_dlxhsewh/tests/test_f2_replace_b.py:45: AssertionError
+=========================== short test summary info ============================
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_dlxhsewh/tests/test_f2_replace_b.py::test_2_increase_loses_priority
+1 failed, 9 passed in 0.15s
+```
+
+### Invariant Violation:
+- Invariant: D1
+- Name: Report mismatch
+- Details: event 194 report differs from reference
+
+Please provide your complete revised solution using the standard format:
+### FILE: <relative_path>
+```python
+# your code
+```

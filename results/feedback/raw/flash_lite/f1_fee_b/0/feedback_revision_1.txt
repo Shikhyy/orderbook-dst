@@ -1,0 +1,321 @@
+Your previous code submission failed verification.
+
+Here is the test feedback on your submission:
+
+### Public Unit Test Output:
+```
+FFFFFFFFF                                                                [100%]
+=================================== FAILURES ===================================
+______________________________ test_cash_transfer ______________________________
+
+    def test_cash_transfer():
+        eng = _make_engine()
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=10,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+        # notional = 1_000_000_000; fee = 2_750_000 (A1); rebate = 250_000 (A2)
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=99000000000, locked_margin=0, position=10, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=99000000000, locked_margin=0, position=10, volume=0)
+fee = 2750000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+_____________________________ test_position_update _____________________________
+
+    def test_position_update():
+        eng = _make_engine()
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=10,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=99000000000, locked_margin=0, position=10, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=99000000000, locked_margin=0, position=10, volume=0)
+fee = 2750000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+___________________________ test_fee_below_threshold ___________________________
+
+    def test_fee_below_threshold():
+        eng = _make_engine()
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=20,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+        # notional = 2B, fee = 5_500_000
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=98000000000, locked_margin=0, position=20, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=98000000000, locked_margin=0, position=20, volume=0)
+fee = 5500000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+_________________________________ test_rebate __________________________________
+
+    def test_rebate():
+        eng = _make_engine()
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=20,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:76: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=98000000000, locked_margin=0, position=20, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=98000000000, locked_margin=0, position=20, volume=0)
+fee = 5500000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+______________________________ test_vault_update _______________________________
+
+    def test_vault_update():
+        eng = _make_engine()
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=20,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:92: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=98000000000, locked_margin=0, position=20, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=98000000000, locked_margin=0, position=20, volume=0)
+fee = 5500000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+______________________________ test_volume_update ______________________________
+
+    def test_volume_update():
+        eng = _make_engine()
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=15,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=98500000000, locked_margin=0, position=15, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=98500000000, locked_margin=0, position=15, volume=0)
+fee = 4125000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+______________________________ test_crossing_fill ______________________________
+
+    def test_crossing_fill():
+        eng = _make_engine()
+        eng.state.accounts["A1"].volume = 4_000_010_000
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=20,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+        # notional = 2B; below = 1B @ 2750 ppm = 2_750_000; above = 1B @ 1850 ppm = 1_850_000
+        # fee = 4_600_000
+>       settle_fill(eng, fill)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=98000000000, locked_margin=0, position=20, volume=4000010000), 'A2': Acc...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=98000000000, locked_margin=0, position=20, volume=4000010000)
+fee = 4600000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+___________________________ test_two_fills_in_a_row ____________________________
+
+    def test_two_fills_in_a_row():
+        eng = _make_engine()
+        fill1 = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=30,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+>       settle_fill(eng, fill1)
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:142: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=97000000000, locked_margin=0, position=30, volume=0), 'A2': Account(free...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=97000000000, locked_margin=0, position=30, volume=0)
+fee = 8250000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+__________________________ test_fee_and_volume_order ___________________________
+
+    def test_fee_and_volume_order():
+        eng = _make_engine()
+        eng.state.accounts["A1"].volume = 4_000_010_000
+        fill = Fill(
+            buy_order_id=1,
+            sell_order_id=2,
+            price=100_000_000,
+            qty=20,
+            taker_order_id=1,
+            buyer="A1",
+            seller="A2",
+        )
+>       reps = settle_fill(eng, fill)
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py:170: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/handlers/settle.py:42: in settle_fill
+    pay_fee(state, taker_account, fee)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+state = EngineState(accounts={'A1': Account(free_cash=98000000000, locked_margin=0, position=20, volume=4000010000), 'A2': Acc...lt=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=200000000000)
+account_id = Account(free_cash=98000000000, locked_margin=0, position=20, volume=4000010000)
+fee = 4600000
+
+    def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+        """Deduct fee from account free_cash and deposit to fee_vault."""
+>       state.accounts[account_id].free_cash -= fee
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: cannot use 'exchange_core.state.Account' as a dict key (unhashable type: 'Account')
+
+/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/exchange_core/ledger.py:47: TypeError
+=========================== short test summary info ============================
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_cash_transfer
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_position_update
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_fee_below_threshold
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_rebate
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_vault_update
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_volume_update
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_crossing_fill
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_two_fills_in_a_row
+FAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f1_fee_b_r4_omj__/tests/test_f1_fee_b.py::test_fee_and_volume_order
+9 failed in 0.16s
+```
+
+Please provide your complete revised solution using the standard format:
+### FILE: <relative_path>
+```python
+# your code
+```

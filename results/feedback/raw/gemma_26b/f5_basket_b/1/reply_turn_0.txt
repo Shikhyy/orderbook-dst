@@ -1,0 +1,135 @@
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    # R-A2: Take snapshot of complete state before processing legs
+    snapshot = engine.state.snapshot()
+    
+    leg_reports = []
+    
+    for i, leg in enumerate(event.legs):
+        # Construct the NEW_LIMIT event for this leg
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        # Process the leg using the engine's dispatcher
+        reports = engine.dispatch(leg_event)
+        
+        # Rule R-A3: Validation of success
+        # We need to check if the leg was accepted AND meets specific flag rules.
+        # However, the requirement "A rejected leg fails" and the engine's 
+        # internal validation of IOC/POST_ONLY (R-A3) is handled by the 
+        # engine's NEW_LIMIT handler which will return REJECTED if rules are violated.
+        
+        # Let's check if any report in the batch is a rejection.
+        # According to standard engine behavior, if a NEW_LIMIT is rejected,
+        # it returns a REJECTED report.
+        
+        is_rejected = False
+        # Note: For IOC, the rule says "succeeds if it is accepted and leaves is 0".
+        # If it's an IOC and leaves > 0, the engine might return an IOC_REMAINDER
+        # or just a standard ACCEPTED with some fills.
+        # Wait, R-A3 says: "An IOC leg succeeds if it is accepted and leaves is 0 
+        # after matching (it must not have an IOC_REMAINDER cancellation)".
+        # This implies the engine might emit an IOC_REMAINDER report or similar.
+        # Actually, the rule R-A3 implies we must verify the success criteria.
+        
+        # Let's look at how the engine reports NEW_LIMIT.
+        # If it's rejected, there's a REJECTED report.
+        # If it's accepted, there are ACCEPTED/FILL reports.
+        
+        # Check if any report is a REJECTED or if the leg failed validation.
+        # In most engine designs, if the quantity isn't fully filled for IOC, 
+        # it might be handled by returning specific reports.
+        
+        # Re-reading R-A3: 
+        # "An IOC leg succeeds if it is accepted and leaves is 0 after matching (it must not have an IOC_REMAINDER cancellation)."
+        # "A POST_ONLY leg succeeds if it is accepted (it must not cross)."
+        # "A rejected leg fails."
+        
+        # The most robust way is to check if the leg's status is valid.
+        # In the context of this task, the engine.dispatch(leg_event) 
+        # will return the list of reports for that single leg.
+        
+        success = True
+        found_accepted = False
+        
+        # We iterate through reports of this leg to check for rejection
+        # and the specific conditions for IOC/POST_ONLY.
+        
+        # For simplicity in this specific task architecture:
+        # 1. If any report is REJECTED, the leg failed.
+        # 2. If it's IOC, we need to check if it was fully filled (leaves == 0).
+        #    How to know leaves? Usually, the engine doesn't return leaves in Report.
+        #    Wait, R-A3 says "it must not have an IOC_REMAINDER cancellation".
+        #    This suggests if an IOC isn't fully filled, a specific report or 
+        #    the lack of full fill causes failure.
+        
+        # Let's re-examine the public tests.
+        # test_leg_1_fails: Leg 0 has invalid price (not tick aligned) -> fails.
+        # test_post_only_fails_after_earlier_fills: Leg 1 is POST_ONLY @ 100M which would cross -> fails.
+        # test_reject_by_margin: Margin check -> fails.
+        
+        # All these cases result in the engine returning REJECTED reports for the NEW_LIMIT event.
+        # Let's check if an IOC that is partially filled is considered a failure.
+        # The rule says: "An IOC leg succeeds if it is accepted and leaves is 0".
+        # If it is "accepted" but leaves > 0, it is a failure for the BASKET.
+        
+        # Let's refine the success check:
+        # A leg is successful if:
+        # - It doesn't produce a REJECTED report.
+        # - It doesn't produce a CANCELLED report with reason "IOC_REMAINDER" (implied).
+        # - If IOC: total qty filled == requested qty.
+        # - If POST_ONLY: it must not cross (the engine will REJECT if it would cross).
+        
+        # Implementation detail: 
+        # For an IOC leg, the sum of qty in FILL reports must equal leg.qty.
+        # For a POST_ONLY leg, it's successful if it's ACCEPTED and doesn't cross.
+        
+        total_filled = 0
+        leg_rejected = False
+        for r in reports:
+            if r.kind == "REJECTED":
+                leg_rejected = True
+                break
+            if r.kind == "FILL":
+                total_filled += r.qty
+            # If there's an IOC_REMAINDER (as mentioned in R-A3), we fail.
+            # Since the exact report kind for remainder isn't in types.py,
+            # we look for "CANCELLED" or similar if it's not a standard fill.
+            if r.kind == "CANCELLED" and "IOC_REMAINDER" in r.reason:
+                leg_rejected = True
+                break
+                
+        if leg_rejected:
+            success = False
+        elif leg.flag == "IOC":
+            if total_filled != leg.qty:
+                success = False
+        # Note: POST_ONLY failure (crossing) is handled by the engine returning REJECTED.
+        
+        if not success:
+            # R-A4: If a leg fails, engine stops. Restore snapshot.
+            # Report only BASKET_ROLLED_BACK(leg_index).
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        leg_reports.extend(reports)
+
+    # R-A5: All legs succeed.
+    leg_reports.append(Report.basket_committed())
+    return leg_reports
+```

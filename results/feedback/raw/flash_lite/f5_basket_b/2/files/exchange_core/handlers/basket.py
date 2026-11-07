@@ -1,0 +1,63 @@
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report, BasketLeg
+from exchange_core.handlers.new_limit import handle_new_limit
+
+def handle_basket(engine: Any, event: Event) -> list[Report]:
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    snapshot = engine.state.snapshot()
+    all_reports: list[Report] = []
+
+    for i, leg in enumerate(event.legs):
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        # Execute the leg
+        leg_reports = engine.dispatch(leg_event)
+        
+        # Rule R-A3:
+        # A rejected leg fails.
+        # An IOC leg succeeds if it is accepted and leaves is 0 after matching (it must not have an IOC_REMAINDER cancellation).
+        # A POST_ONLY leg succeeds if it is accepted (it must not cross).
+        
+        failed = False
+        accepted_report = None
+        for r in leg_reports:
+            if r.kind == "REJECTED":
+                failed = True
+            elif r.kind == "ACCEPTED":
+                accepted_report = r
+            elif r.kind == "CANCELLED" and r.reason == "IOC_REMAINDER":
+                failed = True
+            elif r.kind == "CANCELLED" and r.reason == "POST_ONLY_CROSS":
+                failed = True
+        
+        if not failed:
+            if leg.flag == "IOC":
+                # Must be fully filled to succeed
+                if accepted_report is not None:
+                    order = engine.state.orders.get(accepted_report.order_id)
+                    if order and order.leaves > 0:
+                        failed = True
+            elif leg.flag == "POST_ONLY":
+                # Must be accepted
+                if accepted_report is None:
+                    failed = True
+        
+        if failed:
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        all_reports.extend(leg_reports)
+
+    all_reports.append(Report.basket_committed())
+    return all_reports

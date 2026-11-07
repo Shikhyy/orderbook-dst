@@ -1,0 +1,98 @@
+[
+  {
+    "turn": 0,
+    "score": 0.1889,
+    "passed": false,
+    "t1": 0.4444444444444444,
+    "t2": 0.3333333333333333,
+    "t3": 0.0,
+    "error": null,
+    "first_failure": {
+      "seed": 7000,
+      "event_index": 7,
+      "invariant": "D1",
+      "plain_name": "Report mismatch",
+      "message": "event 7 report differs from reference",
+      "diff": {
+        "expected": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 10000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ],
+        "actual": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 10000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "LIQUIDATED",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 7,
+            "taker_order_id": 0,
+            "account": "A2",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "LIQUIDATED",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 1,
+            "taker_order_id": 0,
+            "account": "A3",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ]
+      }
+    },
+    "in_tok": 9262,
+    "out_tok": 2306
+  },
+  {
+    "turn": 1,
+    "score": 1.0,
+    "passed": true,
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 1.0,
+    "error": null,
+    "first_failure": null,
+    "in_tok": 15430,
+    "out_tok": 952
+  }
+]

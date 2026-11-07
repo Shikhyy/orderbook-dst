@@ -1,0 +1,59 @@
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import release_lock, transfer_cash, adjust_position
+
+
+def handle_shock(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    engine.state.mark_price = event.mark_price
+    reports = [Report.mark_set(mark_price=event.mark_price)]
+    maint_bps = engine.cfg.MAINT_BPS
+
+    def is_in_breach(account_id: str) -> bool:
+        acc = engine.state.accounts[account_id]
+        if acc.position == 0:
+            return False
+        avail = acc.free_cash + (acc.position * engine.state.mark_price)
+        req = ceil_div(abs(acc.position) * engine.state.mark_price * maint_bps, 10000)
+        return avail < req
+
+    account_ids = sorted([acc_id for acc_id in engine.state.accounts if acc_id != "LIQ"])
+
+    for acc_id in account_ids:
+        # Stage 1: Cancel orders if in breach
+        if is_in_breach(acc_id):
+            orders = get_account_orders(engine.state, acc_id)
+            for o in orders:
+                remove_order(engine.state, o.order_id)
+                release_lock(engine.state, acc_id, o.lock)
+                reports.append(Report.cancelled(order_id=o.order_id, reason="RISK"))
+                # Re-check breach after each cancellation? Rule R-W4 implies re-computing after Stage 1,
+                # but Rule R-W3 implies canceling in order while in breach.
+                # Following typical waterfall: cancel all to see if breach resolves.
+        
+        # Stage 2: Liquidate if still in breach
+        if is_in_breach(acc_id):
+            acc = engine.state.accounts[acc_id]
+            orig_pos = acc.position
+            
+            # Liquidation transfer
+            amount = abs(orig_pos) * engine.state.mark_price
+            if orig_pos > 0:
+                # Account sells: transfer cash from LIQ to account
+                transfer_cash(engine.state, "LIQ", acc_id, amount)
+            else:
+                # Account buys: transfer cash from account to LIQ
+                transfer_cash(engine.state, acc_id, "LIQ", amount)
+            
+            # Update positions
+            adjust_position(engine.state, acc_id, -orig_pos)
+            adjust_position(engine.state, "LIQ", orig_pos)
+            
+            reports.append(Report.liquidated(account=acc_id, qty=orig_pos))
+
+    return reports

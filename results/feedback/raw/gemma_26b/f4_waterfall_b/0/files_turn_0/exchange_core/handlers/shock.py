@@ -1,0 +1,131 @@
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import release_lock, adjust_position, transfer_cash
+
+
+def handle_shock(engine: Any, event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    state = engine.state
+    cfg = engine.cfg
+    
+    # R-W1: Set mark price
+    state.mark_price = event.mark_price
+    reports: list[Report] = [Report.mark_set(mark_price=event.mark_price)]
+    
+    # Sort account IDs to process in ascending order (except LIQ)
+    account_ids = sorted([acc_id for acc_id in state.accounts if acc_id != "LIQ"])
+    
+    for acc_id in account_ids:
+        acc = state.accounts[acc_id]
+        pos = acc.position
+        
+        if pos == 0:
+            continue
+            
+        # R-W2: Breach test function
+        def is_in_breach(account: Any, current_mark_price: int) -> bool:
+            avail = account.free_cash + (account.position * current_mark_price)
+            # req = ceil_div(abs(position) * mark_price * MAINT_BPS, 10000)
+            req = ceil_div(abs(account.position) * current_mark_price * cfg.MAINT_BPS, 10000)
+            return avail < req
+
+        # Stage 1: Cancel resting orders
+        if is_in_breach(acc, state.mark_price):
+            orders = get_account_orders(state, acc_id)
+            # R-W3: Cancel in ascending prio_seq order
+            for o in orders:
+                # R-W3: Each cancel releases the lock to free_cash
+                # We use the order's lock field.
+                release_lock(state, acc_id, o.lock)
+                remove_order(state, o.order_id)
+                reports.append(Report.cancelled(order_id=o.order_id, reason="RISK"))
+            
+            # R-W4: Re-test after stage 1
+            # We use the updated acc (free_cash changed via release_lock)
+            if not is_in_breach(acc, state.mark_price):
+                continue
+
+        # Stage 2: Liquidation
+        # If we are here, it means the account was in breach initially 
+        # and still in breach after Stage 1 cancels.
+        # R-W5: Liquidate whole position at mark_price against LIQ.
+        # qty is the signed position before liquidation.
+        orig_pos = pos
+        liq_acc = state.accounts["LIQ"]
+        
+        if orig_pos > 0:
+            # Account sells orig_pos units to LIQ. 
+            # Account receives orig_pos * mark_price. LIQ pays the same amount.
+            notional = orig_pos * state.mark_price
+            transfer_cash(state, "LIQ", acc_id, notional)
+            adjust_position(state, "LIQ", orig_pos) # LIQ position changes by opposite (orig_pos)
+            # wait, R-W5 says: "The position of LIQ changes by the opposite amount (liq.position += orig_position)"
+            # If pos > 0 (account is long), account sells to LIQ. 
+            # Account pos becomes 0. LIQ pos becomes -orig_pos.
+            # BUT the instruction says "liq.position += orig_position". 
+            # Let's check the example test cases.
+            # test_long_position_liquidated: A1 buys 10. pos=10. Crash. 
+            # A1 sells 10 to LIQ at 10M. LIQ position += 10.
+            # So if pos=10, LIQ pos becomes +10.
+            # Wait, if A1 was long 10 and sells 10 to LIQ, LIQ is now long 10.
+            # The rule says: "The position of LIQ changes by the opposite amount (liq.position += orig_position)"
+            # This sentence is slightly contradictory in its phrasing ("opposite" vs " += orig").
+            # Let's follow the code logic in the test case:
+            # test_long_position_liquidated: "A1 buys 10... A1 sells 10 to LIQ... LIQ position += 10"
+            # Actually, if A1 was long 10 and sells 10 to LIQ, A1 pos -> 0, LIQ pos -> +10.
+            # If A1 was short 5 and buys 5 from LIQ, A1 pos -> 0, LIQ pos -> -5.
+            # Let's re-read: "If pos > 0: account sells position units to LIQ... LIQ pays... liq.position += orig_position"
+            # Wait, if A1 is long 10 and sells 10, LIQ buys 10. LIQ position is +10.
+            # If A1 is short 5 and buys 5, LIQ sells 5. LIQ position is -5.
+            # So liq.position += (orig_pos if orig_pos < 0 else -orig_pos) ? No.
+            # Let's use the rule's explicit instruction: "liq.position += orig_position" is NOT what happens in long.
+            # If pos > 0: LIQ buys. LIQ pos += pos.
+            # If pos < 0: LIQ sells. LIQ pos += pos (which is negative).
+            # Let's check the test cases again.
+            # test_long_position_liquidated: A1 pos 10 -> LIQ pos 10. (LIQ pos += 10)
+            # test_short_position_liquidated: A1 pos -5 -> LIQ pos -5. (LIQ pos += -5)
+            # So the rule "liq.position += orig_position" is actually a typo in my mental reading?
+            # "The position of LIQ changes by the opposite amount (liq.position += orig_position)"
+            # Actually, if pos > 0, LIQ position changes by +pos. If pos < 0, LIQ position changes by +pos.
+            # Wait: if pos = 10 (Long), A1 sells 10 to LIQ. LIQ receives 10 units. LIQ pos = 10.
+            # If pos = -5 (Short), A1 buys 5 from LIQ. LIQ gives 5 units. LIQ pos = -5.
+            # In both cases, LIQ position += pos (if we treat pos as the signed amount).
+            # Let's look at the test:
+            # test_long_position_liquidated: "assert eng.state.accounts['LIQ'].position == 10"
+            # test_short_position_liquidated: "assert eng.state.accounts['LIQ'].position == -5"
+            # So yes: liq.position += orig_pos? No, that would mean for pos=10, LIQ gets 10. 
+            # For pos=-5, LIQ gets -5.
+            # Let's trace:
+            # Long A1 (pos 10): A1 sells 10 to LIQ. A1 gets cash. LIQ pays cash. LIQ gets 10 units. LIQ pos: 0 -> 10.
+            # Short A1 (pos -5): A1 buys 5 from LIQ. A1 pays cash. LIQ gets cash. LIQ gives 5 units. LIQ pos: 0 -> -5.
+            # In both cases, LIQ position becomes orig_pos.
+            # Wait, if LIQ was at 0, then LIQ pos = orig_pos.
+            # If LIQ was at 10 and A1 (pos -5) buys 5, LIQ pos = 10 - 5 = 5.
+            # So `adjust_position(state, "LIQ", orig_pos)` is correct for both.
+            
+            # Let's re-verify the cash:
+            # If pos > 0 (Long): A1 sells. A1 receives `pos * mark_price`.
+            # LIQ pays `pos * mark_price`.
+            # transfer_cash(state, "LIQ", acc_id, pos * mark_price)
+            # If pos < 0 (Short): A1 buys. A1 pays `abs(pos) * mark_price`.
+            # LIQ receives `abs(pos) * mark_price`.
+            # transfer_cash(state, acc_id, "LIQ", abs(pos) * mark_price)
+            
+            if orig_pos > 0:
+                notional = orig_pos * state.mark_price
+                transfer_cash(state, "LIQ", acc_id, notional)
+            else:
+                notional = abs(orig_pos) * state.mark_price
+                transfer_cash(state, acc_id, "LIQ", notional)
+                
+            adjust_position(state, acc_id, -orig_pos)
+            adjust_position(state, "LIQ", orig_pos)
+            reports.append(Report.liquidated(account=acc_id, qty=orig_pos))
+
+    return reports

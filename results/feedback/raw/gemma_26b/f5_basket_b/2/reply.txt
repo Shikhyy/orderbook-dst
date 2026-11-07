@@ -1,0 +1,113 @@
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report, BasketLeg
+
+
+def handle_basket(engine: Any, event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    # R-A2: The engine takes a snapshot of the complete state before leg 1.
+    snapshot = engine.state.snapshot()
+    
+    leg_reports: list[Report] = []
+    
+    for i, leg in enumerate(event.legs):
+        # R-A2: Process each leg in order as a NEW_LIMIT event for the account.
+        # Construct the leg event as a NEW_LIMIT event.
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        # We use engine.dispatch to process the leg.
+        # Note: The rule R-A3 specifies conditions for success based on whether
+        # the leg is accepted and (for IOC) leaves 0, or (for POST_ONLY) doesn't cross.
+        # The handler for NEW_LIMIT (called by dispatch) will return reports.
+        # We need to verify if the leg "succeeded" according to R-A3.
+        # R-A3:
+        # - An IOC leg succeeds if it is accepted and `leaves` is 0.
+        # - A POST_ONLY leg succeeds if it is accepted (must not cross).
+        # - A rejected leg fails.
+        
+        reports = engine.dispatch(leg_event)
+        
+        # Check if the leg was rejected.
+        # In the engine's logic, a rejected leg returns a REJECTED report.
+        # However, we also need to check the specific R-A3 conditions.
+        # A leg is successful if the reports contain an ACCEPTED report AND
+        # it satisfies the flag-specific constraints.
+        
+        success = False
+        # We look for an ACCEPTED report for this leg. 
+        # Since the leg is processed as a NEW_LIMIT, it will generate an ACCEPTED report
+        # if it passes all rules (margin, price, etc.).
+        # But we must also check the IOC 'leaves' rule.
+        
+        # To check 'leaves', we'd usually need the Order object, but R-A3 implies 
+        # the engine logic already handles the 'crossing' check for POST_ONLY.
+        # If dispatch returns a REJECTED report, it's a failure.
+        # If it returns ACCEPTED, we check the flag.
+        
+        # Actually, the engine's handle_new_limit (called via dispatch)
+        # is responsible for enforcing R-A3. If an IOC leg would leave a remainder,
+        # it should be rejected (or handled such that it doesn't result in an ACCEPTED report
+        # that we treat as success). 
+        # But wait, R-A3 says "An IOC leg succeeds if it is accepted and leaves is 0".
+        # This implies that if dispatch returns ACCEPTED for an IOC leg but leaves > 0,
+        # we must treat it as a failure for the basket.
+        
+        # Wait, if dispatch is the standard NEW_LIMIT handler, it might return 
+        # ACCEPTED for an IOC leg even if leaves > 0, IF the engine allows IOC 
+        # to leave remainders (it doesn't, usually IOC is "fill or kill" or "immediate 
+        # or cancel"). The rule R-A3 says: "An IOC leg succeeds if it is accepted 
+        # and leaves is 0 after matching (it must not have an IOC_REMAINDER cancellation)".
+        
+        # If dispatch returns a series of reports (FILLs and maybe ACCEPTED), 
+        # we need to find the ACCEPTED report for the new order.
+        # If the leg is IOC, we check if the order produced is fully filled.
+        
+        # Let's look at how reports are structured. A NEW_LIMIT usually returns:
+        # [ACCEPTED, FILL, FILL, ...]
+        # If it's rejected: [REJECTED]
+        
+        # Let's find the ACCEPTED report.
+        accepted_report = None
+        for r in reports:
+            if r.kind == "ACCEPTED":
+                accepted_report = r
+                break
+        
+        if accepted_report is None:
+            # Leg failed (rejected)
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        # Check R-A3 specific conditions
+        if leg.flag == "IOC":
+            # For IOC, we must ensure the order is fully filled.
+            # We can check the total quantity filled in the FILL reports.
+            total_filled = 0
+            for r in reports:
+                if r.kind == "FILL":
+                    total_filled += r.qty
+            
+            if total_filled < leg.qty:
+                # It didn't fill completely.
+                engine.state.restore(snapshot)
+                return [Report.basket_rolled_back(leg_index=i)]
+        
+        # If we reached here, the leg succeeded.
+        leg_reports.extend(reports)
+
+    # R-A5: If all legs succeed, report reports of all legs, then BASKET_COMMITTED.
+    leg_reports.append(Report.basket_committed())
+    return leg_reports
+```

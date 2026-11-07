@@ -1,0 +1,458 @@
+[
+  {
+    "turn": 0,
+    "score": 0.75,
+    "passed": false,
+    "t1": 1.0,
+    "t2": 0.75,
+    "t3": 0.65,
+    "error": null,
+    "first_failure": {
+      "seed": 7001,
+      "event_index": 48,
+      "invariant": "D1",
+      "plain_name": "Report mismatch",
+      "message": "event 48 report differs from reference",
+      "diff": {
+        "expected": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 11,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 13,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ],
+        "actual": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ]
+      }
+    },
+    "in_tok": 9262,
+    "out_tok": 773
+  },
+  {
+    "turn": 1,
+    "score": 0.75,
+    "passed": false,
+    "t1": 1.0,
+    "t2": 0.75,
+    "t3": 0.65,
+    "error": null,
+    "first_failure": {
+      "seed": 7001,
+      "event_index": 48,
+      "invariant": "D1",
+      "plain_name": "Report mismatch",
+      "message": "event 48 report differs from reference",
+      "diff": {
+        "expected": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 11,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 13,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ],
+        "actual": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ]
+      }
+    },
+    "in_tok": 10159,
+    "out_tok": 768
+  },
+  {
+    "turn": 2,
+    "score": 0.75,
+    "passed": false,
+    "t1": 1.0,
+    "t2": 0.75,
+    "t3": 0.65,
+    "error": null,
+    "first_failure": {
+      "seed": 7001,
+      "event_index": 48,
+      "invariant": "D1",
+      "plain_name": "Report mismatch",
+      "message": "event 48 report differs from reference",
+      "diff": {
+        "expected": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 11,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 13,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ],
+        "actual": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ]
+      }
+    },
+    "in_tok": 10154,
+    "out_tok": 768
+  },
+  {
+    "turn": 3,
+    "score": 0.75,
+    "passed": false,
+    "t1": 1.0,
+    "t2": 0.75,
+    "t3": 0.65,
+    "error": null,
+    "first_failure": {
+      "seed": 7001,
+      "event_index": 48,
+      "invariant": "D1",
+      "plain_name": "Report mismatch",
+      "message": "event 48 report differs from reference",
+      "diff": {
+        "expected": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 11,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 13,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ],
+        "actual": [
+          {
+            "kind": "MARK_SET",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 500000000,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 4,
+            "reason": "RISK",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ]
+      }
+    },
+    "in_tok": 10154,
+    "out_tok": 765
+  }
+]

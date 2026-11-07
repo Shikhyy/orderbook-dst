@@ -1,0 +1,65 @@
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.types import Fill, Report
+from exchange_core.intmath import round_half_even
+from exchange_core.ledger import transfer_cash, adjust_position, pay_fee, pay_rebate, add_volume
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    cfg = engine.cfg
+    state = engine.state
+    notional = fill.notional
+    buyer = state.accounts[fill.buyer]
+    seller = state.accounts[fill.seller]
+
+    # 1. Buyer pays notional from free_cash. Buyer position increases.
+    transfer_cash(state, fill.buyer, fill.seller, notional)
+    adjust_position(state, fill.buyer, fill.qty)
+    # 2. Seller receives notional (done via transfer_cash). Seller position decreases.
+    adjust_position(state, fill.seller, -fill.qty)
+
+    # 3. Compute taker fee from taker volume before the fill (R-F2).
+    # Identify taker account
+    taker_id = fill.buyer if fill.taker_order_id == fill.buy_order_id else fill.seller
+    maker_id = fill.seller if taker_id == fill.buyer else fill.buyer
+    taker_acc = state.accounts[taker_id]
+    vol_before = taker_acc.volume
+
+    ppm = cfg.PPM
+    t0 = cfg.TAKER_PPM_T0
+    t1 = cfg.TAKER_PPM_T1
+    threshold = cfg.TIER_THRESHOLD
+
+    if vol_before >= threshold:
+        fee = round_half_even(notional * t1, ppm)
+    elif vol_before + notional <= threshold:
+        fee = round_half_even(notional * t0, ppm)
+    else:
+        below = threshold - vol_before
+        above = notional - below
+        fee = round_half_even(below * t0, ppm) + round_half_even(above * t1, ppm)
+
+    # 4. Compute maker rebate
+    rebate = round_half_even(notional * cfg.MAKER_REBATE_PPM, ppm)
+
+    # 5. Taker pays fee, Maker receives rebate, Vault updates
+    pay_fee(state, taker_id, fee)
+    pay_rebate(state, maker_id, rebate)
+
+    # 6. Buyer and seller each add notional to their volume
+    add_volume(state, fill.buyer, notional)
+    add_volume(state, fill.seller, notional)
+
+    # 7. Return FILL report
+    return [
+        Report.fill(
+            buy_order_id=fill.buy_order_id,
+            sell_order_id=fill.sell_order_id,
+            price=fill.price,
+            qty=fill.qty,
+            taker_order_id=fill.taker_order_id,
+        )
+    ]

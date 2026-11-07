@@ -1,0 +1,167 @@
+{
+  "task_id": "f4_waterfall_b",
+  "t1": 1.0,
+  "t2": 0.75,
+  "t3": 0.65,
+  "score": 0.75,
+  "passed": false,
+  "first_failure": {
+    "seed": 7001,
+    "event_index": 48,
+    "invariant": "D1",
+    "plain_name": "Report mismatch",
+    "message": "event 48 report differs from reference",
+    "diff": {
+      "expected": [
+        {
+          "kind": "MARK_SET",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 500000000,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 4,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 11,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 13,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ],
+      "actual": [
+        {
+          "kind": "MARK_SET",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 500000000,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 4,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 45
+  },
+  "error": null,
+  "public_test_output": ".........                                                                [100%]\n9 passed in 0.18s",
+  "seed_failures": [
+    {
+      "seed": 7001,
+      "event_index": 48,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7002,
+      "event_index": 39,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7003,
+      "event_index": 55,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7004,
+      "event_index": 29,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7012,
+      "event_index": 67,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7015,
+      "event_index": 76,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7016,
+      "event_index": 50,
+      "labels": [
+        "D1"
+      ]
+    }
+  ]
+}

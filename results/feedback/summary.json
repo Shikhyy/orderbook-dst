@@ -1,0 +1,380 @@
+{
+  "models": [
+    {
+      "model": "gemma_26b",
+      "model_id": "gemma-4-26b-a4b-it",
+      "tier": "small",
+      "served_model": null,
+      "settings": {
+        "max_tokens": 8000,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "api_key_env": "GEMINI_API_KEY"
+      },
+      "trials_count": 15,
+      "tasks_count": 5,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 1.0,
+      "pass_rate_ci95": [
+        1.0,
+        1.0
+      ],
+      "pass_at_1": 1.0,
+      "pass_at_3": 1.0,
+      "pass_pow_3": 1.0,
+      "mean_score": 1.0,
+      "mean_score_ci95": [
+        1.0,
+        1.0
+      ],
+      "mean_t1": 1.0,
+      "mean_t2": 1.0,
+      "mean_t3": 1.0,
+      "mttif": null,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 66.69,
+      "per_task": [
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 15,
+        "mean_gap": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "families": [],
+        "mean_diff": null,
+        "p_value": null
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "families": [],
+        "mean_diff": null,
+        "p_value": null
+      },
+      "seed_stats": {
+        "evaluated_seeds": 300,
+        "failing_seed_labels": {},
+        "invariant_survival": {
+          "I1": 1.0,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 1.0,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 0,
+          "conservation_breach": 0,
+          "report_or_state_mismatch_only": 0,
+          "crash": 0,
+          "conservation_share": null
+        }
+      }
+    },
+    {
+      "model": "flash_lite",
+      "model_id": "gemini-3.1-flash-lite",
+      "tier": "small",
+      "served_model": null,
+      "settings": {
+        "max_tokens": 8000,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "api_key_env": "GEMINI_API_KEY"
+      },
+      "trials_count": 15,
+      "tasks_count": 5,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.9333,
+      "pass_rate_ci95": [
+        0.7333,
+        1.0
+      ],
+      "pass_at_1": 0.9333,
+      "pass_at_3": 1.0,
+      "pass_pow_3": 0.8,
+      "mean_score": 0.9833,
+      "mean_score_ci95": [
+        0.9333,
+        1.0
+      ],
+      "mean_t1": 1.0,
+      "mean_t2": 0.9833,
+      "mean_t3": 0.9767,
+      "mttif": 48.0,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 6.26,
+      "per_task": [
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.9167,
+          "mean_t1": 1.0,
+          "mean_t2": 0.9167,
+          "mean_t3": 0.8833,
+          "outcomes": {
+            "pass": 2,
+            "D1": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 15,
+        "mean_gap": 0.0233,
+        "ci95": [
+          0.0,
+          0.0933
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "families": [],
+        "mean_diff": null,
+        "p_value": null
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "families": [],
+        "mean_diff": null,
+        "p_value": null
+      },
+      "seed_stats": {
+        "evaluated_seeds": 300,
+        "failing_seed_labels": {
+          "D1": 7
+        },
+        "invariant_survival": {
+          "I1": 1.0,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 0.9767,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 7,
+          "conservation_breach": 0,
+          "report_or_state_mismatch_only": 7,
+          "crash": 0,
+          "conservation_share": 0.0
+        }
+      }
+    }
+  ],
+  "feedback": [
+    {
+      "model": "gemma_26b",
+      "trials": 15,
+      "turn0_pass_rate": 0.6,
+      "final_pass_rate": 1.0,
+      "turn0_mean_score": 0.6534,
+      "final_mean_score": 1.0,
+      "mean_score_gain": 0.3466,
+      "mcnemar_b_fixed_to_broken": 0,
+      "mcnemar_c_broken_to_fixed": 6,
+      "mcnemar_p": 0.0312,
+      "mean_revisions": 0.47
+    },
+    {
+      "model": "flash_lite",
+      "trials": 15,
+      "turn0_pass_rate": 0.6,
+      "final_pass_rate": 0.9333,
+      "turn0_mean_score": 0.7407,
+      "final_mean_score": 0.9833,
+      "mean_score_gain": 0.2427,
+      "mcnemar_b_fixed_to_broken": 0,
+      "mcnemar_c_broken_to_fixed": 5,
+      "mcnemar_p": 0.0625,
+      "mean_revisions": 0.67
+    }
+  ],
+  "total_trials": 30,
+  "debug": [],
+  "run_meta": {
+    "date": "2026-11-06T07:08:57.325595+00:00",
+    "git_sha": "c07d5a4ca1124aa3bdcaa68380382226f39ef4db",
+    "models": [
+      {
+        "label": "gemma_26b",
+        "tier": "small",
+        "adapter": "openai_compat",
+        "model_id": "gemma-4-26b-a4b-it",
+        "settings": {
+          "max_tokens": 8000
+        },
+        "price_in_per_mtok": null,
+        "price_out_per_mtok": null
+      },
+      {
+        "label": "flash_lite",
+        "tier": "small",
+        "adapter": "openai_compat",
+        "model_id": "gemini-3.1-flash-lite",
+        "settings": {
+          "max_tokens": 8000
+        },
+        "price_in_per_mtok": null,
+        "price_out_per_mtok": null
+      }
+    ]
+  },
+  "sanity_checks": [
+    "Little headroom: gemma_26b passes 100% of trials. The eval may no longer show a limitation for this model.",
+    "`f1_fee_b` is passed by every trial of every model: it does not separate models.",
+    "`f2_replace_b` is passed by every trial of every model: it does not separate models.",
+    "`f5_basket_b` is passed by every trial of every model: it does not separate models.",
+    "`f6_match_b` is passed by every trial of every model: it does not separate models."
+  ]
+}

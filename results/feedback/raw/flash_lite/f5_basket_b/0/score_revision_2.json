@@ -1,0 +1,15 @@
+{
+  "task_id": "f5_basket_b",
+  "t1": 1.0,
+  "t2": 1.0,
+  "t3": 1.0,
+  "score": 1.0,
+  "passed": true,
+  "first_failure": null,
+  "coverage": {
+    "min_trigger_events": 66
+  },
+  "error": null,
+  "public_test_output": ".........                                                                [100%]\n9 passed in 0.16s",
+  "seed_failures": []
+}

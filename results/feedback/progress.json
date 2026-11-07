@@ -1,0 +1,25 @@
+{
+ "pid": 87884,
+ "mode": "feedback_loop",
+ "started": 1793948937.355277,
+ "updated": 1793949688.8467479,
+ "total": 30,
+ "done": 30,
+ "eta_seconds": 0.0,
+ "current": {},
+ "per_model": {
+  "gemma_26b": {
+   "done": 5
+  },
+  "flash_lite": {
+   "done": 15
+  }
+ },
+ "expected": {
+  "gemma_26b": 15,
+  "flash_lite": 15
+ },
+ "stopped": [],
+ "skipped": [],
+ "state": "finished"
+}

@@ -1,0 +1,143 @@
+[
+  {
+    "turn": 0,
+    "score": 0.2925,
+    "passed": false,
+    "t1": 0.9,
+    "t2": 0.375,
+    "t3": 0.0,
+    "error": null,
+    "first_failure": {
+      "seed": 4000,
+      "event_index": 194,
+      "invariant": "D1",
+      "plain_name": "Report mismatch",
+      "message": "event 194 report differs from reference",
+      "diff": {
+        "expected": [
+          {
+            "kind": "ACCEPTED",
+            "order_id": 60,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 21,
+            "reason": "STP",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "FILL",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 60,
+            "sell_order_id": 53,
+            "price": 100020000,
+            "qty": 1,
+            "taker_order_id": 60,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "FILL",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 60,
+            "sell_order_id": 28,
+            "price": 100020000,
+            "qty": 2,
+            "taker_order_id": 60,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ],
+        "actual": [
+          {
+            "kind": "ACCEPTED",
+            "order_id": 60,
+            "reason": "",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "CANCELLED",
+            "order_id": 21,
+            "reason": "STP",
+            "buy_order_id": 0,
+            "sell_order_id": 0,
+            "price": 0,
+            "qty": 0,
+            "taker_order_id": 0,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          },
+          {
+            "kind": "FILL",
+            "order_id": 0,
+            "reason": "",
+            "buy_order_id": 60,
+            "sell_order_id": 28,
+            "price": 100020000,
+            "qty": 3,
+            "taker_order_id": 60,
+            "account": "",
+            "mark_price": 0,
+            "bps": 0,
+            "session": "",
+            "leg_index": 0
+          }
+        ]
+      }
+    },
+    "in_tok": 8698,
+    "out_tok": 686
+  },
+  {
+    "turn": 1,
+    "score": 1.0,
+    "passed": true,
+    "t1": 1.0,
+    "t2": 1.0,
+    "t3": 1.0,
+    "error": null,
+    "first_failure": null,
+    "in_tok": 9984,
+    "out_tok": 711
+  }
+]

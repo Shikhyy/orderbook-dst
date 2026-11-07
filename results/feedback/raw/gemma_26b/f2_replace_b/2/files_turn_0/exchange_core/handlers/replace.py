@@ -1,0 +1,83 @@
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import release_lock, lock_cash
+from exchange_core.book import best_bid, best_ask
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    order = engine.state.orders.get(event.order_id)
+
+    # R-P2.1: If the order is not resting: REJECTED(UNKNOWN_ORDER).
+    if order is None or order.leaves <= 0:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # R-P2.2: If new_price <= 0 or new_price % TICK != 0: REJECTED(INVALID_ORDER).
+    new_price = event.new_price
+    if new_price <= 0 or new_price % engine.cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # R-P2.3: If new_qty <= cum_qty: REJECTED(INVALID_REPLACE).
+    new_qty = event.new_qty
+    if new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # R-P2.4: If the new price would match the opposite side of the book: REJECTED(REPLACE_WOULD_CROSS).
+    # We must check the cross condition assuming the order is not part of the book check.
+    # But order is resting, so it's already in the book.
+    if order.side == "BUY":
+        # A BUY order crosses if its price >= best_ask.
+        # However, the order itself is currently in the bids. 
+        # We need to check against the best ask of the OTHER side.
+        # If new_price >= current best ask, it crosses.
+        # Note: if the order is the only bid, best_ask is unaffected by its own price change.
+        # However, the rule usually implies matching against existing liquidity.
+        curr_best_ask = best_ask(engine.state)
+        if curr_best_ask is not None and new_price >= curr_best_ask:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    else:
+        # A SELL order crosses if its price <= best_bid.
+        curr_best_bid = best_bid(engine.state)
+        if curr_best_bid is not None and new_price <= curr_best_bid:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # R-P2.5: If the new lock is more than the old lock and the difference is more than free_cash: REJECTED(INSUFFICIENT_MARGIN).
+    # Calculation: new_lock = ceil_div(new_leaves * new_price * margin_bps, 10000)
+    # Note: new_leaves = new_qty - cum_qty
+    new_leaves = new_qty - order.cum_qty
+    new_lock = ceil_div(new_leaves * new_price * order.margin_bps, 10000)
+    
+    old_lock = order.lock
+    diff = new_lock - old_lock
+
+    if diff > 0:
+        account = engine.state.accounts[order.account]
+        if diff > account.free_cash:
+            return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # If we reached here, the REPLACE is valid.
+    # R-P4 & R-P3: Update state.
+    
+    # Handle priority (R-P3)
+    # If price is same and qty is less or equal, keep prio.
+    # Else (price change or qty increase), get new prio_seq.
+    if new_price != order.price or new_qty > order.qty:
+        order.prio_seq = engine.state.next_prio_seq
+        engine.state.next_prio_seq += 1
+
+    # Perform the lock adjustment (R-P4)
+    if diff > 0:
+        lock_cash(engine.state, order.account, diff)
+    elif diff < 0:
+        release_lock(engine.state, order.account, -diff)
+
+    # Update order fields (R-P4)
+    order.price = new_price
+    order.qty = new_qty
+    order.lock = new_lock
+
+    return [Report.replaced(order.order_id)]

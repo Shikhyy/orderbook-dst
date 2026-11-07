@@ -1,0 +1,81 @@
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report, BasketLeg
+from exchange_core.state import EngineState
+
+def handle_basket(engine: Any, event: Event) -> list[Report]:
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    snapshot = engine.state.snapshot()
+    all_reports: list[Report] = []
+
+    for i, leg in enumerate(event.legs):
+        # Construct a NEW_LIMIT event for each leg
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        leg_reports = engine.dispatch(leg_event)
+        
+        # Check success conditions for the leg
+        failed = False
+        if not leg_reports:
+            failed = True
+        else:
+            # Rule R-A3: Check individual leg results
+            # A rejected leg fails immediately.
+            # We look for REJECTED as a report kind.
+            for r in leg_reports:
+                if r.kind == "REJECTED":
+                    failed = True
+                    break
+            
+            # Check IOC specific condition (must not have IOC_REMAINDER logic,
+            # though in this engine, a partial fill on IOC is possible,
+            # but rule R-A3 specifically says: "An IOC leg succeeds if it is 
+            # accepted and leaves is 0 after matching").
+            if not failed and leg.flag == "IOC":
+                # Find the order associated with this leg in state
+                # Orders are added to state by engine.dispatch
+                # The latest order added to the state for this account will be this leg
+                # But since we need to check the order state, we look for its leaves.
+                # Since we don't have the order_id easily, we check if the leg 
+                # fully filled. A fill for the full quantity confirms success.
+                # Actually, standard behavior: find the order created.
+                # If we use engine.dispatch, we can see the ACCEPTED report order_id.
+                accepted_report = next((r for r in leg_reports if r.kind == "ACCEPTED"), None)
+                if accepted_report:
+                    order = engine.state.orders.get(accepted_report.order_id)
+                    if order and order.leaves > 0:
+                        failed = True
+                else:
+                    # If not accepted, check if it was fully filled (no order created)
+                    # or if it was rejected/discarded
+                    if not any(r.kind == "FILL" for r in leg_reports):
+                        failed = True
+
+            # Check POST_ONLY specific condition (must not cross)
+            # The engine handle_new_limit for POST_ONLY returns REJECTED if it crosses.
+            if not failed and leg.flag == "POST_ONLY":
+                # If accepted, POST_ONLY ensures no crossing.
+                if not any(r.kind == "ACCEPTED" for r in leg_reports):
+                    failed = True
+
+        if failed:
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        all_reports.extend(leg_reports)
+
+    all_reports.append(Report.basket_committed())
+    return all_reports
+```
