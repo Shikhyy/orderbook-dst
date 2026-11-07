@@ -1,0 +1,303 @@
+# gemma_26b · f1_fee_b · trial 0 — pass
+
+| Field | Value |
+|---|---|
+| Model ID (requested / served) | `gemma-4-26b-a4b-it` / `None` |
+| Settings | `{"max_tokens": 8000, "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/", "api_key_env": "GEMINI_API_KEY"}` |
+| Mode | feedback_loop |
+| Score (T1 / T2 / T3) | 1.0 (1.0 / 1.0 / 1.0) |
+| Outcome | pass |
+| Error | – |
+| Tokens in / out | 24670 / 2666 |
+| Latency (s) | 59.95944094657898 |
+| Stop reason | – |
+| Timestamp | 2026-11-05T14:30:06.747027+00:00 |
+| Prompt | [`prompt.txt`](../../results/feedback/raw/gemma_26b/f1_fee_b/0/prompt.txt) (sha256 `92586135c5a7adfd…`) |
+| Raw files | [`results/feedback/raw/gemma_26b/f1_fee_b/0/`](../../results/feedback/raw/gemma_26b/f1_fee_b/0) |
+
+## Feedback-loop turns
+
+| Turn | Score | Passed | First failure |
+|---|---|---|---|
+| 0 | 0.0 | False | –  |
+| 1 | 1.0 | True | –  |
+
+## Diff against the reference solution
+
+Differences are not errors by themselves (many correct solutions differ from the reference); use this to find the line that breaks the first failure above.
+
+```diff
+--- reference/f1_fee_b/settle.py
++++ model/exchange_core/handlers/settle.py
+@@ -1,108 +1,83 @@
+-"""reference/f1_fee_b/settle.py
+-Reference solution for task f1_fee_b.
+-Rules R-M4 (steps 1, 2, 5, 6), R-F1, R-F2, R-F3.
++"""exchange_core/handlers/settle.py
++Settle trades, fees, and volume.
++Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+ """
+-from exchange_core.config import EngineConfig
++from exchange_core.types import Fill, Report
+ from exchange_core.intmath import round_half_even
+-from exchange_core.types import Fill, Report
+-
+-# --- Rule logic (fee_rule), written out here because Variant B code may not
+-# import exchange_core.rules.* (see the task's 'Allowed imports'). ---
+-
+-def compute_taker_fee(volume_before: int, notional: int, cfg: EngineConfig) -> int:
+-    """Compute the taker fee for a fill using tier threshold logic.
+-
+-    Rule R-F2 [Declared]:
+-    - If volume_before >= TIER_THRESHOLD:
+-        fee = round_half_even(notional * TAKER_PPM_T1, PPM)
+-    - If volume_before + notional <= TIER_THRESHOLD:
+-        fee = round_half_even(notional * TAKER_PPM_T0, PPM)
+-    - Otherwise the fill crosses the threshold. Split it:
+-        below = TIER_THRESHOLD - volume_before
+-        above = notional - below
+-        fee = round_half_even(below * T0, PPM) + round_half_even(above * T1, PPM)
+-    The engine rounds each part on its own. It does not round the sum.
+-    """
+-    if volume_before >= cfg.tier_threshold:
+-        # Rule R-F2: above threshold
+-        return round_half_even(notional * cfg.taker_ppm_t1, cfg.ppm)
+-
+-    if volume_before + notional <= cfg.tier_threshold:
+-        # Rule R-F2: below or exactly on threshold
+-        return round_half_even(notional * cfg.taker_ppm_t0, cfg.ppm)
+-
+-    # Rule R-F2: crossing fill split
+-    below = cfg.tier_threshold - volume_before
+-    above = notional - below
+-    fee_below = round_half_even(below * cfg.taker_ppm_t0, cfg.ppm)
+-    fee_above = round_half_even(above * cfg.taker_ppm_t1, cfg.ppm)
+-    return fee_below + fee_above
+-
+-
+-def compute_maker_rebate(notional: int, cfg: EngineConfig) -> int:
+-    """Compute the maker rebate for a fill.
+-
+-    Rule R-F3 [Declared]:
+-    The maker rebate for a fill is round_half_even(notional * MAKER_REBATE_PPM, PPM).
+-    """
+-    return round_half_even(notional * cfg.maker_rebate_ppm, cfg.ppm)
++from exchange_core.ledger import (
++    transfer_cash,
++    adjust_position,
++    pay_fee,
++    pay_rebate,
++    add_volume,
++)
+ 
+ 
+ def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+-    """Settle the financial effects of a fill.
+-
+-    Rules R-M4 (1, 2, 5, 6) and R-F1, R-F2, R-F3:
+-    1. Buyer pays notional from free_cash; buyer position increases by qty.
+-    2. Seller receives notional in free_cash; seller position decreases by qty.
+-    3. Compute taker fee using taker volume_before (R-F2).
+-    4. Compute maker rebate (R-F3).
+-    5. Taker pays fee from free_cash; maker receives rebate in free_cash; fee_vault updates.
+-    6. Both accounts have notional added to volume (R-F1).
+-    7. Return FILL report (R-M4 step 6).
+-    """
++    """Settle cash, locks, position, volume, and fees for a fill."""
++    cfg = engine.cfg
+     state = engine.state
+-    cfg = engine.cfg
+     notional = fill.notional
+ 
+-    # Rule R-M4 step 1: buyer cash and position
+-    state.accounts[fill.buyer].free_cash -= notional
+-    state.accounts[fill.buyer].position += fill.qty
++    # 1. Buyer pays notional from free_cash. Buyer position increases by qty.
++    # 2. Seller receives notional in free_cash. Seller position decreases by qty.
++    transfer_cash(state, fill.buyer, fill.seller, notional)
++    adjust_position(state, fill.buyer, fill.qty)
++    adjust_position(state, fill.seller, -fill.qty)
+ 
+-    # Rule R-M4 step 2: seller cash and position
+-    state.accounts[fill.seller].free_cash += notional
+-    state.accounts[fill.seller].position -= fill.qty
++    # 3. Compute taker fee from taker volume before the fill (R-F2).
++    # The Fill object has taker_order_id. Determine which account is the taker.
++    if fill.taker_order_id == fill.buy_order_id:
++        taker_account_id = fill.buyer
++    elif fill.taker_order_id == fill.sell_order_id:
++        taker_account_id = fill.seller
++    else:
++        # This case should not be hit based on rules, but as a safety:
++        # try to look up the order in state.orders to find the account.
++        order = state.orders.get(fill.taker_order_id)
++        if order:
++            taker_account_id = order.account
++        else:
++            # Fallback to buyer as in previous attempt, though this is a logic gap.
++            taker_account_id = fill.buyer
+ 
+-    # Determine taker and maker accounts
+-    if fill.taker_order_id == fill.buy_order_id:
+-        taker_acc = fill.buyer
+-        maker_acc = fill.seller
++    taker_volume_before = state.accounts[taker_account_id].volume
++
++    # R-F2: Taker fee calculation
++    if taker_volume_before >= cfg.TIER_THRESHOLD:
++        fee = round_half_even(notional * cfg.TAKER_PPM_T1, cfg.PPM)
++    elif taker_volume_before + notional <= cfg.TIER_THRESHOLD:
++        fee = round_half_even(notional * cfg.TAKER_PPM_T0, cfg.PPM)
+     else:
+-        taker_acc = fill.seller
+-        maker_acc = fill.buyer
++        # Split the fill at the threshold
++        below = cfg.TIER_THRESHOLD - taker_volume_before
++        above = notional - below
++        fee = (round_half_even(below * cfg.TAKER_PPM_T0, cfg.PPM) +
++               round_half_even(above * cfg.TAKER_PPM_T1, cfg.PPM))
+ 
+-    # Rule R-F2: compute taker fee using taker volume before fill
+-    volume_before = state.accounts[taker_acc].volume
+-    fee = compute_taker_fee(volume_before, notional, cfg)
++    # 4. Compute maker rebate (R-F3).
++    # Maker is the counterpart of the taker.
++    if taker_account_id == fill.buyer:
++        maker_account_id = fill.seller
++    else:
++        maker_account_id = fill.buyer
+ 
+-    # Rule R-F3: compute maker rebate
+-    rebate = compute_maker_rebate(notional, cfg)
++    rebate = round_half_even(notional * cfg.MAKER_REBATE_PPM, cfg.PPM)
+ 
+-    # Rule R-F3: settle fee and rebate with fee_vault
+-    state.accounts[taker_acc].free_cash -= fee
+-    state.accounts[maker_acc].free_cash += rebate
+-    state.fee_vault += (fee - rebate)
++    # 5. Taker pays fee from free_cash. Maker receives rebate in free_cash. 
++    # fee_vault increases by fee - rebate.
++    pay_fee(state, taker_account_id, fee)
++    pay_rebate(state, maker_account_id, rebate)
+ 
+-    # Rule R-F1: add notional to both accounts' volume after fee computation
+-    state.accounts[fill.buyer].volume += notional
+-    state.accounts[fill.seller].volume += notional
++    # 6. Buyer and seller each add notional to their volume (R-F1).
++    add_volume(state, fill.buyer, notional)
++    add_volume(state, fill.seller, notional)
+ 
+-    # Rule R-M4 step 6: FILL report
+-    return [
+-        Report.fill(
+-            buy_order_id=fill.buy_order_id,
+-            sell_order_id=fill.sell_order_id,
+-            price=fill.price,
+-            qty=fill.qty,
+-            taker_order_id=fill.taker_order_id,
+-        )
+-    ]
++    # 7. Return a FILL report.
++    return [Report.fill(
++        buy_order_id=fill.buy_order_id,
++        sell_order_id=fill.sell_order_id,
++        price=fill.price,
++        qty=fill.qty,
++        taker_order_id=fill.taker_order_id
++    )]
+```
+
+## Author analysis
+
+_Write after reading the reply: what the model got wrong and why, or whether the grader rejected a valid answer._
+
+## Model reply (verbatim)
+
+````text
+### FILE: exchange_core/handlers/settle.py
+```python
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.types import Fill, Report
+from exchange_core.intmath import round_half_even
+from exchange_core.ledger import (
+    transfer_cash,
+    adjust_position,
+    pay_fee,
+    pay_rebate,
+    add_volume,
+)
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    cfg = engine.cfg
+    state = engine.state
+    notional = fill.notional
+
+    # 1. Buyer pays notional from free_cash. Buyer position increases by qty.
+    # 2. Seller receives notional in free_cash. Seller position decreases by qty.
+    transfer_cash(state, fill.buyer, fill.seller, notional)
+    adjust_position(state, fill.buyer, fill.qty)
+    adjust_position(state, fill.seller, -fill.qty)
+
+    # 3. Compute taker fee from taker volume before the fill (R-F2).
+    # The Fill object has taker_order_id. Determine which account is the taker.
+    if fill.taker_order_id == fill.buy_order_id:
+        taker_account_id = fill.buyer
+    elif fill.taker_order_id == fill.sell_order_id:
+        taker_account_id = fill.seller
+    else:
+        # This case should not be hit based on rules, but as a safety:
+        # try to look up the order in state.orders to find the account.
+        order = state.orders.get(fill.taker_order_id)
+        if order:
+            taker_account_id = order.account
+        else:
+            # Fallback to buyer as in previous attempt, though this is a logic gap.
+            taker_account_id = fill.buyer
+
+    taker_volume_before = state.accounts[taker_account_id].volume
+
+    # R-F2: Taker fee calculation
+    if taker_volume_before >= cfg.TIER_THRESHOLD:
+        fee = round_half_even(notional * cfg.TAKER_PPM_T1, cfg.PPM)
+    elif taker_volume_before + notional <= cfg.TIER_THRESHOLD:
+        fee = round_half_even(notional * cfg.TAKER_PPM_T0, cfg.PPM)
+    else:
+        # Split the fill at the threshold
+        below = cfg.TIER_THRESHOLD - taker_volume_before
+        above = notional - below
+        fee = (round_half_even(below * cfg.TAKER_PPM_T0, cfg.PPM) +
+               round_half_even(above * cfg.TAKER_PPM_T1, cfg.PPM))
+
+    # 4. Compute maker rebate (R-F3).
+    # Maker is the counterpart of the taker.
+    if taker_account_id == fill.buyer:
+        maker_account_id = fill.seller
+    else:
+        maker_account_id = fill.buyer
+
+    rebate = round_half_even(notional * cfg.MAKER_REBATE_PPM, cfg.PPM)
+
+    # 5. Taker pays fee from free_cash. Maker receives rebate in free_cash. 
+    # fee_vault increases by fee - rebate.
+    pay_fee(state, taker_account_id, fee)
+    pay_rebate(state, maker_account_id, rebate)
+
+    # 6. Buyer and seller each add notional to their volume (R-F1).
+    add_volume(state, fill.buyer, notional)
+    add_volume(state, fill.seller, notional)
+
+    # 7. Return a FILL report.
+    return [Report.fill(
+        buy_order_id=fill.buy_order_id,
+        sell_order_id=fill.sell_order_id,
+        price=fill.price,
+        qty=fill.qty,
+        taker_order_id=fill.taker_order_id
+    )]
+```
+````
