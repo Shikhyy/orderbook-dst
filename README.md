@@ -236,9 +236,10 @@ Optional reasoning-effort ablation (more effort should not score worse; if it do
 - **A vs B is confounded.** B tasks are longer and touch more state, and F4/F5 have no A variant. H2 reports the difference as designed, not a pure coupling effect.
 - **Output format.** Replies that do not contain the required file block score 0 and are counted separately (`FORMAT_ERROR`, `MISSING_FILE`) so formatting failures are not mistaken for reasoning failures.
 - **Checkpoint provenance.** All 87 T2 checkpoint values come from the reference engine (`source = "engine"`). Some are hand-checked from engine pre-states in the author's audit worksheets (not in the ZIP); a fully independent hand derivation is not complete (see `CHANGELOG.md`). The clean-room reference passing every checkpoint is the main independent check.
-- **Sampling.** 5 trials per task and 20 hidden seeds; CIs are reported and should be read as wide.
+- **Sampling.** 3 trials per task and model and 20 hidden seeds; CIs are reported and should be read as wide.
+- **Unequal token budget for one model.** `mistral_large` ran with `max_tokens=8000` on `f1_fee_a`, `f1_fee_b`, `f2_replace_a`, `f2_replace_b`, `f3_fix_a`, `f5_basket_b` and two of three `f4_waterfall_b` trials, and with 16000 on `f3_fix_b`, one `f4_waterfall_b` trial, `f6_match_b`, `f7_funding_b`, `f8_adl_b` and all F9 tasks. The budget was raised after one truncated reply on an early task; the trials already run were not repeated. Every other model used one budget throughout (the value in the results table). Truncated replies (`OUTPUT_TRUNCATED`) are reported separately in the failure review, and `mistral_large` had one.
 - **Free-tier models.** Free endpoints can change the model behind an ID without notice. Every trial records the model ID the provider reported serving and the run date; results describe those exact versions.
-- **One author.** Domain review is by the author (`EXPERT_REVIEW.md`); a blinded human audit of grader verdicts on model outputs (`make audit`, Cohen's κ) runs once real trials exist.
+- **One author.** Domain review is by the author (`EXPERT_REVIEW.md`); a blinded human audit of grader verdicts on model outputs (`tools/human_audit.py`, Cohen's κ) is the author's own step and its result is reported in section 5 once it is done; until then the entry has no human-agreement number.
 
 ## 10. Provenance and AI use
 
