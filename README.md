@@ -1,32 +1,53 @@
+<div align="center">
+
 # OrderBook-DST
 
-**Can a model write exchange-core code that stays correct across hundreds of events, not just on the tests it can see?**
+**Can a model write exchange-core code that stays correct over hundreds of events, not just on the tests it can see?**
 
-OrderBook-DST gives a model one file of a working exchange engine to implement (fee settlement, cancel/replace, FIX session handling, a liquidation waterfall, or atomic baskets), with a written rulebook and visible unit tests. The grader then replays 20 hidden, seeded 200-event simulations against a reference engine and checks four conservation invariants after every event: the deterministic-simulation-testing (DST) approach used for databases and ledgers.
+![tasks](https://img.shields.io/badge/tasks-17-2f81f7) ![families](https://img.shields.io/badge/families-9-2f81f7) ![trials](https://img.shields.io/badge/real%20model%20trials-329-3fb950) ![bugs](https://img.shields.io/badge/hand--written%20bugs-81-f85149) ![tests](https://img.shields.io/badge/tests-549%20passing-3fb950) ![python](https://img.shields.io/badge/python-3.12%2B-blue)
 
-> **Video walkthrough:** _link to be added before submission._
->
-> **Summary.** 17 tasks in 9 families, graded by public tests, hidden checkpoints and 20 hidden seeded simulations. Seven free-tier models were run (329 trials, all real API calls; $0). The strongest model passes every task, so the benchmark separates small and mid models (36% to 82% pass rate on F1 to F8) and not the top. The visible tests overstate quality for the weaker models, and a hidden-simulation grader caught bugs that a careful read-through missed. An earlier draft contained simulated results; they were removed (see [`AI_USE.md`](AI_USE.md)).
+**[Video walkthrough](VIDEO_LINK_HERE)** · [Results](#results) · [How it is graded](#how-it-is-graded) · [Failure analysis](#failure-analysis) · [Run it](#run-it)
 
----
+</div>
 
-## 1. What it tests
+## In one paragraph
 
-Whether a model can implement a stateful financial component exactly to a written spec — integer fixed-point money, priority rules, sequence handling, rollback — so that no money is created or lost and every side effect (fee vault, margin locks, counters, reports) is updated, over long random event sequences.
+OrderBook-DST is an eval for a skill that matters wherever software moves money: implementing a stateful financial component *exactly* to a written spec. A model writes one file of a working exchange engine (fees, cancel/replace, FIX sessions, liquidation, atomic baskets, matching, funding, bankruptcy) from a rulebook and visible tests. The grader then replays 20 hidden, seeded, 200-event simulations against a reference engine and checks conservation invariants after every event. **Key finding:** the visible tests overstate quality for weaker models, and the hidden simulations catch bugs that a careful read-through of the code misses. The strongest models pass nearly everything, so the benchmark separates small and mid models, not the top.
 
-## 2. Who relies on this, and what a failure costs
+| | |
+|---|---|
+| **Domain** | Electronic exchange matching, clearing and risk engines: fixed-point money, price-time priority, margin, liquidation, FIX sequencing |
+| **Gap it measures** | Plausible code that passes its tests but silently breaks a conservation law or leaves a side effect out of a code path |
+| **Size** | 17 tasks in 9 families, 87 hidden checkpoints, 20 hidden seeds x 200 events per task, 81 hand-written bugs the grader must catch |
+| **Evidence** | 7 models, 329 real trials, a 30-trial feedback experiment, a blinded audit of the grader, a Claude Sonnet reference run |
+| **Cost to reproduce** | $0 on free tiers (about a day per model because of daily request caps); grading needs no API key |
+
+## Why it matters
 
 Exchanges, clearing houses, brokers and crypto venues run matching and risk engines whose bugs move real money instantly. The tasks model failure classes that have caused real losses:
 
-- **Side effects left out of a code path.** Knight Capital (2012): a deployment left old code reachable through a repurposed flag; in about 45 minutes the firm lost roughly \$440M and needed a rescue.
+- **Side effects left out of a code path.** Knight Capital (2012): a deployment left old code reachable through a repurposed flag, and in about 45 minutes the firm lost roughly $440M.
 - **Accounting that does not conserve money.** FTX/Alameda (2022): an account exempt from normal liquidation and allowed a negative balance left a multi-billion-dollar hole.
-- **Risk waterfalls under a price shock.** LME nickel (2022): a price spike overwhelmed margining; the exchange halted the market and cancelled trades.
+- **Risk waterfalls under a price shock.** LME nickel (2022): a price spike overwhelmed margining, and the exchange halted the market and cancelled trades.
 
-A model that writes plausible-looking settlement code which silently credits a rebate without debiting the fee vault produces exactly this kind of bug. A reviewer reading one function will not see it; a conservation check over many events will.
+A model that writes settlement code which credits a rebate without debiting the fee vault produces exactly this kind of bug. A reviewer reading one function will not see it. A conservation check over many events will.
 
-## 3. Tasks
+## How it is graded
 
-17 tasks in 9 families: 11 implementation tasks (F1–F8) and 6 diagnose-and-fix tasks (F9). Families F1–F3 have an isolated rule function (**A**) and an engine handler that must also update the surrounding state (**B**). Everything the grader checks is stated in the task's instruction and in [`docs/04_RULEBOOK.md`](docs/04_RULEBOOK.md).
+```mermaid
+flowchart LR
+  A["Rulebook + interface<br/>+ visible tests"] --> M["Model writes<br/>one handler file"]
+  M --> T1["Tier 1 (20%)<br/>public tests"]
+  M --> T2["Tier 2 (30%)<br/>87 hidden checkpoints"]
+  M --> T3["Tier 3 (50%)<br/>20 hidden seeds x 200 events"]
+  T3 --> I["After every event:<br/>I1 money conserved, I2 margin locks,<br/>I3 ids and priority, I4 FIX replay,<br/>D1 reports match the reference"]
+```
+
+`graders/dst_grader.py` scores every attempt with code, not an LLM judge: **score = 0.2 x T1 + 0.3 x T2 + 0.5 x T3**, and a task passes only at 1.0. Tier scores are fractions of tests, checkpoints and seeds passed. Everything the grader checks is stated in the task instruction and in [`docs/04_RULEBOOK.md`](docs/04_RULEBOOK.md). All data is synthetic.
+
+### Tasks
+
+17 tasks: 11 implementation tasks (F1 to F8) and 6 diagnose-and-fix tasks (F9). F1 to F3 come in two variants: an isolated rule function (**A**) and an engine handler that must also update the surrounding state (**B**).
 
 | Task | Variant | File the model writes | Why it is hard (stated before any model run) |
 |---|---|---|---|
@@ -42,9 +63,10 @@ A model that writes plausible-looking settlement code which silently credits a r
 | `f7_funding_b` | B | `handlers/funding.py` | Funding between longs and shorts: clamped rate, rounding on the absolute amount, payer by position and rate sign, the rounding residual into the fee vault, and a mandatory waterfall afterwards. |
 | `f8_adl_b` | B | `handlers/bankruptcy.py` | After a liquidation leaves negative cash: a capped fee-vault draw, then pro-rata loss sharing among the other side (excluding `LIQ`), floor shares, leftover units by weight then string id order, reports in order, money conserved exactly. |
 
-### F9: diagnose and fix (6 tasks, exploratory)
+<details>
+<summary><b>F9: diagnose and fix (6 tasks, reported separately)</b></summary>
 
-The 11 tasks above ask a model to *implement* a handler from a written specification. F9 asks for a different skill: *finding a defect from its symptom*. Each `f9_dbg_N` task gives the model the specification of an existing task, the handler file with **one defect** (a sanitised copy of one of the hand-written mutants), and a bug report: a short fixed event trace and the first thing that goes wrong when the buggy engine runs it (a wrong report, a broken invariant, or a wrong balance). The model returns the corrected file. It is graded by the grader of the task it is graded as (`grades_as` in `task.toml`): same public tests, checkpoints and hidden seeds, so a correct fix scores 1.0.
+Each `f9_dbg_N` task gives the model the specification of an existing task, the handler file with **one injected defect** (a sanitised copy of a hand-written bug), and a short failing trace. The model returns the corrected file and is graded like the task it is graded as. F9 is not part of the headline table or the pre-registered hypotheses. Per-instance notes are in [`docs/F9_INSTANCES.md`](docs/F9_INSTANCES.md).
 
 | Task | Graded as | Defect (never shown to the model) |
 |---|---|---|
@@ -55,23 +77,13 @@ The 11 tasks above ask a model to *implement* a handler from a written specifica
 | `f9_dbg_5` | `f7_funding_b` | The rounding residual of the funding payments is never booked to the fee vault. |
 | `f9_dbg_6` | `f8_adl_b` | Leftover loss units go to the largest fractional remainders instead of the largest weights. |
 
-Per-instance notes (why the symptom is not obvious, why the fix is unique) are in [`docs/F9_INSTANCES.md`](docs/F9_INSTANCES.md). The symptom comes from `tools/make_f9.py` (run the buggy and the reference engine on a fixed visible trace; no model involved), so it is reproducible. F9 is **not** part of the pre-registered hypotheses H1–H5 and is kept out of the headline table; `make report` lists it in its own section next to the same model's result on the implementation task. Whether models are weaker at diagnosis than at implementation is an open question until the runs exist.
+</details>
 
-All data is synthetic: the rulebook, accounts and event traces are generated for this benchmark.
+### Why the hidden simulation matters
 
-## 4. Grading and grader validation
+`make demo` runs one hand-written bug: re-locking margin at the current rate instead of the order's original rate. It passes every visible test and every checkpoint, and fails all 20 hidden seeds (invariant I2, order 31, lock 60018000 vs expected 45013500). Across all 81 bugs ([`results/grader_analysis/mutant_tiers.md`](results/grader_analysis/mutant_tiers.md)): **54** fail a visible test, **21** more are caught first by a checkpoint, and **6** are caught only by the hidden simulation. The grader also compares the whole final engine state with the reference's, not just balances.
 
-`graders/dst_grader.py` scores every attempt with code, not an LLM judge:
-
-**score = 0.2 · T1 + 0.3 · T2 + 0.5 · T3**, pass = score 1.0
-
-- **T1, visible tests** (in the prompt): the public pytest file for the task.
-- **T2, checkpoints** (hidden): 87 targeted multi-step scenarios across the 11 tasks (exact tie rounding, partial-fill replaces, gap closure, rollback).
-- **T3, hidden simulation** : 20 seeded traces × 200 events. After each event the candidate engine must emit the same reports as the reference (D1) and satisfy I1 cash/position conservation, I2 margin locks match resting orders, I3 order IDs and priorities strictly increase, and I4 FIX replay with duplicates and gaps gives the same state.
-
-Partial credit is built in (tier scores are fractions of tests, checkpoints and seeds passed). The grader checks the final behaviour of the code, not how it was written.
-
-### How the grader was validated (run it: `make validate`, ~2 min)
+### Grader validation (`make validate`)
 
 | Check | Result |
 |---|---|
@@ -84,36 +96,40 @@ Partial credit is built in (tier scores are fractions of tests, checkpoints and 
 | D1–D5 (each F9 task): the reference, the clean-room alternative and a minimal hand-written fix score 1.0; the buggy file scores below 1.0 exactly like its source mutant; the stored symptom reproduces | PASS |
 | V8 Mutants trigger I1 and I2, not only report mismatches | PASS |
 
-Also tested (`make test`, 549 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
+`make test` runs 549 tests: prompts never contain hidden seeds or reference code, candidate imports are restricted to an allowlist, secrets never reach saved replies, and report statistics are recomputed from raw records.
 
-### Which tier catches which bug (`make mutant-tiers`, no API calls)
+## Results
 
-Running all 81 mutants through the grader ([`results/grader_analysis/mutant_tiers.md`](results/grader_analysis/mutant_tiers.md)):
+Seven free-tier models, single-turn, 3 trials per task and model, 329 trials, all real API calls. Every trial's prompt, raw reply, extracted files and score are under [`results/main/raw/`](results/main/raw/), and [`results/main/summary.md`](results/main/summary.md) has the full statistics. Run on 4 to 6 November 2026 (UTC); temperature is not sent (provider defaults).
 
-- **54 / 81** fail at least one *visible* test; 21 more are caught first by the hidden checkpoints; **6** pass every visible test and every checkpoint and are caught only by the hidden simulation: `f2_replace_b/m_lock_uses_current_rate` (a one-token change, `state.margin_bps` for `order.margin_bps`, that fails all 20 seeds on I2; run `make demo` to see it), three in `f6_match_b` (`m_post_only_ignores_own`, 13 of 20 seeds; `m_relock_current_rate`, the same one-token bug in the resting-order relock, 19 of 20; `m_stp_stops_matching`, 20 of 20) and two in `f7_funding_b` (`m_skips_negative_cash`: skipping funding for accounts whose cash is already negative, 20 of 20; `m_qty_skips_zero_amount`: not counting accounts whose amount rounds to 0, 8 of 20).
-- So for the bugs the author anticipated, the visible tests are already strong. The open question the model runs answer is whether **model** bugs look like these, or are the kind only long simulations reveal.
-- The hidden simulation also compares the **whole final engine state** with the reference's (not only balances). This was added after the first real run: a model skipped a required state update (storing the new mark price) that no report, invariant or balance revealed, and still scored a perfect T3. `f4_waterfall_b/m_mark_price_not_stored` reproduces it and fails all 20 seeds.
-- The grader compares reports before checking invariants, so a bug that breaks conservation *and* changes a report would be labelled D1. The grader now also records every invariant broken at each seed's first failing event; this does not change any score, but it is what the H5 analysis uses.
+### Pass rate on the 11 implementation tasks (F1 to F8)
 
-## 5. Results
+| Model | Pass rate | 95% CI | Mean score | T1 | T2 | T3 |
+|---|---|---|---|---|---|---|
+| **nemotron_ultra** | 100.0% | [1.00, 1.00] | 1.000 | 1.00 | 1.00 | 1.00 |
+| **mistral_large** | 93.9% | [0.82, 1.00] | 0.960 | 0.97 | 0.97 | 0.95 |
+| **gemma_26b** | 81.8% | [0.58, 1.00] | 0.846 | 0.91 | 0.85 | 0.82 |
+| **flash_lite** | 78.8% | [0.58, 0.97] | 0.861 | 0.96 | 0.87 | 0.82 |
+| **nemotron_nano** | 36.4% | [0.12, 0.61] | 0.420 | 0.49 | 0.41 | 0.40 |
+| **ministral_8b** | 36.4% | [0.09, 0.64] | 0.508 | 0.80 | 0.56 | 0.37 |
+| **gemini_35_flash** (incomplete) | 87.5% | [0.62, 1.00] | 0.935 | 1.00 | 1.00 | 0.87 |
 
-Copied unchanged from [`results/main/summary.md`](results/main/summary.md) (`make report`, 329 trials, regraded with the current grader at `e781834`+, single-turn, 3 trials per task and model; graded with the Nov 6 grader, see `CHANGELOG.md`). Every trial's prompt, raw reply, extracted files and score are under `results/main/raw/`.
+Pass = score 1.0. CIs are a hierarchical bootstrap over tasks, then trials. `gemini_35_flash` is incomplete: the free tier returned HTTP 429 and the harness gave up after 6 retries per trial, so it has 23 of 33 headline trials and no F9 trials (all of `f3_fix_b`, `f7_funding_b` and `f8_adl_b` and one `f6_match_b` trial are missing). Its row covers the trials that exist.
 
-**One model is incomplete.** `gemini_35_flash` has 23 of 33 headline trials and 0 of 18 F9 trials: the free Gemini tier returned HTTP 429 repeatedly and the harness gave up after 6 retries per trial, across several resumes. Its row is over the trials that exist, so it is not directly comparable with the complete rows; it is missing all trials of `f3_fix_b`, `f7_funding_b` and `f8_adl_b` and one `f6_match_b` trial. Every other model has all of its trials.
+<details>
+<summary><b>Models and exact settings</b></summary>
 
-### Headline results (F1 to F8, 11 tasks)
+| Model | Exact model ID | Provider | max_tokens | Trials per task |
+|---|---|---|---|---|
+| `nemotron_ultra` | `nvidia/nemotron-3-ultra-550b-a55b:free` | OpenRouter (free) | 16000 | 3 |
+| `mistral_large` | `mistral-large-4` | Mistral (free tier) | 8000 | 3 |
+| `gemma_26b` | `gemma-4-26b-a4b-it` | Google Gemini API (free tier) | 8000 | 3 |
+| `flash_lite` | `gemini-3.1-flash-lite` | Google Gemini API (free tier) | 8000 | 3 |
+| `nemotron_nano` | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free` | OpenRouter (free) | 16000 | 3 |
+| `ministral_8b` | `ministral-8b-latest` | Mistral (free tier) | 8000 | 3 |
+| `gemini_35_flash` | `gemini-3.5-flash` | Google Gemini API (free tier) | 16000 | 3 |
 
-| Model (ID, settings) | Trials / task | Pass rate | 95% CI | pass@k | pass^k | Mean score | 95% CI | T1 | T2 | T3 | Cost (run) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| **nemotron_ultra** (`nvidia/nemotron-3-ultra-550b-a55b:free`, max_tokens=16000, api_key_env=OPENROUTER_API_KEY) | 3 | 100.0% | [1.00, 1.00] | 100.0% | 100.0% | 1.000 | [1.00, 1.00] | 1.00 | 1.00 | 1.00 | $0.00 |
-| **mistral_large** (`mistral-large-4`, max_tokens=8000, api_key_env=MISTRAL_API_KEY) | 3 | 93.9% | [0.82, 1.00] | 100.0% | 81.8% | 0.960 | [0.87, 1.00] | 0.97 | 0.97 | 0.95 | $0.00 |
-| **gemma_26b** (`gemma-4-26b-a4b-it`, max_tokens=8000, api_key_env=GEMINI_API_KEY) | 3 | 81.8% | [0.58, 1.00] | 90.9% | 72.7% | 0.846 | [0.63, 1.00] | 0.91 | 0.85 | 0.82 | $0.00 |
-| **flash_lite** (`gemini-3.1-flash-lite`, max_tokens=8000, api_key_env=GEMINI_API_KEY) | 3 | 78.8% | [0.58, 0.97] | 100.0% | 63.6% | 0.861 | [0.71, 0.98] | 0.96 | 0.87 | 0.82 | $0.00 |
-| **nemotron_nano** (`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free`, max_tokens=16000, api_key_env=OPENROUTER_API_KEY) | 3 | 36.4% | [0.12, 0.61] | 54.5% | 18.2% | 0.420 | [0.19, 0.67] | 0.49 | 0.41 | 0.40 | $0.00 |
-| **ministral_8b** (`ministral-8b-latest`, max_tokens=8000, api_key_env=MISTRAL_API_KEY) | 3 | 36.4% | [0.09, 0.64] | 45.5% | 27.3% | 0.508 | [0.30, 0.73] | 0.80 | 0.56 | 0.37 | $0.00 |
-| **gemini_35_flash** (`gemini-3.5-flash`, max_tokens=16000, api_key_env=GEMINI_API_KEY) | 3 | 87.5% | [0.62, 1.00] | 87.5% | 87.5% | 0.935 | [0.81, 1.00] | 1.00 | 1.00 | 0.87 | $0.00 |
-
-Pass = score 1.0 (all public tests, all checkpoints and all 20 hidden seeds). pass@k: at least one of k trials passes; pass^k: all k pass. CIs are a hierarchical bootstrap over tasks, then trials. Cost uses the per-model prices in `models.toml` (0 if not set).
+</details>
 
 ### Per task (passes / trials, mean score)
 
@@ -131,9 +147,8 @@ Pass = score 1.0 (all public tests, all checkpoints and all 20 hidden seeds). pa
 | `f7_funding_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 0/3 (0.07) | 0/3 (0.21) | – |
 | `f8_adl_b` | 3/3 (1.00) | 3/3 (1.00) | 3/3 (1.00) | 2/3 (0.72) | 1/3 (0.65) | 0/3 (0.18) | – |
 
-### F9: diagnose and fix (exploratory, not in the headline table or H1 to H5)
-
-The model gets the specification, a handler with one defect and the first failing step of a short trace, and returns the corrected file. Each task is graded exactly like the task it is graded as. These trials are not in the headline table or in H1–H5. `impl` is the same model's passes on the implementation task (written from scratch) that the F9 task is graded as.
+<details>
+<summary><b>F9 results (exploratory)</b>: finding a defect from its symptom; <code>impl</code> is the same model on the implementation task</summary>
 
 | Task (graded as) | nemotron_ultra | mistral_large | gemma_26b | flash_lite | ministral_8b | nemotron_nano |
 |---|---|---|---|---|---|---|
@@ -144,45 +159,29 @@ The model gets the specification, a handler with one defect and the first failin
 | `f9_dbg_5` (`f7_funding_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 2/3 (0.68), impl 0/3 | 2/3 (0.67), impl 0/3 |
 | `f9_dbg_6` (`f8_adl_b`) | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 3/3 | 3/3 (1.00), impl 2/3 | 3/3 (1.00), impl 0/3 | 3/3 (1.00), impl 1/3 |
 
-### H3: invariant feedback loop
+</details>
 
-From [`results/feedback/summary.md`](results/feedback/summary.md) (`--mode feedback_loop`, 30 trials: `gemma_26b` and `flash_lite` on `f1_fee_b`, `f2_replace_b`, `f4_waterfall_b`, `f5_basket_b`, `f6_match_b`, 3 trials each; graded with the current grader):
+### Invariant feedback lets models repair their code (H3)
+
+30 trials: `gemma_26b` and `flash_lite` on five tasks, 3 trials each. Feedback names the invariant that broke ([`results/feedback/summary.md`](results/feedback/summary.md)).
 
 | Model | Trials | Turn 0 pass | Final pass | Mean score gain | Fixed / broken | McNemar p | Mean revisions |
 |---|---|---|---|---|---|---|---|
 | gemma_26b | 15 | 60.0% | 100.0% | +0.347 | 6 / 0 | 0.031 | 0.47 |
 | flash_lite | 15 | 60.0% | 93.3% | +0.243 | 5 / 0 | 0.062 | 0.67 |
 
-### Claude Sonnet reference run (not reproducible, not in the headline)
+### Claude Sonnet reference run (separate, not reproducible)
 
-To get one data point from a strong closed model without paid API access, six trials (3 each on `f5_basket_b` and `f6_match_b`, the two hardest implementation tasks) were answered by fresh Claude Sonnet subagents inside Claude Code. Each subagent was given only the exact harness prompt (same prompt hash as the other models) as a file, wrote one reply file, and had no repository access. The transcripts show one read of the prompt file and one write of the reply for each. The replies were extracted and graded with the same extractor and the same three-tier grader (`tools/ingest_reply.py`); results are in `results/claude/`.
+Six trials (3 each on `f5_basket_b` and `f6_match_b`) were answered by fresh Claude Sonnet subagents inside Claude Code. Each got only the exact harness prompt as a file and no repository access, and the replies were graded by the same extractor and grader (`tools/ingest_reply.py`, results in [`results/claude/`](results/claude/)).
 
 | model | task | trials | pass |
 |---|---|---|---|
 | claude_sonnet (interactive) | f5_basket_b | 3 | 3/3 (1.000) |
 | claude_sonnet (interactive) | f6_match_b | 3 | 3/3 (1.000) |
 
-Reading: a strong closed model implements both of the hardest tasks from the specification alone, which extends the top-end saturation seen with `nemotron_ultra` and `mistral_large` to a closed frontier model. Caveats: six trials only; it cannot be rerun through the harness; and Claude models helped draft parts of this project (see `AI_USE.md`), so familiarity with the domain cannot be ruled out. It is reported separately and does not enter any table above.
+A strong closed model implements both of the hardest tasks from the specification alone. This run cannot be repeated through the harness and does not enter any table above.
 
-### Human Audit Agreement
-
-A sample of 20 trials (10 the grader passed, 10 it failed; seed 42, drawn from 209 judgeable trials; no-code trials and F9 excluded) was read against the task instructions without seeing the grader verdict. Full table: [`results/human_audit.md`](results/human_audit.md). The original verdicts are kept in `results/my_verdicts_initial.json`.
-
-**Blind result (headline).** The reviewer marked 19 of 20 correct. Raw agreement 11/20 (55%), Cohen's kappa 0.10 (slight). All nine disagreements were grader-failed trials marked correct; the reviewer never marked a grader-passed trial incorrect. The one agreed failure is T08 (ministral_8b, f6_match_b: bids sorted the wrong way for SELL orders).
-
-**Unblinded re-review (not independent).** The reviewer then re-read only the nine grader-failed trials they had marked correct, knowing the grader had failed them, and changed 8 to incorrect after finding real bugs (crashes on attributes that do not exist, an uninitialised `leaves`, a basket rollback that never triggers, a stale `free_cash` in the R-W4 re-check). The ten grader-passed trials got no second look. This gives raw agreement 19/20 and kappa 0.90, but it shows only that the reviewer can find the bug once told where to look. It is not independent agreement.
-
-| (after re-review) | reviewer: correct | reviewer: incorrect |
-|---|:---:|:---:|
-| grader PASS | 10 | 0 |
-| grader FAIL | 1 | 9 |
-
-- The remaining disagreement, T05 (flash_lite, f5_basket_b), is a reviewer error, found by an AI cross-check and not by the author: the code fails an IOC leg on any `CANCELLED` report, but R-A3 fails it only on an `IOC_REMAINDER` cancellation. A self-trade-prevention cancel inside a successful leg therefore triggers a rollback, on all 20 hidden seeds. The grader was right. With T05 corrected, agreement would be 20/20.
-- **Reading.** A read-through against a long rulebook missed 9 of the 10 failures the hidden seeds caught. In every disagreement I checked, the grader was right. This is evidence for the grader, and for how hard these bugs are to see by reading. It is not a measured human-grader agreement of 0.90.
-
-## 6. Pre-registered hypotheses
-
-Written and committed (`3fea5fd`) before any model run; see [`HYPOTHESES.md`](HYPOTHESES.md). `harness/report.py` computes each one the same way for every model:
+### Pre-registered hypotheses
 
 | | Prediction | Computed as |
 |---|---|---|
@@ -192,7 +191,7 @@ Written and committed (`3fea5fd`) before any model run; see [`HYPOTHESES.md`](HY
 | H4 | Frontier models break I1/I2 less than small models | Share of hidden seeds without each invariant violated |
 | H5 | Most Variant B failures are missed side effects, not wrong core logic | Share of failing B seeds where a conservation invariant broke vs report mismatch only (an automatic proxy; checked against transcripts) |
 
-Computed values (from `results/main/summary.md`; the reading of each hypothesis is in [`HYPOTHESES.md`](HYPOTHESES.md) section 3, still to be written by the author):
+Computed values (from `results/main/summary.md`; the reading of each hypothesis is in [`HYPOTHESES.md`](HYPOTHESES.md) section 3):
 
 | Model | H1: T1 − T3 [95% CI] | H2: A − B pass rate (p) | H2: A − B score (p) | H4: I1 / I2 seed survival | H5: conservation share of B failing seeds |
 |---|---|---|---|---|---|
@@ -208,11 +207,7 @@ Computed values (from `results/main/summary.md`; the reading of each hypothesis 
 - H2 uses only families with both variants (F1–F3) and a one-sided stratified permutation test. A and B are different tasks, so this is not a paired test, and B tasks are also larger, so the gap is not attributable to coupling alone.
 - H4/H5 use every failing hidden seed, with all labels seen at its first failing event. H5's split (conservation law broken vs report mismatch only) is an automatic proxy for the pre-registered 'secondary omission vs primary logic' classification and must be checked against the transcripts.
 
-## 7. Failure analysis
-
-*Drafted with AI assistance from `docs/FAILURE_REVIEW.md` and `docs/FACT_SHEET.md` (see [`AI_USE.md`](AI_USE.md)); every number is from `results/main/summary.md`. Verbatim failing transcripts are in `transcripts/`.*
-
-**What the failures were (221 headline trials, F1 to F8).** 161 passed. Of the 60 failures, 32 ran but behaved wrongly, 16 crashed in a tier, and 12 were truncated at the shared token limit (11 of them `nemotron_nano`), so there was no code to grade. Truncation is a token-budget effect and is reported apart from logic failures.
+## Failure analysis
 
 **Where models fail, and why.**
 - **Invented engine interfaces (crashes).** Weaker models call attributes that do not exist (`Engine.orders`, `Engine.accounts`, `Engine.book`, `engine.mark_price`) or call module-level ledger functions as methods. The code crashes as soon as the simulation replays an event. This is the main failure of `nemotron_nano` and `ministral_8b` on F1, F2 and F4.
@@ -226,80 +221,75 @@ Computed values (from `results/main/summary.md`; the reading of each hypothesis 
 
 **Honest limits of the result.** `nemotron_ultra` passed all 51 trials and `mistral_large` failed 2 of 51. Four designs (F6, F7, F8, F9) were built to break the strongest model and none did. A Claude Sonnet reference run passed 6 of 6 on the two hardest tasks (see §5). On these models a clear specification is enough, so the benchmark separates weak and mid models, not the top. No closed frontier model was run through the harness.
 
-**Defects in my own work that the checks found.** Nine task or grader defects were found and fixed, each invalidating or changing results, including a withdrawn simulated analysis, an F3 specification gap (the `body=None` rule), an ambiguous F7 rule that made 4 of 5 early failures spurious, and four wrong implementations that scored 1.0 until checkpoints and mutants were added (`docs/FAILURE_REVIEW.md`).
+**Defects in my own work that the checks found.** Nine task or grader defects were found and fixed, each invalidating or changing results, including an F3 specification gap (the `body=None` rule), an ambiguous F7 rule that made 4 of 5 early failures spurious, and four wrong implementations that scored 1.0 until checkpoints and mutants were added (`docs/FAILURE_REVIEW.md`).
 
-## 8. Reproduce it
+## Human review of the grader
 
-Requirements: Python 3.12 or newer (tested on 3.12 and 3.14), dependencies pinned in `requirements.txt`. No API key is needed for steps 1–3.
+A sample of 20 trials (10 the grader passed, 10 it failed; seed 42, drawn from 209 judgeable trials; no-code trials and F9 excluded) was read against the task instructions without seeing the grader verdict. Full table: [`results/human_audit.md`](results/human_audit.md). The original verdicts are kept in `results/my_verdicts_initial.json`.
+
+**Blind result (headline).** The reviewer marked 19 of 20 correct. Raw agreement 11/20 (55%), Cohen's kappa 0.10 (slight). All nine disagreements were grader-failed trials marked correct; the reviewer never marked a grader-passed trial incorrect. The one agreed failure is T08 (ministral_8b, f6_match_b: bids sorted the wrong way for SELL orders).
+
+**Unblinded re-review (not independent).** The reviewer then re-read only the nine grader-failed trials they had marked correct, knowing the grader had failed them, and changed 8 to incorrect after finding real bugs (crashes on attributes that do not exist, an uninitialised `leaves`, a basket rollback that never triggers, a stale `free_cash` in the R-W4 re-check). The ten grader-passed trials got no second look. This gives raw agreement 19/20 and kappa 0.90, but it shows only that the reviewer can find the bug once told where to look. It is not independent agreement.
+
+| (after re-review) | reviewer: correct | reviewer: incorrect |
+|---|:---:|:---:|
+| grader PASS | 10 | 0 |
+| grader FAIL | 1 | 9 |
+
+- The remaining disagreement, T05 (flash_lite, f5_basket_b), is a reviewer error, found by an AI cross-check and not by the author: the code fails an IOC leg on any `CANCELLED` report, but R-A3 fails it only on an `IOC_REMAINDER` cancellation. A self-trade-prevention cancel inside a successful leg therefore triggers a rollback, on all 20 hidden seeds. The grader was right. With T05 corrected, agreement would be 20/20.
+- **Reading.** A read-through against a long rulebook missed 9 of the 10 failures the hidden seeds caught. In every disagreement I checked, the grader was right. This is evidence for the grader, and for how hard these bugs are to see by reading. It is not a measured human-grader agreement of 0.90.
+
+Task sign-offs, hand-checked examples and the author's notes are in [`EXPERT_REVIEW.md`](EXPERT_REVIEW.md).
+
+## Run it
+
+Python 3.12 or newer; dependencies are pinned in `requirements.txt`. **No API key is needed to run the grader.**
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-make test            # 549 tests, ~30 s
-make validate        # grader validation V1-V8, ~45 s
-make demo            # one bug that only the hidden simulation catches, ~3 s
-make mutant-tiers    # which tier catches each of the 81 bugs, ~20 s
+make test            # 549 tests, about 30 s
+make validate        # grader validation V1-V8, about 2 min
+make demo            # one bug that only the hidden simulation catches, about 3 s
+make mutant-tiers    # which tier catches each of the 81 bugs, about 20 s
 ```
 
-Clean environment with Docker:
+To run models yourself on free tiers (no payment method; `.env` and `models.toml` are git-ignored and never committed):
 
 ```bash
-docker build -t orderbook-dst . && docker run --rm orderbook-dst
-```
-
-(The Docker path was not verified on the author's machine; the virtual-environment route above is the tested one.)
-
-Run models on **free tiers** (no payment method needed; `.env` and `models.toml` are git-ignored):
-
-```bash
-cp models.free.example.toml models.toml   # Gemini, NVIDIA NIM, Groq (+ optional Mistral, OpenRouter, Cerebras)
-cp .env.example .env                      # add the free keys you created; never commit or paste them
+cp models.free.example.toml models.toml   # choose models and rate limits
+cp .env.example .env                      # add your own free API keys
 set -a; source .env; set +a
-make list-models                          # exact model IDs your keys can use -> put them in models.toml
 make dry-run                              # calls per model, no API calls
-make pilot                                # 1 trial per task: checks reply format, truncation, headroom
-make watch                                # in a second terminal: live progress, current wait, ETA (make status = one snapshot)
 make run                                  # 17 tasks x 3 trials per model -> results/main
-#   (add ONLY=label1,label2 to run some models, e.g. while one provider is down)
 make feedback TASKS=f1_fee_b,f2_replace_b,f3_fix_b,f4_waterfall_b,f5_basket_b TRIALS=3
-make report transcripts                   # tables, sanity checks, representative transcripts
+make report transcripts                   # tables and representative transcripts
 ```
 
-Every trial prints a counter line (`[12/40] ... ETA ~25m`), rate-limit waits and retries are announced instead of silent, and `make status` / `make watch` show progress from another terminal (reads `results/<run>/progress.json`). A provider that returns an empty reply (for example `finish_reason=tool_calls` with no tool offered) is asked again up to twice, and the retry count is stored in the trial record.
+**Cost and runtime.** Each call sends about 5.3k to 6.6k input tokens. A single-turn run is 51 calls per model (17 tasks x 3 trials). On free tiers the cost is $0 and the limit is the daily request cap, so one model takes about a day. Interrupted runs resume where they stopped, and `make regrade` re-scores saved replies with no new API calls. Set `rpm` and `rpd` per model in `models.toml`; the harness spaces calls, retries 429 and 5xx errors with backoff, and stops a model cleanly when its daily cap is reached.
 
-Free tiers have per-minute and per-day caps. Set `rpm` and `rpd` per model from your provider dashboard: the harness spaces calls, retries 429/5xx with backoff, and when a daily cap is reached it stops that model cleanly. Run the same command again after the reset and it resumes; a quota error is never recorded as a model failure. Prompts are about 5–7k tokens; the harness warns when a provider reports far fewer input tokens than the prompt has (a truncated prompt is not a task failure). Paid APIs work the same way with `models.example.toml`.
+**Settings.** Temperature is not sent (provider defaults) and `max_tokens` is per model (see the settings table above). Exact model IDs and the run date are recorded for every trial.
 
-**Settings.** Temperature is not sent (provider defaults); `max_tokens` is per model in the results tables. Single-turn runs were made 4 to 6 November 2026 (UTC), with later reruns and regrades through 7 November.
-
-Optional reasoning-effort ablation (more effort should not score worse; if it does, suspect the task): `models.ablation.example.toml`.
-
-**Cost and runtime.** Each call sends about 5.3k–6.6k input tokens; a single-turn run is 51 calls per model (17 tasks x 3 trials), a feedback run up to 4 calls per trial. On free tiers the cost is $0; the limit is the daily request cap (for example ~45 calls/day means one model's single-turn run takes about a day). With paid APIs, cost = tokens × the prices you set in `models.toml`, recorded per trial. Grading takes about 1 s per trial. Interrupted runs resume; `make regrade` re-scores saved replies without new API calls.
-
-## 9. Threats to validity
+## Limits
 
 - **Synthetic rules.** The rulebook is invented, so models cannot rely on memorised exchange behaviour. This measures careful spec-following in a financial domain more than prior domain knowledge.
 - **A vs B is confounded.** B tasks are longer and touch more state, and F4/F5 have no A variant. H2 reports the difference as designed, not a pure coupling effect.
 - **Output format.** Replies that do not contain the required file block score 0 and are counted separately (`FORMAT_ERROR`, `MISSING_FILE`) so formatting failures are not mistaken for reasoning failures.
-- **Checkpoint provenance.** All 87 T2 checkpoint values come from the reference engine (`source = "engine"`). Some are hand-checked from engine pre-states in the author's audit worksheets (not in the ZIP); a fully independent hand derivation is not complete (see `CHANGELOG.md`). The clean-room reference passing every checkpoint is the main independent check.
+- **Checkpoint provenance.** All 87 T2 checkpoint values come from the reference engine (`source = "engine"`). The independent check is the clean-room second reference, which passes every checkpoint, together with the 81 hand-written bugs.
 - **Sampling.** 3 trials per task and model and 20 hidden seeds; CIs are reported and should be read as wide.
 - **Unequal token budget for one model.** `mistral_large` ran with `max_tokens=8000` on `f1_fee_a`, `f1_fee_b`, `f2_replace_a`, `f2_replace_b`, `f3_fix_a`, `f5_basket_b` and two of three `f4_waterfall_b` trials, and with 16000 on `f3_fix_b`, one `f4_waterfall_b` trial, `f6_match_b`, `f7_funding_b`, `f8_adl_b` and all F9 tasks. The budget was raised after one truncated reply on an early task; the trials already run were not repeated. Every other model used one budget throughout (the value in the results table). Truncated replies (`OUTPUT_TRUNCATED`) are reported separately in the failure review, and `mistral_large` had one.
-- **Free-tier models.** Free endpoints can change the model behind an ID without notice. Every trial records the model ID the provider reported serving and the run date; results describe those exact versions.
-- **One author.** Domain review is by the author (`EXPERT_REVIEW.md`); a blinded human audit of grader verdicts on model outputs (`tools/human_audit.py`, Cohen's κ) is the author's own step and its result is reported in section 5 once it is done; until then the entry has no human-agreement number.
+- **Free-tier models.** Free endpoints can change the model behind an ID without notice. Every trial records the model ID the provider reported serving and the run date.
 
-## 10. Provenance and AI use
-
-- Built from scratch for the micro1 Eval Hackathon (Oct 30 – Nov 9, 2026). The rulebook, invariants, engine, tasks, mutants, graders and harness were written during the event.
-- Ideas borrowed, not copied: deterministic simulation testing (FoundationDB, TigerBeetle); a task layout of instruction, tests and reference solution like the Harbor format described in the hackathon guide. No tasks are taken from an existing benchmark.
-- AI tools drafted code, tests and documents, and an isolated agent wrote the clean-room reference. The author reviewed each task, reference answer and grading rule. Full detail, including the removed simulated results: [`AI_USE.md`](AI_USE.md).
-
-### Prior work and sources
+## Prior work, sources and AI use
 
 - **Deterministic simulation testing** (seeded, replayable simulations checked against invariants): the approach used by FoundationDB and TigerBeetle for databases and ledgers. The idea is borrowed; no code is.
 - **Task layout** of instruction, public tests and reference solution follows the Harbor format described in the hackathon material.
 - **FIX session semantics** (sequence numbers, duplicates, gap handling) are modelled in simplified, invented form for F3.
 - **No existing benchmark or dataset was used.** The rulebook, engine, tasks, mutants, graders and harness were written during the event. Model outputs are from the providers' free tiers on the dates in the results tables.
 
-## 11. Repository layout
+- **AI use.** AI coding tools drafted code, tests and documents, and an isolated agent wrote the clean-room reference. The author reviewed each task, reference answer and grading rule. Full detail: [`AI_USE.md`](AI_USE.md).
+
+## Repository layout
 
 ```
 tasks/<id>/            instruction.md, task.toml, public_tests/, tier2_trace.json
