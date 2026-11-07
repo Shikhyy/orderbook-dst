@@ -26,9 +26,11 @@ handling, liquidation waterfalls and atomic basket rollback.
   - Tier 3: 20 pseudo-random hidden event traces (200 events each) asserting 4 physical conservation laws ($I_1$ Cash Conservation, $I_2$ Margin Lock Conservation, $I_3$ Order ID Monotonicity, $I_4$ Message Deduplication).
 - **Grader Reliability** (`make validate`):
   - The reference and a clean-room second reference both score 1.0 on all 11 implementation tasks. For each F9 task the reference, the clean-room alternative and a minimal hand-written fix score 1.0, and the buggy file scores below 1.0 exactly like its source mutant.
-  - All 77 hand-written bug mutants fail with the predicted invariant; empty and hard-coded stubs score near 0; grading is deterministic.
-  - 33 of the 36 bugs already fail a visible test; one (`m_lock_uses_current_rate`) passes every visible test and checkpoint and is caught only by the hidden simulation (`make demo`).
+  - All 81 hand-written bug mutants fail with the predicted invariant; empty and hard-coded stubs score near 0; grading is deterministic.
+  - Of the 81 bugs, 54 fail a visible test, 21 more are caught first by a checkpoint, and 6 (for example `m_lock_uses_current_rate`, see `make demo`) pass every visible test and checkpoint and are caught only by the hidden simulation.
 
 ### Models Evaluated & Headline Results
-*(To be filled in from the real model runs in `results/main/`. No model results
-are claimed yet.)*
+Seven free-tier models, 3 trials per task, 329 real trials (see the README for exact model IDs, settings and run dates). Pass rate on the 11 implementation tasks: nemotron_ultra 100%, mistral_large 93.9%, gemini_35_flash 87.5% (incomplete: free-tier rate limits), gemma_26b 81.8%, flash_lite 78.8%, nemotron_nano 36.4%, ministral_8b 36.4%. The visible tests overstate quality for weaker models (ministral_8b loses 0.50 of score between the visible tests and the hidden simulations), and invariant feedback repairs failures (gemma_26b 60% to 100%, flash_lite 60% to 93%). The strongest models pass nearly everything, so the benchmark separates small and mid models and not the top.
+
+### Human Review
+A blinded audit of 20 trials: reading code missed 9 of the 10 failures the hidden simulations caught (kappa 0.10), and the grader was right in every disagreement checked. Task sign-offs and hand-checked examples are in `EXPERT_REVIEW.md`.

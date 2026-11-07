@@ -61,7 +61,7 @@ Lesson for the write-up: a clean-room read finds ambiguities, but the fix itself
 
 ministral_8b fails all three with I1 ("total money != initial", off by 1 or 2 micro-units): it never books the net per-account rounding difference into `fee_vault` correctly (R-Y3 states it; two trials do not touch `fee_vault`, one does it wrongly). It passes all visible tests and gets 0 of 6 checkpoints, so it also misses the exact-tie and residual checkpoints. Model fault.
 
-Regrade on the new `funding_heavy` traces (Nov 5, after the R-Y4 grader gap was closed; see CHANGELOG): no trial changed pass/fail. For trials 0 and 2 the first failure is now a D1 at event 39 of seed 10000: at `rate == 0` the model reports `qty = 3` instead of 0 (R-Y4 says `n = 0` when `rate == 0`). The new traces simply reach that zero-rate event before the I1 drift. Trial 1 still fails first on I1 (now at event 73) and scores 0.225. Model fault in all three.
+Regrade on the new `funding_heavy` traces (Nov 5, after the R-Y4 grader gap was closed): no trial changed pass/fail. For trials 0 and 2 the first failure is now a D1 at event 39 of seed 10000: at `rate == 0` the model reports `qty = 3` instead of 0 (R-Y4 says `n = 0` when `rate == 0`). The new traces simply reach that zero-rate event before the I1 drift. Trial 1 still fails first on I1 (now at event 73) and scores 0.225. Model fault in all three.
 
 Reading: on F7 the three stronger models are at 1.00 once the spec wording was fixed. F7 separates only the weakest model, so it adds little headroom at the top; its value is as a clean, well-specified coupled task where a failure is attributable.
 
