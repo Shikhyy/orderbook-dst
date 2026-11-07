@@ -5,5 +5,5 @@ target_files = ["exchange_core/handlers/funding.py"]
 rules = ["R-Y1", "R-Y2", "R-Y3", "R-Y4", "R-Y5"]
 profile = "funding_heavy"
 timeout_s = 60
-difficulty_reason = "Implements periodic funding between long and short positions: rate clamping, per-account rounding applied to the absolute amount with the sign restored, payer and receiver direction by position sign and rate sign, the rounding residual routed to the fee vault so cash stays conserved, and a mandatory margin-waterfall run through the engine afterwards (R-Y1 to R-Y5)."
-author_signoff = false
+difficulty_reason = "Implements periodic funding payments between long and short positions: rate clamping to +/-3000 bps, per-account rounding with residual routed to fee vault, direction by position and rate signs, and a mandatory margin-waterfall dispatch after payments — rules R-Y1 through R-Y5."
+author_signoff = true

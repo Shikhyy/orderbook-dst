@@ -155,6 +155,33 @@ From [`results/feedback/summary.md`](results/feedback/summary.md) (`--mode feedb
 | gemma_26b | 15 | 60.0% | 100.0% | +0.347 | 6 / 0 | 0.031 | 0.47 |
 | flash_lite | 15 | 60.0% | 93.3% | +0.243 | 5 / 0 | 0.062 | 0.67 |
 
+### Claude Sonnet reference run (not reproducible, not in the headline)
+
+To get one data point from a strong closed model without paid API access, six trials (3 each on `f5_basket_b` and `f6_match_b`, the two hardest implementation tasks) were answered by fresh Claude Sonnet subagents inside Claude Code. Each subagent was given only the exact harness prompt (same prompt hash as the other models) as a file, wrote one reply file, and had no repository access. The transcripts show one read of the prompt file and one write of the reply for each. The replies were extracted and graded with the same extractor and the same three-tier grader (`tools/ingest_reply.py`); results are in `results/claude/`.
+
+| model | task | trials | pass |
+|---|---|---|---|
+| claude_sonnet (interactive) | f5_basket_b | 3 | 3/3 (1.000) |
+| claude_sonnet (interactive) | f6_match_b | 3 | 3/3 (1.000) |
+
+Reading: a strong closed model implements both of the hardest tasks from the specification alone, which extends the top-end saturation seen with `nemotron_ultra` and `mistral_large` to a closed frontier model. Caveats: six trials only; it cannot be rerun through the harness; and Claude models helped draft parts of this project (see `AI_USE.md`), so familiarity with the domain cannot be ruled out. It is reported separately and does not enter any table above.
+
+### Human Audit Agreement
+
+A sample of 20 trials (10 the grader passed, 10 it failed; seed 42, drawn from 209 judgeable trials; no-code trials and F9 excluded) was read against the task instructions without seeing the grader verdict. Full table: [`results/human_audit.md`](results/human_audit.md). The original verdicts are kept in `results/my_verdicts_initial.json`.
+
+**Blind result (headline).** The reviewer marked 19 of 20 correct. Raw agreement 11/20 (55%), Cohen's kappa 0.10 (slight). All nine disagreements were grader-failed trials marked correct; the reviewer never marked a grader-passed trial incorrect. The one agreed failure is T08 (ministral_8b, f6_match_b: bids sorted the wrong way for SELL orders).
+
+**Unblinded re-review (not independent).** The reviewer then re-read only the nine grader-failed trials they had marked correct, knowing the grader had failed them, and changed 8 to incorrect after finding real bugs (crashes on attributes that do not exist, an uninitialised `leaves`, a basket rollback that never triggers, a stale `free_cash` in the R-W4 re-check). The ten grader-passed trials got no second look. This gives raw agreement 19/20 and kappa 0.90, but it shows only that the reviewer can find the bug once told where to look. It is not independent agreement.
+
+| (after re-review) | reviewer: correct | reviewer: incorrect |
+|---|:---:|:---:|
+| grader PASS | 10 | 0 |
+| grader FAIL | 1 | 9 |
+
+- The remaining disagreement, T05 (flash_lite, f5_basket_b), is a reviewer error, found by an AI cross-check and not by the author: the code fails an IOC leg on any `CANCELLED` report, but R-A3 fails it only on an `IOC_REMAINDER` cancellation. A self-trade-prevention cancel inside a successful leg therefore triggers a rollback, on all 20 hidden seeds. The grader was right. With T05 corrected, agreement would be 20/20.
+- **Reading.** A read-through against a long rulebook missed 9 of the 10 failures the hidden seeds caught. In every disagreement I checked, the grader was right. This is evidence for the grader, and for how hard these bugs are to see by reading. It is not a measured human-grader agreement of 0.90.
+
 ## 6. Pre-registered hypotheses
 
 Written and committed (`3fea5fd`) before any model run; see [`HYPOTHESES.md`](HYPOTHESES.md). `harness/report.py` computes each one the same way for every model:

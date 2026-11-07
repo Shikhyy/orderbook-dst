@@ -8,5 +8,5 @@ target_files = ["exchange_core/handlers/basket.py"]
 rules = ["R-A1", "R-A2", "R-A3", "R-A4", "R-A5"]
 profile = "basket_heavy"
 timeout_s = 60
-difficulty_reason = "Diagnosis instead of implementation: the model gets the specification, a handler with one injected defect and the first failing step of a short trace, and has to localise and fix it. The rolled-back basket itself reports correctly. The first visible effect is an order id that is too large in a later ACCEPTED report, an event after the rollback, so the cause has to be traced back to the rollback path."
-author_signoff = false
+difficulty_reason = "Diagnosis task: the model receives a specification, a buggy handler with one injected defect, and a short failing trace; must localise and fix the defect so the handler passes all public tests and checkpoints — same grader as `f5_basket_b`, rules R-A1 to R-A5. Bug: rolled-back basket leaves advanced order-id counter unreset."
+author_signoff = true

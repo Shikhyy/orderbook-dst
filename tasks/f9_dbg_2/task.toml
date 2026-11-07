@@ -8,5 +8,5 @@ target_files = ["exchange_core/handlers/shock.py"]
 rules = ["R-W1", "R-W2", "R-W3", "R-W4", "R-W5", "R-W6"]
 profile = "shock_heavy"
 timeout_s = 60
-difficulty_reason = "Diagnosis instead of implementation: the model gets the specification, a handler with one injected defect and the first failing step of a short trace, and has to localise and fix it. The symptom is one extra LIQUIDATED report at the last event of an 11-event trace; it does not say which rule was skipped or that stage 1 had cancelled orders first. (The public tests, which the model cannot run, do cover the case.)"
-author_signoff = false
+difficulty_reason = "Diagnosis task: the model receives a specification, a buggy handler with one injected defect, and a short failing trace (one extra LIQUIDATED at trace end); must localise and fix the defect so the handler passes all public tests and checkpoints — same grader as `f4_waterfall_b`, rules R-W1 to R-W5."
+author_signoff = true

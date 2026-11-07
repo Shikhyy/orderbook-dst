@@ -27,6 +27,7 @@ conftest.py
 docs/04_RULEBOOK.md
 docs/05_INVARIANTS_AND_DATA.md
 docs/F9_INSTANCES.md
+docs/FACT_SHEET.md
 docs/FAILURE_REVIEW.md
 docs/REVIEW_PACKET.md
 

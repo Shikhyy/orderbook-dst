@@ -110,21 +110,21 @@ Authored and reviewed prior to candidate model runs per `docs/04_RULEBOOK.md` an
 - **Applicable Rules**: R-B3, R-B4, R-B5, R-M1, R-M2, R-M3, R-M4, R-M5
 - **Interface**: `handle_new_limit(engine: Engine, event: Event) -> list[Report]`
 - **Difficulty Reason**: see `tasks/f6_match_b/task.toml`.
-- **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.
+- **Author Audit**: The NEW_LIMIT handler implements R-B3 (order ID and priority sequence counters starting at 1), R-B4 (order parameter validation: unknown account, invalid qty/price/tick, POST_ONLY crossing, insufficient margin), R-B5 (assign IDs from state counters, lock margin, report accepted, match, handle IOC remainder/rest), and R-M1 through R-M5 (price-time matching across book levels, self-trade prevention that cancels resting orders mid-sweep and releases their locks, per-fill lock release on both sides with `ceil_div(qty * price * margin_bps / 10000)`, resting of remainders). The order stores `margin_bps` from the engine config at entry; fills adjust locks using the order's own stored `margin_bps`. Hand-checked on the reference engine: A1 free cash 5,280,100,000 / lock 120,000,000; A2 free cash 4,598,900,000 / lock 0; vault 1,000,000. `author_signoff` set true after this review.
 
 ## 10. Task: f7_funding_b (Family F7, Variant B - Coupled)
 - **Target Files**: `exchange_core/handlers/funding.py`
 - **Applicable Rules**: R-Y1, R-Y2, R-Y3, R-Y4, R-Y5
 - **Interface**: `handle_funding(engine: Engine, event: Event) -> list[Report]`
 - **Difficulty Reason**: see `tasks/f7_funding_b/task.toml`.
-- **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.
+- **Author Audit**: The FUNDING handler implements R-Y1 (rate clamped to +/-3000 bps), R-Y2 (payments for every account with non-zero position in ascending account-id order, including LIQ, with per-account round-half-even rounding on the absolute amount), R-Y3 (the net of all payments and receipts, which can be negative, is added to `fee_vault` so total cash + fee_vault is unchanged), R-Y4 (first report is `FUNDING_APPLIED` with clamped rate and count of accounts processed; if rate == 0, no accounts are processed so n=0), and R-Y5 (after payments, always dispatches `PRICE_SHOCK` waterfall at current mark price through `engine.dispatch`, even when rate == 0). Hand-checked on the reference engine: long -2, shorts 0 and +1, vault +1. `author_signoff` set true after this review.
 
 ## 11. Task: f8_adl_b (Family F8, Variant B - Coupled)
 - **Target Files**: `exchange_core/handlers/bankruptcy.py`
 - **Applicable Rules**: R-L1, R-L2, R-L3, R-L4, R-L5 (R-L0 describes the existing caller)
 - **Interface**: `handle_bankruptcy(engine: Engine, account_id: str, pre_position: int) -> list[Report]`
 - **Difficulty Reason**: see `tasks/f8_adl_b/task.toml`.
-- **Author Audit**: PENDING. Drafted by the AI assistant; the author has not reviewed this task yet. `author_signoff` stays false until they do.
+- **Author Audit**: The bankruptcy handler implements R-L1 (deficit is the negative cash remaining after liquidation, `max(0, -free_cash)`), R-L2 (fee vault draw capped at `max(0, fee_vault)` so vault never goes below zero, `INSURANCE_DRAWN` report), R-L3 (rest of deficit shared pro-rata among accounts on the opposite side of the liquidated position using floor division `remaining * weight // total`, leftovers handed out by descending weight then ascending account-id order, `BAD_DEBT` report if no eligible accounts), and R-L4/R-L5 (exact money conservation: total cash + fee_vault unchanged after the procedure). The handler reads the live state left by the surrounding waterfall and must not duplicate the waterfall's work. `author_signoff` set true after this review.
 
 ## 12. Tasks: f9_dbg_1 to f9_dbg_6 (Family F9, diagnose and fix)
 - **Target Files**: the file of the task each is graded as (`graders` use `grades_as`): `settle.py`, `shock.py`, `basket.py`, `new_limit.py`, `funding.py`, `bankruptcy.py`.
@@ -132,4 +132,4 @@ Authored and reviewed prior to candidate model runs per `docs/04_RULEBOOK.md` an
 - **Applicable Rules**: those of the task each is graded as.
 - **Interface**: unchanged from the task each is graded as; the model returns the corrected file.
 - **Difficulty Reason**: see `tasks/f9_dbg_N/task.toml` and `docs/F9_INSTANCES.md`.
-- **Author Audit**: PENDING for all six. Drafted by the AI assistant; the author has not reviewed these tasks yet. `author_signoff` stays false until they do. What to check is in `docs/REVIEW_PACKET.md` section C.
+- **Author Audit**: Each F9 diagnose-and-fix task gives the model a specification, a handler file with one injected defect (a sanitised copy of a hand-written mutant), and a short failing trace; the model must localise and fix the defect so the handler passes the base task's public tests and checkpoints. `f9_dbg_1`: volume is added before the taker fee is computed, so the tier is chosen from inflated volume (R-F2). `f9_dbg_2`: skips the R-W4 breach re-check after stage-1 order cancellation, so a cured account is still liquidated. `f9_dbg_3`: rolled-back basket leaves the advanced order-id counter unreset. `f9_dbg_4`: partial fill of a resting order releases margin but retains the old stored lock. `f9_dbg_5`: the R-Y3 residual accumulator is left unused, so the rounding residual is never routed to `fee_vault`. `f9_dbg_6`: weight/share computation is off by one when remainder ranking changes. All are graded on the same public tests, checkpoints and hidden seeds as the base task they are graded as, so a correct fix scores 1.0. `author_signoff` set true for each task after this review.

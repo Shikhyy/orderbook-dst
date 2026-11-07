@@ -1,0 +1,22 @@
+[
+ "ministral_8b:f4_waterfall_b:2",
+ "mistral_large:f4_waterfall_b:2",
+ "nemotron_ultra:f3_fix_b:0",
+ "gemma_26b:f5_basket_b:2",
+ "flash_lite:f5_basket_b:2",
+ "nemotron_ultra:f1_fee_b:2",
+ "ministral_8b:f6_match_b:0",
+ "ministral_8b:f6_match_b:1",
+ "nemotron_nano:f5_basket_b:0",
+ "nemotron_ultra:f2_replace_a:2",
+ "gemma_26b:f6_match_b:0",
+ "gemma_26b:f4_waterfall_b:0",
+ "mistral_large:f1_fee_a:0",
+ "mistral_large:f1_fee_b:1",
+ "ministral_8b:f5_basket_b:2",
+ "flash_lite:f3_fix_a:1",
+ "gemini_35_flash:f4_waterfall_b:1",
+ "ministral_8b:f2_replace_b:0",
+ "ministral_8b:f4_waterfall_b:0",
+ "nemotron_nano:f1_fee_b:2"
+]

@@ -27,9 +27,19 @@ def get_tracked_files() -> list[Path]:
 def get_results_files() -> list[Path]:
     """Find files in results/main/, results/feedback/ and transcripts/ to include."""
     results_files: list[Path] = []
-    subs = ["main", "feedback", "ablation", "grader_analysis"]
+    subs = ["main", "feedback", "claude", "ablation", "grader_analysis"]
     dirs = [REPO_ROOT / "results" / sub for sub in subs]
     dirs.append(REPO_ROOT / "transcripts")
+    for name in (
+        "human_audit.md",
+        "my_verdicts.json",
+        "my_verdicts_initial.json",
+        "audit_sheet.md",
+        "audit_key.json",
+    ):
+        audit_file = REPO_ROOT / "results" / name
+        if audit_file.exists():
+            results_files.append(audit_file)
     for dir_path in dirs:
         if dir_path.exists():
             for p in dir_path.rglob("*"):

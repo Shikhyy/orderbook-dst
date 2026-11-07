@@ -127,3 +127,14 @@ The six diagnose-and-fix tasks (family F9, `f9_dbg_1` to `f9_dbg_6`) were added 
 Note: an earlier version of this section reported "CONFIRMED" verdicts based on
 simulated results that did not come from any model. That analysis has been
 withdrawn; see `AI_USE.md`.
+
+---
+
+## Amendment A4 (2026-11-07, after the blinded human audit): Human audit agreement
+
+A blinded human audit was performed on 20 anonymous trials (seed 42, 10 passed + 10 failed by the grader, drawn from 209 judgeable trials; no-code and F9 trials excluded). The reviewer read each trial's code against the task instructions without seeing the grader verdict.
+
+- **Initial verdicts**: Cohen's kappa κ = 0.1000 (slight agreement). Human: 19 PASS / 1 FAIL. Grader: 10 PASS / 10 FAIL. Nine disagreements were all grader-FAIL / human-PASS; one agreed failure (T08: ministral_8b, f6_match_b, SELL-order bids sorted ascending).
+- **Re-review**: On re-reading the 9 grader-failed trials the reviewer had marked correct, 8 were changed to FAIL — code crashes or genuine rule violations (f5_basket_b x4: IOC fully-filled misclassified / rollback never triggered; f4_waterfall_b x2: stale free_cash in R-W4 recheck / engine.accounts doesn't exist; f6_match_b x1: order.leaves never initialized; f2_replace_b x1: engine.book doesn't exist / wrong book side; f1_fee_b x1: state.pay_fee/state.pay_rebate/state.adjust_position/state.add_volume don't exist as EngineState methods).
+- **Final verdicts (unblinded, not independent)**: Cohen's kappa 0.90, Human 11 PASS / 9 FAIL, Grader 10 PASS / 10 FAIL. Only the grader-failed trials were re-read, knowing the grader's verdict, so this number is inflated; the blind result is kappa 0.10 (raw agreement 55%). One disagreement remains, T05 (flash_lite, f5_basket_b): an AI cross-check found the reviewer's PASS wrong (any `CANCELLED` report on an IOC leg is treated as failure, but R-A3 fails only on `IOC_REMAINDER`, so a self-trade-prevention cancel causes a false rollback). The grader was right.
+- **Reading**: A read-through missed 9 of the 10 failures the hidden seeds caught, and the grader was right in every disagreement checked. This is not a measured human-grader agreement of 0.90. Original verdicts: `results/my_verdicts_initial.json`.

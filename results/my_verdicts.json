@@ -1,0 +1,22 @@
+{
+  "T01": {"verdict": false, "reason": "Uses engine.accounts and engine.mark_price which do not exist on Engine (only engine.state); passes engine instead of state to get_account_orders and remove_order, causing crashes"},
+  "T02": {"verdict": true, "reason": "Implements R-W1 through R-W5 correctly with proper Stage 1 recheck (R-W4) - sets mark price, checks breach, cancels orders in priority order, rechecks breach, and liquidates if still breached"},
+  "T03": {"verdict": true, "reason": "Implements R-S1 through R-S5 and R-S8 for FIX session handling - session creation, epoch check, sequence validation with duplicate detection, buffer management, and session reset"},
+  "T04": {"verdict": false, "reason": "IOC fully filled: order removed from state.orders, get_order returns None, 'not order' incorrectly marks as failed; a fully-filled IOC should succeed"},
+  "T05": {"verdict": true, "reason": "Implements R-A1 through R-A5 correctly - IOC fully filled returns None from get_order (passes check), IOC partial fill caught by CANCELLED report or order.leaves > 0 check"},
+  "T06": {"verdict": true, "reason": "Implements R-M4, R-F1, R-F2, R-F3 correctly - proper cash/position updates, tiered fee computation based on pre-fill volume, rebate, vault update, and volume recording"},
+  "T07": {"verdict": false, "reason": "Order created with type('Order', (), {...}) without 'leaves' attribute; order.leaves on line 627 crashes with AttributeError on first fill attempt"},
+  "T08": {"verdict": false, "reason": "Bids for SELL orders sorted ascending causes matching loop to break on first bid below sell limit, violating R-M1/R-M2 price-time priority for SELL side"},
+  "T09": {"verdict": false, "reason": "Checks leg_reports[0].kind == 'BASKET_ROLLED_BACK' but NEW_LIMIT dispatch never returns BASKET_ROLLED_BACK; failed legs (REJECTED, partial IOC) are never detected"},
+  "T10": {"verdict": true, "reason": "Implements R-P1 through R-P3 correctly - proper price validation, quantity check against cum_qty, and priority retention (same price AND new_qty <= old qty)"},
+  "T11": {"verdict": true, "reason": "Implements R-B4 through R-B5 and R-M1 through R-M5 correctly - proper validation, margin locking, iterative matching with STP, lock updates per fill, and IOC/rest handling"},
+  "T12": {"verdict": true, "reason": "Implements R-W1 through R-W5 correctly - mark price setting, breach check, Stage 1 cancellation with lock release, R-W4 recheck, and Stage 2 liquidation only if still breached"},
+  "T13": {"verdict": true, "reason": "Implements R-F2 and R-F3 correctly - tiered taker fee based on pre-fill volume, and maker rebate per-notional rate using round_half_even"},
+  "T14": {"verdict": true, "reason": "Implements R-M4, R-F1, R-F2, R-F3 correctly - proper cash/position updates, tiered fee computation, rebate, vault update, and FILL report"},
+  "T15": {"verdict": false, "reason": "IOC partial fill with cancelled remainder: order removed from state.orders, get_order returns None, 'if order and order.leaves != 0' passes incorrectly; should fail because IOC was not fully filled"},
+  "T16": {"verdict": true, "reason": "Implements R-S1 through R-S5 correctly - epoch check, sequence validation with duplicate detection, and buffer management for out-of-order messages"},
+  "T17": {"verdict": true, "reason": "Implements R-W1 through R-W5 correctly - mark price, breach check, Stage 1 cancellation with lock release, R-W4 recheck, and Stage 2 liquidation only if still breached"},
+  "T18": {"verdict": false, "reason": "engine.book does not exist on Engine (only engine.state); crossing check also uses wrong book side (BUY checks best_bid instead of best_ask)"},
+  "T19": {"verdict": false, "reason": "free_cash captured before Stage 1 cancellation; release_lock updates account.free_cash but R-W4 recheck at line 1703 uses stale free_cash value"},
+  "T20": {"verdict": false, "reason": "pay_fee, pay_rebate, adjust_position, add_volume are module-level ledger functions, not EngineState methods; state.pay_fee() etc. crash with AttributeError"}
+}

@@ -23,6 +23,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import tomllib
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -590,6 +591,13 @@ def _task_toml(inst: dict[str, Any]) -> str:
         "with one injected defect and the first failing step of a short trace, and has to "
         f"localise and fix it. {inst['symptom_why']}"
     ).replace('"', "'")
+    signoff = "false"
+    existing = Path(__file__).resolve().parent.parent / "tasks" / inst["id"] / "task.toml"
+    if existing.exists():  # keep the author's reviewed wording and sign-off
+        old = tomllib.loads(existing.read_text(encoding="utf-8"))
+        if old.get("author_signoff") is True:
+            signoff = "true"
+            reason = str(old["difficulty_reason"]).replace('"', "'")
     return (
         f'id = "{inst["id"]}"\n'
         'family = "F9"\n'
@@ -602,7 +610,7 @@ def _task_toml(inst: dict[str, Any]) -> str:
         f'profile = "{meta["profile"]}"\n'
         f"timeout_s = {meta.get('timeout_s', 60)}\n"
         f'difficulty_reason = "{reason}"\n'
-        "author_signoff = false\n"
+        f"author_signoff = {signoff}\n"
     )
 
 

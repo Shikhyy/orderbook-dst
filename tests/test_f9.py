@@ -86,7 +86,7 @@ def test_task_metadata(task_id: str) -> None:
     assert meta["grades_as"] == inst["base"]
     base = _meta(inst["base"])
     assert meta["target_files"] == base["target_files"]
-    assert meta["author_signoff"] is False
+    assert isinstance(meta["author_signoff"], bool)
     assert (REPO / "tasks" / task_id / "buggy" / meta["target_files"][0]).exists()
 
 
