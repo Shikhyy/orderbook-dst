@@ -6,19 +6,14 @@
 Makefile
 pyproject.toml
 requirements.txt
-Dockerfile
-.dockerignore
 .gitignore
 .env.example
 models.example.toml
-models.ablation.example.toml
 models.free.example.toml
 README.md
-CHANGELOG.md
 HYPOTHESES.md
 EXPERT_REVIEW.md
 AI_USE.md
-VIDEO_SCRIPT.md
 SUBMISSION_DESCRIPTION.md
 conftest.py
 .pre-commit-config.yaml
@@ -27,9 +22,7 @@ conftest.py
 docs/04_RULEBOOK.md
 docs/05_INVARIANTS_AND_DATA.md
 docs/F9_INSTANCES.md
-docs/FACT_SHEET.md
 docs/FAILURE_REVIEW.md
-docs/REVIEW_PACKET.md
 
 # Source packages
 exchange_core/*.py

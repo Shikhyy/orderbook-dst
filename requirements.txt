@@ -1,5 +1,5 @@
 # Direct dependencies, pinned to the versions used for the reported runs.
-# Tested on Python 3.12 (Docker image) and 3.14 (author machine).
+# Tested on Python 3.12 and 3.14.
 anthropic==2.3.0
 openai==3.42.0
 pytest==9.2.0
