@@ -4,11 +4,9 @@
 
 OrderBook-DST gives a model one file of a working exchange engine to implement (fee settlement, cancel/replace, FIX session handling, a liquidation waterfall, or atomic baskets), with a written rulebook and visible unit tests. The grader then replays 20 hidden, seeded 200-event simulations against a reference engine and checks four conservation invariants after every event: the deterministic-simulation-testing (DST) approach used for databases and ledgers.
 
-> **Status.** The eval, graders and grader validation are complete and reproducible (see §4).
-> Model results are pending: an earlier draft contained simulated results that did not come
-> from any model; they were removed (see [`AI_USE.md`](AI_USE.md)). Every result reported
-> here will come from `harness/run_eval.py` calling real provider APIs, with all transcripts
-> in `results/`.
+> **Video walkthrough:** _link to be added before submission._
+>
+> **Summary.** 17 tasks in 9 families, graded by public tests, hidden checkpoints and 20 hidden seeded simulations. Seven free-tier models were run (329 trials, all real API calls; $0). The strongest model passes every task, so the benchmark separates small and mid models (36% to 82% pass rate on F1 to F8) and not the top. The visible tests overstate quality for the weaker models, and a hidden-simulation grader caught bugs that a careful read-through missed. An earlier draft contained simulated results; they were removed (see [`AI_USE.md`](AI_USE.md)).
 
 ---
 
@@ -212,7 +210,23 @@ Computed values (from `results/main/summary.md`; the reading of each hypothesis 
 
 ## 7. Failure analysis
 
-*To be written by the author from the real transcripts* (`make transcripts` exports, per model and task, the lowest-scoring failure, any near miss, and a pass, with the verbatim reply and the grader's first failure). For each failure: what the model did, why, and whether the grader was right.
+*Drafted with AI assistance from `docs/FAILURE_REVIEW.md` and `docs/FACT_SHEET.md` (see [`AI_USE.md`](AI_USE.md)); every number is from `results/main/summary.md`. Verbatim failing transcripts are in `transcripts/`.*
+
+**What the failures were (221 headline trials, F1 to F8).** 161 passed. Of the 60 failures, 32 ran but behaved wrongly, 16 crashed in a tier, and 12 were truncated at the shared token limit (11 of them `nemotron_nano`), so there was no code to grade. Truncation is a token-budget effect and is reported apart from logic failures.
+
+**Where models fail, and why.**
+- **Invented engine interfaces (crashes).** Weaker models call attributes that do not exist (`Engine.orders`, `Engine.accounts`, `Engine.book`, `engine.mark_price`) or call module-level ledger functions as methods. The code crashes as soon as the simulation replays an event. This is the main failure of `nemotron_nano` and `ministral_8b` on F1, F2 and F4.
+- **Missing all-or-nothing rollback (F5, the hardest task, 9 of 21 passes).** Models emit per-leg reports instead of rolling the whole basket back, detect a failed leg from a report that is never produced, or treat any `CANCELLED` report as a failed leg, so a self-trade-prevention cancel inside a successful leg triggers a false rollback.
+- **Stale state in the waterfall (F4).** Models read `free_cash` before Stage 1 cancellations and re-use it in the Stage 2 re-check.
+- **Matching details (F6).** Best-price selection and bid sorting for SELL orders, a filled order left on the book, wrong `leaves`, and self-trade-prevention ordering.
+- **Rounding at the edge (F7).** `nemotron_nano` lost 2 units of money to rounding.
+- **What the visible tests hide.** `ministral_8b` loses 0.50 of score between the visible tests and the hidden simulations (H1, interval excludes 0) and `flash_lite` 0.14; `nemotron_ultra` loses 0.
+
+**Feedback helps.** With invariant feedback (H3), `gemma_26b` went from 60% to 100% (6 repaired, 0 broken, p = 0.031) and `flash_lite` from 60% to 93% (5 repaired, 0 broken, p = 0.062), on two models and five tasks.
+
+**Honest limits of the result.** `nemotron_ultra` passed all 51 trials and `mistral_large` failed 2 of 51. Four designs (F6, F7, F8, F9) were built to break the strongest model and none did. A Claude Sonnet reference run passed 6 of 6 on the two hardest tasks (see §5). On these models a clear specification is enough, so the benchmark separates weak and mid models, not the top. No closed frontier model was run through the harness.
+
+**Defects in my own work that the checks found.** Nine task or grader defects were found and fixed, each invalidating or changing results, including a withdrawn simulated analysis, an F3 specification gap (the `body=None` rule), an ambiguous F7 rule that made 4 of 5 early failures spurious, and four wrong implementations that scored 1.0 until checkpoints and mutants were added (`docs/FAILURE_REVIEW.md`).
 
 ## 8. Reproduce it
 
@@ -221,10 +235,10 @@ Requirements: Python 3.12 or newer (tested on 3.12 and 3.14), dependencies pinne
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-make test            # 476 tests, ~15 s
+make test            # 549 tests, ~30 s
 make validate        # grader validation V1-V8, ~45 s
 make demo            # one bug that only the hidden simulation catches, ~3 s
-make mutant-tiers    # which tier catches each of the 75 bugs, ~20 s
+make mutant-tiers    # which tier catches each of the 81 bugs, ~20 s
 ```
 
 Clean environment with Docker:
@@ -232,6 +246,8 @@ Clean environment with Docker:
 ```bash
 docker build -t orderbook-dst . && docker run --rm orderbook-dst
 ```
+
+(The Docker path was not verified on the author's machine; the virtual-environment route above is the tested one.)
 
 Run models on **free tiers** (no payment method needed; `.env` and `models.toml` are git-ignored):
 
@@ -253,9 +269,11 @@ Every trial prints a counter line (`[12/40] ... ETA ~25m`), rate-limit waits and
 
 Free tiers have per-minute and per-day caps. Set `rpm` and `rpd` per model from your provider dashboard: the harness spaces calls, retries 429/5xx with backoff, and when a daily cap is reached it stops that model cleanly. Run the same command again after the reset and it resumes; a quota error is never recorded as a model failure. Prompts are about 5–7k tokens; the harness warns when a provider reports far fewer input tokens than the prompt has (a truncated prompt is not a task failure). Paid APIs work the same way with `models.example.toml`.
 
+**Settings.** Temperature is not sent (provider defaults); `max_tokens` is per model in the results tables. Single-turn runs were made 4 to 6 November 2026 (UTC), with later reruns and regrades through 7 November.
+
 Optional reasoning-effort ablation (more effort should not score worse; if it does, suspect the task): `models.ablation.example.toml`.
 
-**Cost and runtime.** Each call sends about 5.3k–6.6k input tokens; a single-turn run is 40 calls per model, a feedback run up to 4 calls per trial. On free tiers the cost is $0; the limit is the daily request cap (for example ~45 calls/day means one model's single-turn run takes about a day). With paid APIs, cost = tokens × the prices you set in `models.toml`, recorded per trial. Grading takes about 1 s per trial. Interrupted runs resume; `make regrade` re-scores saved replies without new API calls.
+**Cost and runtime.** Each call sends about 5.3k–6.6k input tokens; a single-turn run is 51 calls per model (17 tasks x 3 trials), a feedback run up to 4 calls per trial. On free tiers the cost is $0; the limit is the daily request cap (for example ~45 calls/day means one model's single-turn run takes about a day). With paid APIs, cost = tokens × the prices you set in `models.toml`, recorded per trial. Grading takes about 1 s per trial. Interrupted runs resume; `make regrade` re-scores saved replies without new API calls.
 
 ## 9. Threats to validity
 
@@ -274,13 +292,20 @@ Optional reasoning-effort ablation (more effort should not score worse; if it do
 - Ideas borrowed, not copied: deterministic simulation testing (FoundationDB, TigerBeetle); a task layout of instruction, tests and reference solution like the Harbor format described in the hackathon guide. No tasks are taken from an existing benchmark.
 - AI tools drafted code, tests and documents, and an isolated agent wrote the clean-room reference. The author reviewed each task, reference answer and grading rule. Full detail, including the removed simulated results: [`AI_USE.md`](AI_USE.md).
 
+### Prior work and sources
+
+- **Deterministic simulation testing** (seeded, replayable simulations checked against invariants): the approach used by FoundationDB and TigerBeetle for databases and ledgers. The idea is borrowed; no code is.
+- **Task layout** of instruction, public tests and reference solution follows the Harbor format described in the hackathon material.
+- **FIX session semantics** (sequence numbers, duplicates, gap handling) are modelled in simplified, invented form for F3.
+- **No existing benchmark or dataset was used.** The rulebook, engine, tasks, mutants, graders and harness were written during the event. Model outputs are from the providers' free tiers on the dates in the results tables.
+
 ## 11. Repository layout
 
 ```
 tasks/<id>/            instruction.md, task.toml, public_tests/, tier2_trace.json
 exchange_core/         the engine the model's file plugs into
 reference/             reference solutions        reference_alt_v2/  clean-room second reference
-mutants/<id>/<bug>/    75 hand-written bugs + expected grader verdicts
+mutants/<id>/<bug>/    81 hand-written bugs + expected grader verdicts
 graders/               3-tier grader, trace generator, import policy, sandbox
 harness/               run_eval.py (single-turn, feedback loop), adapters, stats, report
 tools/                 validation, mutant tiers, transcript export, packaging, secrets scan

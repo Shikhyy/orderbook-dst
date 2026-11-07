@@ -121,8 +121,14 @@ The six diagnose-and-fix tasks (family F9, `f9_dbg_1` to `f9_dbg_6`) were added 
 
 ## 3. Post-Run Analysis: What Was Wrong in My Predictions
 
-*(To be written by the author after the real model runs, from the transcripts in
-`results/main/raw/`.)*
+*Drafted with AI assistance from the computed values in `results/main/summary.md` and `results/feedback/summary.md` (see `AI_USE.md`). Plain statements; caveats apply.*
+
+- **H1 (visible score exceeds hidden score): supported for weak models, not for the best.** T1 minus T3 is 0.504 [0.26, 0.74] for `ministral_8b` and 0.143 [0.02, 0.31] for `flash_lite`; for `nemotron_ultra` it is 0.000. I predicted a gap for all models. The strongest model had none.
+- **H2 (Variant B harder than A): supported for three models, with a confound.** A minus B is 0.667 for `nemotron_nano` (p = 0.009), 0.667 for `ministral_8b` (p = 0.005) and 0.333 for `gemma_26b` (p = 0.053); the three strongest show no gap (ceiling). A and B are different tasks and B tasks are larger, so this is not a pure coupling effect, and only three families have both variants.
+- **H3 (feedback repairs a failed attempt): supported.** `gemma_26b` 60% to 100% (6 fixed, 0 broken, p = 0.031); `flash_lite` 60% to 93.3% (5 fixed, 0 broken, p = 0.062). Two models, five tasks.
+- **H4 (stronger models break conservation invariants less): direction holds, driven by one model.** I1 / I2 survival is 0.81 / 0.90 for `ministral_8b`, 0.94 / 1.00 for `nemotron_nano`, 0.97 / 1.00 for `flash_lite`, and 1.00 / 1.00 for the other four. "Frontier" here means the strongest free models, not closed frontier models.
+- **H5 (B failures are missed side effects, not wrong core logic): not supported by the automatic proxy, not settled.** The proxy (share of failing seeds where a conservation law broke) is 33% for `gemma_26b`, 20% for `flash_lite`, 32% for `nemotron_nano`, 67% for `ministral_8b` and 0% for `gemini_35_flash`. Most failures were report mismatches or crashes on invented interfaces. The proxy is automatic and was not checked against every transcript.
+- **What I got wrong.** I predicted specific failure modes per family (for example an inverted waterfall order in F4). The common failures were different: invented engine attributes that crash, and a false rollback trigger in F5. I also did not expect the strongest models to pass everything.
 
 Note: an earlier version of this section reported "CONFIRMED" verdicts based on
 simulated results that did not come from any model. That analysis has been

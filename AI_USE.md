@@ -8,6 +8,7 @@
 | EXPERT_REVIEW.md sections 9-12 (original draft) | Antigravity (Claude Sonnet 4.6 thinking) | 2026-11-07 | AI drafted original text; human re-wrote in their own words, keeping only verified claims (reference-engine hand examples checked, R-B3 omission noted, F9 defect-symptom mappings confirmed from task diffs) |
 | Audit cross-check (2026-11-07) | Claude Code (Claude Sonnet 5.5) | 2026-11-07 | Read trials T09 and T05 and the grader output to check the reviewer's verdicts; found the T05 error. Also corrected README, HYPOTHESES and EXPERT_REVIEW wording. Did not choose any verdict. |
 | Claude Sonnet reference run (2026-11-07) | Claude Sonnet via Claude Code subagents | 2026-11-07 | Acted as a candidate model on 6 trials (f5_basket_b, f6_match_b), given only the harness prompt; graded by the normal grader. Reported separately in the README. |
+| README section 7, HYPOTHESES section 3, prior-work and counts (2026-11-07) | Claude Code (Claude Sonnet 5.5) | 2026-11-07 | Drafted the failure analysis, the reading of H1-H5 and the prior-work section from `docs/FAILURE_REVIEW.md`, `docs/FACT_SHEET.md` and the summaries; fixed stale counts. The author should review and edit these in their own words. |
 
 ## Review steps
 
