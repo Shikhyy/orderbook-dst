@@ -77,14 +77,14 @@ Partial credit is built in (tier scores are fractions of tests, checkpoints and 
 |---|---|
 | V1 Reference solution passes every tier, all 11 tasks, graded exactly as a model's answer (same import allowlist) | PASS |
 | V2 Clean-room second reference (`reference_alt_v2/`, written without seeing `reference/`) passes, all 11 tasks, same rules | PASS |
-| V3 All 77 hand-written bug mutants fail, each with the invariant its `expect.toml` predicts | PASS |
+| V3 All 81 hand-written bug mutants fail, each with the invariant its `expect.toml` predicts | PASS |
 | V4 / V5 Empty stub and hard-coded-answer stub score near 0 (cannot game T3) | PASS |
 | V6 Grading is deterministic (same code → same score) | PASS |
 | V7 Every hidden trace exercises the task's code path ≥ 10 times | PASS |
 | D1–D5 (each F9 task): the reference, the clean-room alternative and a minimal hand-written fix score 1.0; the buggy file scores below 1.0 exactly like its source mutant; the stored symptom reproduces | PASS |
 | V8 Mutants trigger I1 and I2, not only report mismatches | PASS |
 
-Also tested (`make test`, 547 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
+Also tested (`make test`, 549 tests): prompts never contain hidden seeds, checkpoint values or reference code; candidate imports are restricted to an allowlist; secrets never reach saved replies; report statistics are recomputed from raw records.
 
 ### Which tier catches which bug (`make mutant-tiers`, no API calls)
 
