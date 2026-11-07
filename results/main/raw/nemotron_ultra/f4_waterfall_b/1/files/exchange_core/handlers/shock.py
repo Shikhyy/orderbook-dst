@@ -1,0 +1,75 @@
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import get_account, release_lock, transfer_cash, adjust_position
+from exchange_core.types import Event, Report
+
+
+def handle_shock(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    state = engine.state
+    cfg = engine.cfg
+    
+    # R-W1: Set mark_price
+    state.mark_price = event.mark_price
+    reports = [Report.mark_set(event.mark_price)]
+    
+    # Get all account IDs except LIQ, sorted ascending
+    account_ids = sorted([aid for aid in state.accounts.keys() if aid != "LIQ"])
+    
+    maint_bps = cfg.MAINT_BPS
+    mark_price = state.mark_price
+    
+    for acc_id in account_ids:
+        acc = state.accounts[acc_id]
+        
+        # R-W2: Account with position == 0 is never in breach
+        if acc.position == 0:
+            continue
+        
+        # Calculate available and required margin
+        # avail = free_cash + position * mark_price
+        avail = acc.free_cash + acc.position * mark_price
+        # req = ceil_div(abs(position) * mark_price * MAINT_BPS, 10000)
+        req = ceil_div(abs(acc.position) * mark_price * maint_bps, 10000)
+        
+        # Check breach
+        if avail >= req:
+            continue  # Not in breach
+        
+        # R-W3: Stage 1 - Cancel all resting orders in ascending prio_seq order
+        orders = get_account_orders(state, acc_id)
+        for order in orders:
+            # Release lock to free_cash
+            release_lock(state, acc_id, order.lock)
+            # Remove order from book
+            remove_order(state, order.order_id)
+            # Report cancelled
+            reports.append(Report.cancelled(order.order_id, "RISK"))
+        
+        # R-W4: Recompute breach after stage 1
+        avail_after = acc.free_cash + acc.position * mark_price
+        if avail_after >= req:
+            continue  # Breach resolved, no liquidation
+        
+        # R-W5: Stage 2 - Liquidate whole position against LIQ
+        orig_position = acc.position
+        notional = orig_position * mark_price
+        
+        # Transfer cash: account receives notional (if long) or pays notional (if short)
+        # If position > 0: account sells to LIQ, receives positive notional from LIQ
+        # If position < 0: account buys from LIQ, pays positive notional to LIQ
+        # So transfer from LIQ to account = notional
+        transfer_cash(state, "LIQ", acc_id, notional)
+        
+        # Adjust positions
+        adjust_position(state, acc_id, -orig_position)  # account position becomes 0
+        adjust_position(state, "LIQ", orig_position)    # LIQ position changes by opposite
+        
+        # Report liquidated
+        reports.append(Report.liquidated(acc_id, orig_position))
+    
+    return reports

@@ -1,0 +1,650 @@
+# Task f7_funding_b: Funding Payments Handler
+
+## 1. Goal
+Implement the FUNDING handler:
+```python
+def handle_funding(engine: Any, event: Event) -> list[Report]:
+```
+in `exchange_core/handlers/funding.py`.
+
+A FUNDING event moves cash between accounts that hold long positions and accounts that hold short positions, books the net rounding difference in the fee vault, and then runs the margin waterfall.
+
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
+
+## 2. Interface
+
+```python
+from exchange_core.types import Event, Report
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:
+    """Apply funding payments and return the reports in order."""
+```
+
+For a FUNDING event, `event.bps` holds the funding rate in **parts per million** (it can be negative). The other event fields are not used.
+
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. The handler may use these members:
+
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. The handler reads it and changes it in place. The current mark price is `engine.state.mark_price`.
+- `engine.cfg`: the `EngineConfig` instance. `engine.cfg.ppm` is the divisor for parts per million (1,000,000).
+- `engine.dispatch(event: Event) -> list[Report]`: runs the event through the engine's own handler for `event.kind` and returns its reports. `engine.process(event)` does exactly the same.
+
+The `Engine` class itself is not part of this task. Use only the members listed here; no other attribute of `engine` is available. `round_half_even` is in `exchange_core/intmath.py`; its documented precondition is `n >= 0`.
+
+## 3. Rules
+
+**R-Y1.** The engine clamps the rate to the range -3000 to +3000, both limits included. The clamped value is `rate`.
+
+**R-Y2.** If `rate != 0`, the engine processes every account with `position != 0`, in ascending account-id order (the `LIQ` account is included). For each such account:
+- `notional = abs(position) * mark_price`
+- `amount = round_half_even(notional * abs(rate), ppm)`. The rounding is applied to this non-negative value.
+- The account **pays** `amount` when it is long and `rate > 0`, or short and `rate < 0`. In every other case it **receives** `amount`.
+- A payment is subtracted from `free_cash`. A receipt is added to `free_cash`. `free_cash` can become negative.
+
+Locks, volume and positions do not change.
+
+**R-Y3.** The rounding is done per account, so the payments and receipts need not cancel. The engine adds the net of all payments (payments minus receipts; the net can be negative) to `state.fee_vault`. Total cash plus `fee_vault` is therefore unchanged.
+
+**R-Y4.** The first report is `Report(kind="FUNDING_APPLIED", bps=rate, qty=n)`, where `rate` is the clamped rate and `n` is the number of accounts processed in R-Y2. If `rate == 0`, R-Y2 processes no account, so `n = 0` (even if some accounts hold positions). If `rate != 0`, `n` counts every account with `position != 0`, including an account whose `amount` rounds to 0.
+
+**R-Y5.** After the payments, the engine always runs the margin waterfall at the current mark price: it dispatches `Event(kind="PRICE_SHOCK", mark_price=state.mark_price)` through `engine.dispatch` and appends the returned reports, in their own order, after `FUNDING_APPLIED`. This also happens when `rate == 0`.
+
+## 4. Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+
+All other `exchange_core` imports (including `exchange_core.rules.*` and other handlers such as `exchange_core.handlers.shock`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.
+
+## 5. Output format
+
+Provide the complete contents of `exchange_core/handlers/funding.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
+
+### FILE: exchange_core/handlers/funding.py
+```python
+# complete file contents here
+```
+
+
+## Public Tests (Visible)
+```python
+"""tasks/f7_funding_b/public_tests/test_f7_funding_b.py
+Public unit tests for task f7_funding_b.
+"""
+from exchange_core.config import EngineConfig
+from exchange_core.engine import Engine
+from exchange_core.types import Event
+
+P = 100_000_000
+
+
+def make():
+    accounts = {"A1": 5_000_000_000, "A2": 5_000_000_000, "LIQ": 50_000_000_000}
+    return Engine(EngineConfig(), accounts, mark_price=P)
+
+
+def trade(eng, qty):
+    """A1 sells qty to A2 at P: A1 is short, A2 is long."""
+    eng.process(Event(kind="NEW_LIMIT", account="A1", side="SELL", price=P, qty=qty))
+    eng.process(Event(kind="NEW_LIMIT", account="A2", side="BUY", price=P, qty=qty))
+
+
+def cash(eng):
+    return {a: v.free_cash for a, v in eng.state.accounts.items()}
+
+
+def test_no_positions_only_reports():
+    eng = make()
+    reps = eng.process(Event(kind="FUNDING", bps=1000))
+    assert [r.kind for r in reps] == ["FUNDING_APPLIED", "MARK_SET"]
+    assert reps[0].bps == 1000 and reps[0].qty == 0
+    assert reps[1].mark_price == P
+
+
+def test_positive_rate_long_pays_short():
+    eng = make()
+    trade(eng, 3)
+    before, vault = cash(eng), eng.state.fee_vault
+    reps = eng.process(Event(kind="FUNDING", bps=1000))
+    amount = 3 * P * 1000 // 1_000_000
+    after = cash(eng)
+    assert after["A2"] == before["A2"] - amount
+    assert after["A1"] == before["A1"] + amount
+    assert after["LIQ"] == before["LIQ"]
+    assert eng.state.fee_vault == vault
+    assert reps[0].kind == "FUNDING_APPLIED" and reps[0].qty == 2
+
+
+def test_negative_rate_short_pays_long():
+    eng = make()
+    trade(eng, 2)
+    before = cash(eng)
+    eng.process(Event(kind="FUNDING", bps=-500))
+    amount = 2 * P * 500 // 1_000_000
+    after = cash(eng)
+    assert after["A1"] == before["A1"] - amount
+    assert after["A2"] == before["A2"] + amount
+
+
+def test_rate_is_clamped():
+    eng = make()
+    trade(eng, 1)
+    before = cash(eng)
+    reps = eng.process(Event(kind="FUNDING", bps=9000))
+    assert reps[0].bps == 3000
+    assert before["A2"] - cash(eng)["A2"] == P * 3000 // 1_000_000
+```
+
+
+## Target Files to Implement
+
+
+### Stub: exchange_core/handlers/funding.py
+```python
+"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a FUNDING event."""
+    raise NotImplementedError("Implement handle_funding")
+```
+
+
+## Reference Context (Read-Only)
+
+
+### Context: exchange_core/types.py
+```python
+"""exchange_core/types.py
+Data types and report structures.
+See docs/04_RULEBOOK.md and docs/05_INVARIANTS_AND_DATA.md.
+"""
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+
+@dataclass
+class Order:
+    """An order in the exchange.
+
+    Rule R-B1: An order has order_id, account, side (BUY or SELL),
+    price, qty, cum_qty, prio_seq, margin_bps, lock, flag.
+    leaves equals qty - cum_qty. Flag is NONE, IOC, or POST_ONLY.
+    """
+    order_id: int
+    account: str
+    side: str
+    price: int
+    qty: int
+    cum_qty: int
+    prio_seq: int
+    margin_bps: int
+    lock: int
+    flag: str = "NONE"
+
+    @property
+    def leaves(self) -> int:
+        return self.qty - self.cum_qty
+
+
+@dataclass(frozen=True)
+class BasketLeg:
+    """One leg of an atomic basket event.
+
+    Rule R-A1: A leg has side, price, qty, and flag (IOC or POST_ONLY).
+    """
+    side: str
+    price: int
+    qty: int
+    flag: str = "NONE"
+
+
+@dataclass(frozen=True)
+class Event:
+    """An input event to the exchange engine.
+
+    Events are frozen dataclasses with a kind field.
+    Kinds: NEW_LIMIT, CANCEL, REPLACE, SET_MARGIN_RATE, PRICE_SHOCK,
+           FIX_MSG, SESSION_RESET, BASKET.
+    """
+    kind: str
+    account: str = ""
+    side: str = ""
+    price: int = 0
+    qty: int = 0
+    flag: str = "NONE"
+    order_id: int = 0
+    new_price: int = 0
+    new_qty: int = 0
+    bps: int = 0
+    mark_price: int = 0
+    session: str = ""
+    epoch: int = 0
+    seq: int = 0
+    poss_dup: bool = False
+    body: Optional[Any] = None
+    legs: tuple[BasketLeg, ...] = field(default_factory=tuple)
+
+
+# FixMsg alias for FIX sequence handling
+FixMsg = Event
+
+
+@dataclass(frozen=True)
+class Report:
+    """An output report from the engine.
+    See docs/04_RULEBOOK.md section 11.
+    """
+    kind: str
+    order_id: int = 0
+    reason: str = ""
+    buy_order_id: int = 0
+    sell_order_id: int = 0
+    price: int = 0
+    qty: int = 0
+    taker_order_id: int = 0
+    account: str = ""
+    mark_price: int = 0
+    bps: int = 0
+    session: str = ""
+    leg_index: int = 0
+
+    @classmethod
+    def accepted(cls, order_id: int) -> "Report": return cls(kind="ACCEPTED", order_id=order_id)
+    @classmethod
+    def rejected(cls, reason: str) -> "Report": return cls(kind="REJECTED", reason=reason)
+    @classmethod
+    def fill(
+        cls, buy_order_id: int, sell_order_id: int, price: int, qty: int, taker_order_id: int
+    ) -> "Report":
+        return cls(
+            kind="FILL", buy_order_id=buy_order_id, sell_order_id=sell_order_id,
+            price=price, qty=qty, taker_order_id=taker_order_id,
+        )
+    @classmethod
+    def cancelled(cls, order_id: int, reason: str) -> "Report":
+        return cls(kind="CANCELLED", order_id=order_id, reason=reason)
+    @classmethod
+    def replaced(cls, order_id: int) -> "Report": return cls(kind="REPLACED", order_id=order_id)
+    @classmethod
+    def buffered(cls) -> "Report": return cls(kind="BUFFERED")
+    @classmethod
+    def discarded(cls, reason: str) -> "Report": return cls(kind="DISCARDED", reason=reason)
+    @classmethod
+    def liquidated(cls, account: str, qty: int) -> "Report":
+        return cls(kind="LIQUIDATED", account=account, qty=qty)
+    @classmethod
+    def mark_set(cls, mark_price: int) -> "Report":
+        return cls(kind="MARK_SET", mark_price=mark_price)
+    @classmethod
+    def margin_rate_set(cls, bps: int) -> "Report": return cls(kind="MARGIN_RATE_SET", bps=bps)
+    @classmethod
+    def session_reset_done(cls, session: str) -> "Report":
+        return cls(kind="SESSION_RESET_DONE", session=session)
+    @classmethod
+    def basket_committed(cls) -> "Report": return cls(kind="BASKET_COMMITTED")
+    @classmethod
+    def basket_rolled_back(cls, leg_index: int) -> "Report":
+        return cls(kind="BASKET_ROLLED_BACK", leg_index=leg_index)
+
+
+@dataclass(frozen=True)
+class Fill:
+    """Internal fill record passed to settle_fill."""
+    buy_order_id: int
+    sell_order_id: int
+    price: int
+    qty: int
+    taker_order_id: int
+    buyer: str = ""
+    seller: str = ""
+
+    @property
+    def notional(self) -> int:
+        return self.price * self.qty
+
+
+@dataclass
+class ReplaceDecision:
+    """Outcome of pure replace rule (Variant A target)."""
+    ok: bool
+    reason: str = ""
+    keep_priority: bool = False
+    new_leaves: int = 0
+
+
+@dataclass
+class SessionOutcome:
+    """Outcome of pure session message handling (Variant A target)."""
+    to_process: list[Any] = field(default_factory=list)
+    reports: list[Report] = field(default_factory=list)
+
+
+@dataclass
+class AccountView:
+    """Read-only view of account for waterfall planning."""
+    account_id: str
+    free_cash: int
+    locked_margin: int
+    position: int
+
+
+@dataclass
+class WaterfallPlan:
+    """Outcome of pure waterfall planning (Variant A target)."""
+    in_breach_stage1: bool
+    in_breach_stage2: bool
+    cancelled_orders: list[int] = field(default_factory=list)
+    liquidate_qty: int = 0
+```
+
+### Context: exchange_core/state.py
+```python
+"""exchange_core/state.py
+Mutable state classes for the exchange engine.
+See docs/05_INVARIANTS_AND_DATA.md.
+"""
+from dataclasses import dataclass, field
+
+from exchange_core.types import FixMsg, Order
+
+
+@dataclass
+class Account:
+    """An account on the exchange.
+    Tracks cash balance, locked margin, position, and cumulative volume.
+    """
+    free_cash: int
+    locked_margin: int
+    position: int
+    volume: int
+
+    def clone(self) -> "Account":
+        return Account(
+            free_cash=self.free_cash,
+            locked_margin=self.locked_margin,
+            position=self.position,
+            volume=self.volume,
+        )
+
+
+@dataclass
+class SessionState:
+    """FIX session state.
+    Tracks current epoch, expected next sequence number, and out-of-order buffer.
+    """
+    epoch: int
+    next_seq: int
+    buffer: dict[int, FixMsg] = field(default_factory=dict)
+
+    def clone(self) -> "SessionState":
+        return SessionState(
+            epoch=self.epoch,
+            next_seq=self.next_seq,
+            buffer=dict(self.buffer),
+        )
+
+
+@dataclass
+class EngineState:
+    """Single container for all mutable engine state.
+
+    Rule ENG-07: The engine must keep all state in one EngineState object.
+    Rule ENG-08: EngineState must support snapshot() and restore().
+    A restore must give a state with the same hash as the snapshot.
+    """
+    accounts: dict[str, Account]
+    orders: dict[int, Order]  # resting orders by order_id
+    fee_vault: int
+    next_order_id: int
+    next_prio_seq: int
+    margin_bps: int
+    mark_price: int
+    sessions: dict[str, SessionState]
+    initial_total: int
+
+    def snapshot(self) -> "EngineState":
+        """Produce an independent deep snapshot of the engine state."""
+        return EngineState(
+            accounts={k: v.clone() for k, v in self.accounts.items()},
+            orders={k: Order(**v.__dict__) for k, v in self.orders.items()},
+            fee_vault=self.fee_vault,
+            next_order_id=self.next_order_id,
+            next_prio_seq=self.next_prio_seq,
+            margin_bps=self.margin_bps,
+            mark_price=self.mark_price,
+            sessions={k: v.clone() for k, v in self.sessions.items()},
+            initial_total=self.initial_total,
+        )
+
+    def restore(self, snap: "EngineState") -> None:
+        """Restore all state in-place from an earlier snapshot (Rule R-A4, ENG-08)."""
+        self.accounts = {k: v.clone() for k, v in snap.accounts.items()}
+        self.orders = {k: Order(**v.__dict__) for k, v in snap.orders.items()}
+        self.fee_vault = snap.fee_vault
+        self.next_order_id = snap.next_order_id
+        self.next_prio_seq = snap.next_prio_seq
+        self.margin_bps = snap.margin_bps
+        self.mark_price = snap.mark_price
+        self.sessions = {k: v.clone() for k, v in snap.sessions.items()}
+        self.initial_total = snap.initial_total
+```
+
+### Context: exchange_core/intmath.py
+```python
+"""exchange_core/intmath.py
+Integer arithmetic helpers.
+
+Rule R-U1: All amounts, prices, and quantities are integers.
+No other module does rounding.
+No float is used. No bare / operator is used.
+"""
+
+
+def round_half_even(n: int, d: int) -> int:
+    """Divide n by d and round to the nearest integer.
+
+    Rule R-U2: When the result is exactly halfway, round to the even integer.
+
+    Algorithm:
+      Let q, r = divmod(n, d).
+      If 2*r > d:  return q + 1.
+      If 2*r == d: return q + (q % 2).   # q is odd -> +1, q is even -> +0
+      Otherwise:   return q.
+
+    Preconditions: n >= 0, d > 0.
+    """
+    q, r = divmod(n, d)
+    if 2 * r > d:
+        return q + 1
+    if 2 * r == d:
+        return q + (q % 2)
+    return q
+
+
+def ceil_div(n: int, d: int) -> int:
+    """Return the smallest integer that is not below n / d.
+
+    Rule R-U3: Equals -((-n) // d).
+
+    Preconditions: n >= 0, d > 0.
+    """
+    return -((-n) // d)
+```
+
+### Context: exchange_core/config.py
+```python
+"""exchange_core/config.py
+Configuration constants for the exchange engine.
+See docs/04_RULEBOOK.md section 1.
+"""
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class EngineConfig:
+    """Holds engine constants.
+
+    All amounts, prices, and quantities are integers (rule R-U1).
+    """
+    tick: int = 10_000
+    margin_bps_default: int = 2_000
+    maint_bps: int = 500
+    ppm: int = 1_000_000
+    taker_ppm_t0: int = 2_750
+    taker_ppm_t1: int = 1_850
+    maker_rebate_ppm: int = 250
+    tier_threshold: int = 5_000_010_000
+
+    # Aliases matching uppercase notation in docs/04_RULEBOOK.md
+    @property
+    def TICK(self) -> int: return self.tick
+    @property
+    def MARGIN_BPS_DEFAULT(self) -> int: return self.margin_bps_default
+    @property
+    def MAINT_BPS(self) -> int: return self.maint_bps
+    @property
+    def PPM(self) -> int: return self.ppm
+    @property
+    def TAKER_PPM_T0(self) -> int: return self.taker_ppm_t0
+    @property
+    def TAKER_PPM_T1(self) -> int: return self.taker_ppm_t1
+    @property
+    def MAKER_REBATE_PPM(self) -> int: return self.maker_rebate_ppm
+    @property
+    def TIER_THRESHOLD(self) -> int: return self.tier_threshold
+```
+
+### Context: exchange_core/book.py
+```python
+"""exchange_core/book.py
+Book primitives. Derived views of resting orders in EngineState.
+No rule logic belongs here (docs/03_ARCHITECTURE.md).
+"""
+from typing import Optional
+
+from exchange_core.state import EngineState
+from exchange_core.types import Order
+
+
+def add_order(state: EngineState, order: Order) -> None:
+    """Add a resting order to the state."""
+    state.orders[order.order_id] = order
+
+
+def remove_order(state: EngineState, order_id: int) -> Optional[Order]:
+    """Remove and return a resting order by order_id."""
+    return state.orders.pop(order_id, None)
+
+
+def get_order(state: EngineState, order_id: int) -> Optional[Order]:
+    """Retrieve a resting order by order_id."""
+    return state.orders.get(order_id)
+
+
+def get_bids(state: EngineState) -> list[Order]:
+    """Return all resting BUY orders in priority order (Rule R-B2)."""
+    bids = [o for o in state.orders.values() if o.side == "BUY" and o.leaves > 0]
+    bids.sort(key=lambda o: (-o.price, o.prio_seq))
+    return bids
+
+
+def get_asks(state: EngineState) -> list[Order]:
+    """Return all resting SELL orders in priority order (Rule R-B2)."""
+    asks = [o for o in state.orders.values() if o.side == "SELL" and o.leaves > 0]
+    asks.sort(key=lambda o: (o.price, o.prio_seq))
+    return asks
+
+
+def best_bid(state: EngineState) -> Optional[int]:
+    """Return highest bid price, or None if no bids exist."""
+    bids = get_bids(state)
+    return bids[0].price if bids else None
+
+
+def best_ask(state: EngineState) -> Optional[int]:
+    """Return lowest ask price, or None if no asks exist."""
+    asks = get_asks(state)
+    return asks[0].price if asks else None
+
+
+def get_account_orders(state: EngineState, account: str) -> list[Order]:
+    """Return all resting orders for an account, sorted by prio_seq ascending (Rule R-W3)."""
+    orders = [o for o in state.orders.values() if o.account == account and o.leaves > 0]
+    orders.sort(key=lambda o: o.prio_seq)
+    return orders
+```
+
+### Context: exchange_core/ledger.py
+```python
+"""exchange_core/ledger.py
+Cash and lock primitives.
+No rule logic belongs here (docs/03_ARCHITECTURE.md).
+"""
+from typing import Optional
+
+from exchange_core.state import Account, EngineState
+
+
+def get_account(state: EngineState, account_id: str) -> Optional[Account]:
+    """Retrieve an account by ID."""
+    return state.accounts.get(account_id)
+
+
+def has_account(state: EngineState, account_id: str) -> bool:
+    """Return True if the account exists."""
+    return account_id in state.accounts
+
+
+def lock_cash(state: EngineState, account_id: str, amount: int) -> None:
+    """Move amount from free_cash to locked_margin."""
+    acc = state.accounts[account_id]
+    acc.free_cash -= amount
+    acc.locked_margin += amount
+
+
+def release_lock(state: EngineState, account_id: str, amount: int) -> None:
+    """Move amount from locked_margin to free_cash."""
+    acc = state.accounts[account_id]
+    acc.locked_margin -= amount
+    acc.free_cash += amount
+
+
+def transfer_cash(state: EngineState, from_id: str, to_id: str, amount: int) -> None:
+    """Transfer free_cash from one account to another."""
+    state.accounts[from_id].free_cash -= amount
+    state.accounts[to_id].free_cash += amount
+
+
+def adjust_position(state: EngineState, account_id: str, delta: int) -> None:
+    """Adjust position by delta (positive = increase, negative = decrease)."""
+    state.accounts[account_id].position += delta
+
+
+def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+    """Deduct fee from account free_cash and deposit to fee_vault."""
+    state.accounts[account_id].free_cash -= fee
+    state.fee_vault += fee
+
+
+def pay_rebate(state: EngineState, account_id: str, rebate: int) -> None:
+    """Credit rebate from fee_vault to account free_cash."""
+    state.fee_vault -= rebate
+    state.accounts[account_id].free_cash += rebate
+
+
+def add_volume(state: EngineState, account_id: str, notional: int) -> None:
+    """Add notional to an account's trading volume."""
+    state.accounts[account_id].volume += notional
+```

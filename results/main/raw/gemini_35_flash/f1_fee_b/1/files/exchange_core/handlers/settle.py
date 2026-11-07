@@ -1,0 +1,70 @@
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.intmath import round_half_even
+from exchange_core.types import Fill, Report
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    cfg = engine.cfg
+    state = engine.state
+
+    notional = fill.price * fill.qty
+
+    # 1. Buyer pays notional, buyer position increases by qty
+    buyer_acc = state.accounts[fill.buyer]
+    buyer_acc.free_cash -= notional
+    buyer_acc.position += fill.qty
+
+    # 2. Seller receives notional, seller position decreases by qty
+    seller_acc = state.accounts[fill.seller]
+    seller_acc.free_cash += notional
+    seller_acc.position -= fill.qty
+
+    # Determine taker and maker accounts
+    if fill.taker_order_id == fill.buy_order_id:
+        taker_account = fill.buyer
+        maker_account = fill.seller
+    else:
+        taker_account = fill.seller
+        maker_account = fill.buyer
+
+    # 3. Compute taker fee from taker volume before fill (R-F2)
+    taker_vol_before = state.accounts[taker_account].volume
+    tier_threshold = cfg.tier_threshold
+    ppm = cfg.ppm
+    t0 = cfg.taker_ppm_t0
+    t1 = cfg.taker_ppm_t1
+
+    if taker_vol_before >= tier_threshold:
+        taker_fee = round_half_even(notional * t1, ppm)
+    elif taker_vol_before + notional <= tier_threshold:
+        taker_fee = round_half_even(notional * t0, ppm)
+    else:
+        below = tier_threshold - taker_vol_before
+        above = notional - below
+        taker_fee = round_half_even(below * t0, ppm) + round_half_even(above * t1, ppm)
+
+    # 4. Compute maker rebate (R-F3)
+    maker_rebate = round_half_even(notional * cfg.maker_rebate_ppm, ppm)
+
+    # 5. Taker pays fee from free_cash, maker receives rebate in free_cash, fee_vault increases by fee - rebate
+    state.accounts[taker_account].free_cash -= taker_fee
+    state.accounts[maker_account].free_cash += maker_rebate
+    state.fee_vault += (taker_fee - maker_rebate)
+
+    # 6. Buyer and seller each add notional to their volume (R-F1)
+    state.accounts[fill.buyer].volume += notional
+    state.accounts[fill.seller].volume += notional
+
+    # 7. Return a FILL report
+    report = Report.fill(
+        buy_order_id=fill.buy_order_id,
+        sell_order_id=fill.sell_order_id,
+        price=fill.price,
+        qty=fill.qty,
+        taker_order_id=fill.taker_order_id,
+    )
+    return [report]

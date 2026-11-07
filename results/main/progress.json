@@ -1,0 +1,21 @@
+{
+ "pid": 91537,
+ "mode": "single_turn",
+ "started": 1793948979.766249,
+ "updated": 1793949482.240073,
+ "total": 51,
+ "done": 51,
+ "eta_seconds": 0.0,
+ "current": {},
+ "per_model": {
+  "nemotron_nano": {
+   "done": 5
+  }
+ },
+ "expected": {
+  "nemotron_nano": 51
+ },
+ "stopped": [],
+ "skipped": [],
+ "state": "finished"
+}

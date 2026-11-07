@@ -1,0 +1,57 @@
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from typing import Any
+
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import release_lock
+from exchange_core.types import Event, Report
+
+
+def handle_shock(engine: Any, event: Event) -> list[Report]:
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    engine.state.mark_price = event.mark_price
+    reports: list[Report] = [Report.mark_set(event.mark_price)]
+
+    account_ids = sorted(
+        acc_id for acc_id in engine.state.accounts.keys() if acc_id != "LIQ"
+    )
+
+    for acc_id in account_ids:
+        acc = engine.state.accounts[acc_id]
+        if acc.position == 0:
+            continue
+
+        avail = acc.free_cash + acc.position * engine.state.mark_price
+        req = ceil_div(
+            abs(acc.position) * engine.state.mark_price * engine.cfg.maint_bps,
+            10000,
+        )
+
+        if avail < req:
+            # Stage 1: Cancel resting orders in ascending prio_seq order
+            orders = get_account_orders(engine.state, acc_id)
+            for order in orders:
+                remove_order(engine.state, order.order_id)
+                release_lock(engine.state, acc_id, order.lock)
+                reports.append(Report.cancelled(order.order_id, "RISK"))
+
+            # Re-evaluate breach after Stage 1
+            avail = acc.free_cash + acc.position * engine.state.mark_price
+            if avail < req:
+                # Stage 2: Liquidate position at mark_price against LIQ
+                orig_pos = acc.position
+                cash_transfer = orig_pos * engine.state.mark_price
+
+                acc.free_cash += cash_transfer
+                acc.position = 0
+
+                liq_acc = engine.state.accounts["LIQ"]
+                liq_acc.free_cash -= cash_transfer
+                liq_acc.position += orig_pos
+
+                reports.append(Report.liquidated(acc_id, orig_pos))
+
+    return reports

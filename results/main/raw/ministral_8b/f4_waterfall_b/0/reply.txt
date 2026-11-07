@@ -1,0 +1,76 @@
+### FILE: exchange_core/handlers/shock.py
+```python
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import EngineState
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.config import EngineConfig
+
+def handle_shock(engine: Engine, event: Event) -> list[Report]:
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    reports = []
+    state = engine.state
+    cfg = engine.cfg
+
+    # Set mark price and add MARK_SET report
+    state.mark_price = event.mark_price
+    reports.append(Report.mark_set(event.mark_price))
+
+    # Process each account except LIQ in ascending account-id order
+    accounts_sorted = sorted(state.accounts.keys())
+    for acc_id in accounts_sorted:
+        if acc_id == "LIQ":
+            continue
+
+        account = state.accounts[acc_id]
+        position = account.position
+        free_cash = account.free_cash
+        mark_price = state.mark_price
+        maint_bps = cfg.MAINT_BPS
+
+        # Skip if position is 0 (Rule R-W2)
+        if position == 0:
+            continue
+
+        # Calculate available cash and maintenance requirement (Rule R-W2)
+        avail = free_cash + position * mark_price
+        req = ceil_div(abs(position) * mark_price * maint_bps, 10000)
+
+        # Check if account is in breach
+        in_breach = avail < req
+
+        if in_breach:
+            # Stage 1: Cancel all resting orders in ascending prio_seq order
+            account_orders = get_account_orders(state, acc_id)
+            for order in account_orders:
+                reports.append(Report.cancelled(order.order_id, "RISK"))
+                remove_order(state, order.order_id)
+                # Release the lock to free_cash
+                release_lock(state, acc_id, order.lock)
+
+            # Recalculate available cash after cancelling orders
+            avail = free_cash + position * mark_price
+            req = ceil_div(abs(position) * mark_price * maint_bps, 10000)
+
+            # Check if account is still in breach after Stage 1
+            if avail >= req:
+                continue
+
+            # Stage 2: Liquidate the whole position
+            qty = position
+            reports.append(Report.liquidated(acc_id, qty))
+
+            # Update positions and cash
+            adjust_position(state, acc_id, -qty)
+            adjust_position(state, "LIQ", qty)
+            if qty > 0:
+                transfer_cash(state, "LIQ", acc_id, qty * mark_price)
+            else:
+                transfer_cash(state, acc_id, "LIQ", -qty * mark_price)
+
+    return reports
+```

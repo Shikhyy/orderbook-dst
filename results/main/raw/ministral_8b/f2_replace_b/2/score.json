@@ -1,0 +1,198 @@
+{
+  "task_id": "f2_replace_b",
+  "t1": 0.9,
+  "t2": 0.75,
+  "t3": 0.0,
+  "score": 0.405,
+  "passed": false,
+  "first_failure": {
+    "seed": 4000,
+    "event_index": 1,
+    "invariant": "D1",
+    "plain_name": "Report mismatch",
+    "message": "event 1 report differs from reference",
+    "diff": {
+      "expected": [
+        {
+          "kind": "REPLACED",
+          "order_id": 1,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ],
+      "actual": [
+        {
+          "kind": "REJECTED",
+          "order_id": 0,
+          "reason": "REPLACE_WOULD_CROSS",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 64
+  },
+  "error": null,
+  "public_test_output": ".........F                                                               [100%]\n=================================== FAILURES ===================================\n___________________ test_10_lock_change_and_cash_adjustment ____________________\n\nengine = <exchange_core.engine.Engine object at 0x10bd2bb50>\n\n    def test_10_lock_change_and_cash_adjustment(engine: Engine) -> None:\n        # A1 initial: free_cash = 1_000_000_000, locked = 0\n        engine.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=100_000_000, qty=10))\n        # Lock for 10 lots @ 100M, rate 20% (2000 bps) = 200_000_000\n        assert engine.state.accounts[\"A1\"].free_cash == 800_000_000\n        assert engine.state.accounts[\"A1\"].locked_margin == 200_000_000\n    \n        # Replace to qty=6 (lock becomes 120_000_000)\n        ev = Event(kind=\"REPLACE\", order_id=1, new_price=100_000_000, new_qty=6)\n        handle_replace(engine, ev)\n        assert engine.state.accounts[\"A1\"].free_cash == 880_000_000\n        assert engine.state.accounts[\"A1\"].locked_margin == 120_000_000\n        assert engine.state.orders[1].lock == 120_000_000\n    \n        # Replace that requires more margin than free cash must be rejected\n        ev_huge = Event(kind=\"REPLACE\", order_id=1, new_price=1_000_000_000, new_qty=60)\n        r = handle_replace(engine, ev_huge)\n        assert [rep.kind for rep in r] == [\"REJECTED\"]\n>       assert r[0].reason == \"INSUFFICIENT_MARGIN\"\nE       AssertionError: assert 'REPLACE_WOULD_CROSS' == 'INSUFFICIENT_MARGIN'\nE         \nE         - INSUFFICIENT_MARGIN\nE         + REPLACE_WOULD_CROSS\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_lxlpkd62/tests/test_f2_replace_b.py:146: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_b_lxlpkd62/tests/test_f2_replace_b.py::test_10_lock_change_and_cash_adjustment\n1 failed, 9 passed in 0.09s",
+  "seed_failures": [
+    {
+      "seed": 4000,
+      "event_index": 1,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4001,
+      "event_index": 4,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4002,
+      "event_index": 3,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4003,
+      "event_index": 2,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4004,
+      "event_index": 2,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4005,
+      "event_index": 8,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4006,
+      "event_index": 29,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4007,
+      "event_index": 11,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4008,
+      "event_index": 28,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4009,
+      "event_index": 18,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4010,
+      "event_index": 1,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4011,
+      "event_index": 2,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4012,
+      "event_index": 1,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4013,
+      "event_index": 19,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4014,
+      "event_index": 1,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4015,
+      "event_index": 45,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4016,
+      "event_index": 102,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4017,
+      "event_index": 1,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4018,
+      "event_index": 30,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 4019,
+      "event_index": 62,
+      "labels": [
+        "D1"
+      ]
+    }
+  ]
+}

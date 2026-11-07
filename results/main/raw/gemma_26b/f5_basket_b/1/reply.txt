@@ -1,0 +1,80 @@
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    # R-A2: Take a snapshot of the complete state before processing legs.
+    snap = engine.state.snapshot()
+    
+    leg_reports = []
+    
+    for i, leg in enumerate(event.legs):
+        # Create a NEW_LIMIT event for this leg.
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        # Process the leg.
+        reps = engine.dispatch(leg_event)
+        
+        # Check for rejection or failure.
+        # R-A3:
+        # - An IOC leg succeeds if it is accepted and leaves is 0.
+        #   (The dispatch handler for NEW_LIMIT/IOC will return REJECTED or 
+        #   emit IOC_REMAINDER if it doesn't fully fill. We need to ensure
+        #   it's not rejected and has no remainder.)
+        # - A POST_ONLY leg succeeds if it is accepted (must not cross).
+        # - A rejected leg fails.
+        
+        # Note: engine.dispatch returns the reports. If the leg is rejected,
+        # there will be a REJECTED report.
+        
+        failed = False
+        found_rejection = False
+        
+        for r in reps:
+            if r.kind == "REJECTED":
+                found_rejection = True
+                failed = True
+                break
+            
+            # R-A3 details for IOC:
+            # "An IOC leg succeeds if it is accepted and `leaves` is 0 after matching
+            # (it must not have an `IOC_REMAINDER` cancellation)."
+            # In our implementation, if an IOC doesn't fill, the engine might 
+            # emit a cancellation for the remainder or just return REJECTED.
+            # However, standard behavior for a "failed" leg in this context
+            # usually implies the primary event was rejected.
+            # Let's check if any report indicates a failure to execute the full qty.
+            if r.kind == "CANCELLED" and r.reason == "IOC_REMAINDER":
+                failed = True
+                break
+        
+        if failed or found_rejection:
+            # R-A4: If a leg fails, stop, restore snapshot, report basket_rolled_back.
+            engine.state.restore(snap)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        # According to R-A3, we must also verify the IOC condition specifically.
+        # If the leg was IOC, it must have been fully filled (leaves == 0).
+        # The reports from engine.dispatch for an accepted IOC might include FILLs.
+        # If it wasn't fully filled, it might have an IOC_REMAINDER cancellation.
+        # We already checked for that in the loop above.
+        
+        leg_reports.extend(reps)
+
+    # R-A5: If all legs succeed, report reports in order, then BASKET_COMMITTED.
+    leg_reports.append(Report.basket_committed())
+    return leg_reports
+```

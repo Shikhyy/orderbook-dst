@@ -1,0 +1,63 @@
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    # Take snapshot before processing any legs (R-A2)
+    snapshot = engine.state.snapshot()
+    
+    all_reports: list[Report] = []
+    legs = event.legs
+    
+    # Empty basket: immediately commit (R-A5)
+    if not legs:
+        return [Report.basket_committed()]
+    
+    for i, leg in enumerate(legs):
+        # Create NEW_LIMIT event for this leg (R-A2)
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag,
+        )
+        
+        # Dispatch the leg event
+        reports = engine.dispatch(leg_event)
+        
+        # Check if leg succeeds (R-A3)
+        leg_failed = False
+        
+        # Any rejection means failure
+        for r in reports:
+            if r.kind == "REJECTED":
+                leg_failed = True
+                break
+        
+        # IOC leg fails if it has IOC_REMAINDER cancellation (not fully filled)
+        if not leg_failed and leg.flag == "IOC":
+            for r in reports:
+                if r.kind == "CANCELLED" and r.reason == "IOC_REMAINDER":
+                    leg_failed = True
+                    break
+        
+        # POST_ONLY leg fails if rejected (already checked above)
+        # If accepted, it succeeds (POST_ONLY that would cross is rejected)
+        
+        if leg_failed:
+            # Rollback to snapshot (R-A4)
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(i)]
+        
+        # Leg succeeded, collect reports
+        all_reports.extend(reports)
+    
+    # All legs succeeded (R-A5)
+    all_reports.append(Report.basket_committed())
+    return all_reports

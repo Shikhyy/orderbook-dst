@@ -1,0 +1,173 @@
+### FILE: exchange_core/handlers/new_limit.py
+```python
+"""exchange_core/handlers/new_limit.py
+Handler for NEW_LIMIT events: validation, margin, matching and fill settlement.
+Rules R-B4, R-B5, R-M1 to R-M5. Target for task f6_match_b.
+"""
+from exchange_core.handlers.settle import settle_fill
+from exchange_core.intmath import ceil_div
+from exchange_core.book import get_asks, get_bids, add_order, remove_order, best_ask, best_bid
+from exchange_core.types import Event, Report, Order, Fill
+from exchange_core.ledger import lock_cash, release_lock
+
+
+def handle_new_limit(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a NEW_LIMIT event."""
+    state = engine.state
+    cfg = engine.cfg
+    reports: list[Report] = []
+
+    # R-B4 validation step 1: account exists
+    account = state.accounts.get(event.account)
+    if account is None:
+        return [Report.rejected("UNKNOWN_ACCOUNT")]
+
+    # R-B4 validation step 2: qty > 0, price > 0, price % tick == 0
+    if event.qty <= 0 or event.price <= 0 or event.price % cfg.tick != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # R-B4 validation step 3: POST_ONLY would cross
+    if event.flag == "POST_ONLY":
+        if event.side == "BUY":
+            best = best_ask(state)
+            if best is not None and best <= event.price:
+                return [Report.rejected("POST_ONLY_WOULD_CROSS")]
+        else:  # SELL
+            best = best_bid(state)
+            if best is not None and best >= event.price:
+                return [Report.rejected("POST_ONLY_WOULD_CROSS")]
+
+    # R-B4 validation step 4: sufficient margin
+    lock = ceil_div(event.qty * event.price * state.margin_bps, 10000)
+    if account.free_cash < lock:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # R-B5: Order is valid, proceed with processing
+    order_id = state.next_order_id
+    prio_seq = state.next_prio_seq
+    state.next_order_id += 1
+    state.next_prio_seq += 1
+
+    # Create the order
+    order = Order(
+        order_id=order_id,
+        account=event.account,
+        side=event.side,
+        price=event.price,
+        qty=event.qty,
+        cum_qty=0,
+        prio_seq=prio_seq,
+        margin_bps=state.margin_bps,
+        lock=lock,
+        flag=event.flag,
+    )
+
+    # Lock the margin
+    account.free_cash -= lock
+    account.locked_margin += lock
+
+    # Report ACCEPTED
+    reports.append(Report.accepted(order_id))
+
+    # R-M1 to R-M4: Matching loop
+    while order.leaves > 0:
+        # Get opposite side orders in priority order
+        if order.side == "BUY":
+            opposite_orders = get_asks(state)
+            if not opposite_orders:
+                break
+            best_opposite = opposite_orders[0]
+            if best_opposite.price > order.price:
+                break
+        else:  # SELL
+            opposite_orders = get_bids(state)
+            if not opposite_orders:
+                break
+            best_opposite = opposite_orders[0]
+            if best_opposite.price < order.price:
+                break
+
+        # R-M3: Self-trade prevention
+        if best_opposite.account == order.account:
+            # Cancel the resting order with STP
+            resting_order = remove_order(state, best_opposite.order_id)
+            if resting_order is not None:
+                # Release its lock
+                resting_account = state.accounts[resting_order.account]
+                resting_account.locked_margin -= resting_order.lock
+                resting_account.free_cash += resting_order.lock
+                reports.append(Report.cancelled(resting_order.order_id, "STP"))
+            continue
+
+        # R-M2: Fill price is resting order price, qty is min(leaves)
+        fill_price = best_opposite.price
+        fill_qty = min(order.leaves, best_opposite.leaves)
+
+        # Determine buyer and seller
+        if order.side == "BUY":
+            buy_order_id = order.order_id
+            sell_order_id = best_opposite.order_id
+            buyer = order.account
+            seller = best_opposite.account
+        else:
+            buy_order_id = best_opposite.order_id
+            sell_order_id = order.order_id
+            buyer = best_opposite.account
+            seller = order.account
+
+        # Build Fill for settle_fill
+        fill = Fill(
+            buy_order_id=buy_order_id,
+            sell_order_id=sell_order_id,
+            price=fill_price,
+            qty=fill_qty,
+            taker_order_id=order.order_id,
+            buyer=buyer,
+            seller=seller,
+        )
+
+        # R-M4 steps 1, 2, 5, 6: settle_fill handles cash, position, fees, rebates, volume, and FILL report
+        fill_reports = settle_fill(engine, fill)
+        reports.extend(fill_reports)
+
+        # R-M4 steps 3, 4: Update cum_qty and locks for both orders
+        # For the incoming order
+        old_lock = order.lock
+        order.cum_qty += fill_qty
+        new_lock = ceil_div(order.leaves * order.price * order.margin_bps, 10000)
+        order.lock = new_lock
+        if old_lock != new_lock:
+            account.locked_margin -= (old_lock - new_lock)
+            account.free_cash += (old_lock - new_lock)
+
+        # For the resting order
+        resting_order = best_opposite
+        old_lock_rest = resting_order.lock
+        resting_order.cum_qty += fill_qty
+        new_lock_rest = ceil_div(resting_order.leaves * resting_order.price * resting_order.margin_bps, 10000)
+        resting_order.lock = new_lock_rest
+        resting_account = state.accounts[resting_order.account]
+        if old_lock_rest != new_lock_rest:
+            resting_account.locked_margin -= (old_lock_rest - new_lock_rest)
+            resting_account.free_cash += (old_lock_rest - new_lock_rest)
+
+        # If resting order is fully filled, remove from book
+        if resting_order.leaves == 0:
+            remove_order(state, resting_order.order_id)
+
+    # R-B5 steps 6, 7: Handle remaining leaves
+    if order.leaves > 0:
+        if order.flag == "IOC":
+            # Cancel remainder
+            reports.append(Report.cancelled(order_id, "IOC_REMAINDER"))
+            # Release lock
+            account.locked_margin -= order.lock
+            account.free_cash += order.lock
+            # Order not stored in state.orders
+        else:
+            # Add to book as resting order
+            add_order(state, order)
+    # If order.leaves == 0, order is fully filled and not stored (already not added)
+
+    return reports
+```

@@ -1,0 +1,163 @@
+{
+  "task_id": "f3_fix_b",
+  "t1": 0.8888888888888888,
+  "t2": 0.75,
+  "t3": 0.0,
+  "score": 0.4028,
+  "passed": false,
+  "first_failure": {
+    "seed": 6000,
+    "event_index": 200,
+    "invariant": "I4",
+    "plain_name": "Replay gives the same state",
+    "message": "noisy trace produced different state hash",
+    "diff": {}
+  },
+  "coverage": {
+    "min_trigger_events": 189
+  },
+  "error": null,
+  "public_test_output": "..F......                                                                [100%]\n=================================== FAILURES ===================================\n___________________________ test_gap_fill_and_drain ____________________________\n\n    def test_gap_fill_and_drain():\n        eng = _make_engine()\n        body2 = Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=100_000_000, qty=5)\n        ev2 = Event(kind=\"FIX_MSG\", session=\"S1\", epoch=0, seq=2, poss_dup=False, body=body2)\n        handle_fix(eng, ev2)\n    \n        body1 = Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=100_000_000, qty=10)\n        ev1 = Event(kind=\"FIX_MSG\", session=\"S1\", epoch=0, seq=1, poss_dup=False, body=body1)\n        reps = handle_fix(eng, ev1)\n        # Both bodies dispatched: order 1 accepted, then order 2 accepted\n>       assert len(reps) == 2\nE       AssertionError: assert 1 == 2\nE        +  where 1 = len([Report(kind='ACCEPTED', order_id=1, reason='', buy_order_id=0, sell_order_id=0, price=0, qty=0, taker_order_id=0, account='', mark_price=0, bps=0, session='', leg_index=0)])\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f3_fix_b_kcpnw91u/tests/test_f3_fix_b.py:46: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f3_fix_b_kcpnw91u/tests/test_f3_fix_b.py::test_gap_fill_and_drain\n1 failed, 8 passed in 0.07s",
+  "seed_failures": [
+    {
+      "seed": 6000,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6001,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6002,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6003,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6004,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6005,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6006,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6007,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6008,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6009,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6010,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6011,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6012,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6013,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6014,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6015,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6016,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6017,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6018,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    },
+    {
+      "seed": 6019,
+      "event_index": 200,
+      "labels": [
+        "I4"
+      ]
+    }
+  ]
+}

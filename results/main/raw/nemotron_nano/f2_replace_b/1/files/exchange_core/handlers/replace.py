@@ -1,0 +1,79 @@
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.intmath import ceil_div
+from exchange_core.book import best_ask, best_bid
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    # Unpack event fields
+    order_id = event.order_id
+    new_price = event.new_price
+    new_qty = event.new_qty
+
+    # 1. Order must be resting
+    order = engine.state.orders.get(order_id)
+    if order is None or order.leaves <= 0:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # 2. Validate new_price
+    if new_price <= 0 or new_price % engine.cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # 3. Validate new_qty > cum_qty
+    if new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # 4. Check crossing with opposite side
+    if order.side == "BUY":
+        best_ask_price = best_ask(engine.state)
+        if best_ask_price is not None and new_price >= best_ask_price:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    else:  # SELL
+        best_bid_price = best_bid(engine.state)
+        if best_bid_price is not None and new_price <= best_bid_price:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # 5. Compute new lock and check margin
+    new_leaves = new_qty - order.cum_qty  # cum_qty unchanged
+    new_lock = ceil_div(new_leaves * new_price * order.margin_bps, 10000)
+
+    old_lock = order.lock
+    diff = new_lock - old_lock
+
+    acc = engine.state.accounts[order.account]
+    if diff > 0 and diff > acc.free_cash:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # All checks passed – perform updates
+    # Adjust cash lock/unlock
+    if diff > 0:
+        engine.lock_cash(order.account, diff)
+    elif diff < 0:
+        engine.release_lock(order.account, -diff)
+
+    # Capture old values before mutation
+    old_price = order.price
+    old_qty = order.qty
+
+    # Update order fields
+    order.qty = new_qty
+    order.price = new_price
+    order.lock = new_lock
+
+    # Update priority sequence if needed
+    if old_price == new_price and new_qty < old_qty:
+        # Keep existing prio_seq, order stays in same position
+        pass
+    elif old_price == new_price and new_qty == old_qty:
+        # No change
+        pass
+    else:
+        # Price changed or quantity increased: assign new prio_seq and requeue
+        order.prio_seq = engine.next_prio_seq
+        engine.next_prio_seq += 1
+
+    return [Report.replaced(order_id)]

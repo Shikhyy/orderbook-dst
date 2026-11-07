@@ -1,0 +1,61 @@
+### FILE: exchange_core/handlers/settle.py
+```python
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.intmath import round_half_even
+from exchange_core.ledger import add_volume, adjust_position, pay_fee, pay_rebate, transfer_cash
+from exchange_core.types import Fill, Report
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    notional = fill.notional
+    taker_acc = fill.buyer if fill.taker_order_id == fill.buy_order_id else fill.seller
+    maker_acc = fill.seller if fill.taker_order_id == fill.buy_order_id else fill.buyer
+
+    # 1. Buyer pays notional, position increases
+    transfer_cash(engine.state, fill.buyer, fill.seller, notional)
+    adjust_position(engine.state, fill.buyer, fill.qty)
+    # 2. Seller position decreases
+    adjust_position(engine.state, fill.seller, -fill.qty)
+
+    # 3. Compute taker fee from taker volume before the fill
+    taker_vol_before = engine.state.accounts[taker_acc].volume
+    threshold = engine.cfg.tier_threshold
+    ppm = engine.cfg.ppm
+    t0 = engine.cfg.taker_ppm_t0
+    t1 = engine.cfg.taker_ppm_t1
+
+    if taker_vol_before >= threshold:
+        fee = round_half_even(notional * t1, ppm)
+    elif taker_vol_before + notional <= threshold:
+        fee = round_half_even(notional * t0, ppm)
+    else:
+        below = threshold - taker_vol_before
+        above = notional - below
+        fee = round_half_even(below * t0, ppm) + round_half_even(above * t1, ppm)
+
+    # 4. Compute maker rebate
+    rebate = round_half_even(notional * engine.cfg.maker_rebate_ppm, ppm)
+
+    # 5. Taker pays fee, Maker receives rebate, fee_vault update
+    pay_fee(engine.state, taker_acc, fee)
+    pay_rebate(engine.state, maker_acc, rebate)
+
+    # 6. Buyer and seller update volume
+    add_volume(engine.state, fill.buyer, notional)
+    add_volume(engine.state, fill.seller, notional)
+
+    # 7. Return fill report
+    return [
+        Report.fill(
+            buy_order_id=fill.buy_order_id,
+            sell_order_id=fill.sell_order_id,
+            price=fill.price,
+            qty=fill.qty,
+            taker_order_id=fill.taker_order_id,
+        )
+    ]
+```

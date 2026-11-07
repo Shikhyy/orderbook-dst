@@ -1,0 +1,75 @@
+### FILE: exchange_core/handlers/fix.py
+```python
+"""exchange_core/handlers/fix.py
+Handler for FIX session messages and session reset.
+Rules R-S1 to R-S9. Target for task f3_fix_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import SessionState
+
+
+def handle_fix(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process FIX_MSG and SESSION_RESET events according to rules R-S1 to R-S9."""
+    if event.kind == "SESSION_RESET":
+        # R-S8: Session reset
+        session_id = event.session
+        if session_id not in engine.state.sessions:
+            engine.state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+        session = engine.state.sessions[session_id]
+        session.epoch += 1
+        session.next_seq = 1
+        session.buffer.clear()
+        return [Report.session_reset_done(session_id)]
+
+    if event.kind == "FIX_MSG":
+        # R-S1: Create session on first use
+        session_id = event.session
+        if session_id not in engine.state.sessions:
+            engine.state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+        session = engine.state.sessions[session_id]
+
+        # R-S2: Epoch mismatch
+        if event.epoch != session.epoch:
+            return [Report.discarded("EPOCH")]
+
+        seq = event.seq
+        next_seq = session.next_seq
+
+        if seq < next_seq:
+            # R-S3: Sequence too low
+            if event.poss_dup:
+                return [Report.discarded("DUPLICATE")]
+            else:
+                return [Report.discarded("SEQ_TOO_LOW")]
+
+        elif seq == next_seq:
+            # R-S4: In-sequence message
+            reports = []
+            session.next_seq += 1
+
+            # Dispatch the incoming message body if present
+            if event.body is not None:
+                body_reports = engine.dispatch(event.body)
+                reports.extend(body_reports)
+
+            # Drain consecutive buffered messages
+            while session.next_seq in session.buffer:
+                buffered_msg = session.buffer.pop(session.next_seq)
+                session.next_seq += 1
+                if buffered_msg.body is not None:
+                    buffered_reports = engine.dispatch(buffered_msg.body)
+                    reports.extend(buffered_reports)
+
+            return reports
+
+        else:  # seq > next_seq
+            # R-S5: Out-of-sequence message
+            if seq in session.buffer:
+                return [Report.discarded("DUPLICATE_BUFFERED")]
+            else:
+                session.buffer[seq] = event
+                return [Report.buffered()]
+
+    # Unknown event kind (should not occur per spec)
+    return []
+```

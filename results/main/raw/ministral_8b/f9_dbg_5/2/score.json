@@ -1,0 +1,166 @@
+{
+  "task_id": "f9_dbg_5",
+  "t1": 0.25,
+  "t2": 0.0,
+  "t3": 0.0,
+  "score": 0.05,
+  "passed": false,
+  "first_failure": {
+    "seed": 10000,
+    "event_index": 73,
+    "invariant": "I1",
+    "plain_name": "No money created or destroyed",
+    "message": "total money 101500000002 != initial 101500000000",
+    "diff": {
+      "expected": 101500000000,
+      "actual": 101500000002
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 45
+  },
+  "error": null,
+  "public_test_output": ".FFF                                                                     [100%]\n=================================== FAILURES ===================================\n______________________ test_positive_rate_long_pays_short ______________________\n\n    def test_positive_rate_long_pays_short():\n        eng = make()\n        trade(eng, 3)\n        before, vault = cash(eng), eng.state.fee_vault\n        reps = eng.process(Event(kind=\"FUNDING\", bps=1000))\n        amount = 3 * P * 1000 // 1_000_000\n        after = cash(eng)\n>       assert after[\"A2\"] == before[\"A2\"] - amount\nE       assert 4699475000 == (4699175000 - 300000)\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_5_ym_7xdda/tests/test_f7_funding_b.py:41: AssertionError\n______________________ test_negative_rate_short_pays_long ______________________\n\n    def test_negative_rate_short_pays_long():\n        eng = make()\n        trade(eng, 2)\n        before = cash(eng)\n        eng.process(Event(kind=\"FUNDING\", bps=-500))\n        amount = 2 * P * 500 // 1_000_000\n        after = cash(eng)\n>       assert after[\"A1\"] == before[\"A1\"] - amount\nE       assert 5200150000 == (5200050000 - 100000)\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_5_ym_7xdda/tests/test_f7_funding_b.py:55: AssertionError\n_____________________________ test_rate_is_clamped _____________________________\n\n    def test_rate_is_clamped():\n        eng = make()\n        trade(eng, 1)\n        before = cash(eng)\n        reps = eng.process(Event(kind=\"FUNDING\", bps=9000))\n        assert reps[0].bps == 3000\n>       assert before[\"A2\"] - cash(eng)[\"A2\"] == P * 3000 // 1_000_000\nE       assert (4899725000 - 4900025000) == ((100000000 * 3000) // 1000000)\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_5_ym_7xdda/tests/test_f7_funding_b.py:65: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_5_ym_7xdda/tests/test_f7_funding_b.py::test_positive_rate_long_pays_short\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_5_ym_7xdda/tests/test_f7_funding_b.py::test_negative_rate_short_pays_long\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_5_ym_7xdda/tests/test_f7_funding_b.py::test_rate_is_clamped\n3 failed, 1 passed in 0.08s",
+  "seed_failures": [
+    {
+      "seed": 10000,
+      "event_index": 73,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10001,
+      "event_index": 21,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10002,
+      "event_index": 27,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10003,
+      "event_index": 19,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10004,
+      "event_index": 24,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10005,
+      "event_index": 40,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10006,
+      "event_index": 37,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10007,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 10008,
+      "event_index": 5,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10009,
+      "event_index": 24,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10010,
+      "event_index": 20,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10011,
+      "event_index": 21,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10012,
+      "event_index": 31,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10013,
+      "event_index": 24,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10014,
+      "event_index": 13,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10015,
+      "event_index": 33,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10016,
+      "event_index": 47,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10017,
+      "event_index": 7,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10018,
+      "event_index": 9,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10019,
+      "event_index": 20,
+      "labels": [
+        "I1"
+      ]
+    }
+  ]
+}

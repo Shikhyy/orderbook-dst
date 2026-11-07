@@ -1,0 +1,69 @@
+"""exchange_core/handlers/bankruptcy.py
+Bankruptcy procedure after a liquidation: insurance draw, then loss sharing.
+Rules R-L1 to R-L5. Target for task f8_adl_b.
+"""
+from exchange_core.types import Report
+
+
+def handle_bankruptcy(
+    engine: "Engine", account_id: str, pre_position: int  # type: ignore # noqa: F821
+) -> list[Report]:
+    """Cover the deficit of a just-liquidated account and return the reports in order."""
+    state = engine.state
+    account = state.accounts[account_id]
+    deficit = max(0, -account.free_cash)
+
+    if deficit == 0:
+        return []
+
+    reports = []
+    
+    # R-L2: Fee Vault
+    cover = min(deficit, max(0, state.fee_vault))
+    remaining = deficit - cover
+    if cover > 0:
+        state.fee_vault -= cover
+        account.free_cash += cover
+        reports.append(Report(kind="INSURANCE_DRAWN", account=account_id, qty=cover))
+    
+    if remaining == 0:
+        return reports
+
+    # R-L3: ADL Sharing
+    # Determine eligible accounts
+    eligible = []
+    for acc_id, acc_obj in state.accounts.items():
+        if acc_id == "LIQ" or acc_id == account_id:
+            continue
+        if acc_obj.position != 0:
+            # Opposite sign check
+            if (pre_position > 0 and acc_obj.position < 0) or (pre_position < 0 and acc_obj.position > 0):
+                eligible.append((acc_id, abs(acc_obj.position)))
+    
+    if not eligible:
+        # R-L4: Bad Debt
+        reports.append(Report(kind="BAD_DEBT", account=account_id, qty=remaining))
+        return reports
+
+    # Calculate shares
+    total_weight = sum(w for _, w in eligible)
+    
+    # Sort for distributing leftover: desc weight, then asc id
+    sorted_eligible = sorted(eligible, key=lambda x: (-x[1], x[0]))
+    
+    shares = {acc_id: (remaining * weight) // total_weight for acc_id, weight in eligible}
+    distributed = sum(shares.values())
+    leftover = remaining - distributed
+    
+    for i in range(leftover):
+        acc_id = sorted_eligible[i][0]
+        shares[acc_id] += 1
+    
+    # Apply shares
+    account.free_cash += remaining
+    for acc_id, share in sorted(shares.items()):
+        if share > 0:
+            state.accounts[acc_id].free_cash -= share
+            reports.append(Report(kind="ADL_APPLIED", account=acc_id, qty=share))
+            
+    return reports

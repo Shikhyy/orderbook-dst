@@ -1,0 +1,70 @@
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.types import Fill, Report
+from exchange_core.intmath import round_half_even
+from exchange_core.ledger import transfer_cash, adjust_position, pay_fee, pay_rebate, add_volume
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    state = engine.state
+    cfg = engine.cfg
+
+    notional = fill.notional
+
+    # 1. Buyer pays notional, seller receives notional
+    transfer_cash(state, fill.buyer, fill.seller, notional)
+
+    # 2. Update positions
+    adjust_position(state, fill.buyer, fill.qty)
+    adjust_position(state, fill.seller, -fill.qty)
+
+    # 3. Determine taker and maker from order ids
+    if fill.taker_order_id == fill.buy_order_id:
+        taker_id = fill.buyer
+        maker_id = fill.seller
+    elif fill.taker_order_id == fill.sell_order_id:
+        taker_id = fill.seller
+        maker_id = fill.buyer
+    else:
+        # Invalid fill: taker_order_id must match buy or sell order
+        raise ValueError("taker_order_id matches neither buy nor sell order")
+
+    # 4. Compute taker fee based on taker volume before fill (R-F2)
+    volume_before = state.accounts[taker_id].volume
+    TIER_THRESHOLD = cfg.TIER_THRESHOLD
+    TAKER_PPM_T0 = cfg.TAKER_PPM_T0
+    TAKER_PPM_T1 = cfg.TAKER_PPM_T1
+    PPM = cfg.PPM
+
+    if volume_before >= TIER_THRESHOLD:
+        fee = round_half_even(notional * TAKER_PPM_T1, PPM)
+    elif volume_before + notional <= TIER_THRESHOLD:
+        fee = round_half_even(notional * TAKER_PPM_T0, PPM)
+    else:
+        below = TIER_THRESHOLD - volume_before
+        above = notional - below
+        fee = round_half_even(below * TAKER_PPM_T0, PPM) + round_half_even(above * TAKER_PPM_T1, PPM)
+
+    # 5. Compute maker rebate (R-F3)
+    MAKER_REBATE_PPM = cfg.MAKER_REBATE_PPM
+    rebate = round_half_even(notional * MAKER_REBATE_PPM, PPM)
+
+    # 6. Apply fee and rebate (R-M4 step 5)
+    pay_fee(state, taker_id, fee)
+    pay_rebate(state, maker_id, rebate)
+
+    # 7. Update volume for both buyer and seller (R-F1, R-M4 step 6)
+    add_volume(state, fill.buyer, notional)
+    add_volume(state, fill.seller, notional)
+
+    # 8. Return FILL report (R-M4 step 7)
+    return [Report.fill(
+        buy_order_id=fill.buy_order_id,
+        sell_order_id=fill.sell_order_id,
+        price=fill.price,
+        qty=fill.qty,
+        taker_order_id=fill.taker_order_id,
+    )]

@@ -1,0 +1,183 @@
+{
+  "task_id": "f6_match_b",
+  "t1": 0.625,
+  "t2": 0.08333333333333333,
+  "t3": 0.0,
+  "score": 0.15,
+  "passed": false,
+  "first_failure": {
+    "seed": 9000,
+    "event_index": 2,
+    "invariant": "I2",
+    "plain_name": "Margin matches resting orders",
+    "message": "account A3 locked=150000000, resting obligation=75000000",
+    "diff": {
+      "account": "A3",
+      "locked": 150000000,
+      "expected": 75000000
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 115
+  },
+  "error": null,
+  "public_test_output": "...FFF..                                                                 [100%]\n=================================== FAILURES ===================================\n____________________ test_full_cross_fills_at_resting_price ____________________\n\n    def test_full_cross_fills_at_resting_price():\n        eng = make()\n        new(eng, \"A2\", \"SELL\", P, 2)\n        reps = new(eng, \"A1\", \"BUY\", P + 10_000, 2)\n        assert reps[0] == Report.accepted(2)\n>       assert reps[1] == Report.fill(2, 1, P, 2, 2)\nE       AssertionError: assert Report(kind='..., leg_index=0) == Report(kind='..., leg_index=0)\nE         \nE         Omitting 11 identical items, use -vv to show\nE         Differing attributes:\nE         ['buy_order_id', 'sell_order_id']\nE         \nE         Drill down into differing attribute buy_order_id:\nE           buy_order_id: 1 != 2...\nE         \nE         ...Full output truncated, use '-vv' to show\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f6_match_b_mtaacqlv/tests/test_f6_match_b.py:52: AssertionError\n______________________ test_partial_fill_rests_remainder _______________________\n\n    def test_partial_fill_rests_remainder():\n        eng = make()\n        new(eng, \"A2\", \"SELL\", P, 2)\n        reps = new(eng, \"A1\", \"BUY\", P, 5)\n>       assert reps == [Report.accepted(2), Report.fill(2, 1, P, 2, 2)]\nE       AssertionError: assert [Report(kind=... leg_index=0)] == [Report(kind=... leg_index=0)]\nE         \nE         At index 1 diff: Report(kind='FILL', order_id=0, reason='', buy_order_id=1, sell_order_id=2, price=100000000, qty=2, taker_order_id=2, account='', mark_price=0, bps=0, session='', leg_index=0) != Report(kind='FILL', order_id=0, reason='', buy_order_id=2, sell_order_id=1, price=100000000, qty=2, taker_order_id=2, account='', mark_price=0, bps=0, session='', leg_index=0)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f6_match_b_mtaacqlv/tests/test_f6_match_b.py:65: AssertionError\n________________ test_ioc_remainder_is_cancelled_and_not_stored ________________\n\n    def test_ioc_remainder_is_cancelled_and_not_stored():\n        eng = make()\n        new(eng, \"A2\", \"SELL\", P, 1)\n        reps = new(eng, \"A1\", \"BUY\", P, 4, flag=\"IOC\")\n>       assert reps == [\n            Report.accepted(2),\n            Report.fill(2, 1, P, 1, 2),\n            Report.cancelled(2, \"IOC_REMAINDER\"),\n        ]\nE       AssertionError: assert [Report(kind=... leg_index=0)] == [Report(kind=... leg_index=0)]\nE         \nE         At index 1 diff: Report(kind='FILL', order_id=0, reason='', buy_order_id=1, sell_order_id=2, price=100000000, qty=1, taker_order_id=2, account='', mark_price=0, bps=0, session='', leg_index=0) != Report(kind='FILL', order_id=0, reason='', buy_order_id=2, sell_order_id=1, price=100000000, qty=1, taker_order_id=2, account='', mark_price=0, bps=0, session='', leg_index=0)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f6_match_b_mtaacqlv/tests/test_f6_match_b.py:76: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f6_match_b_mtaacqlv/tests/test_f6_match_b.py::test_full_cross_fills_at_resting_price\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f6_match_b_mtaacqlv/tests/test_f6_match_b.py::test_partial_fill_rests_remainder\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f6_match_b_mtaacqlv/tests/test_f6_match_b.py::test_ioc_remainder_is_cancelled_and_not_stored\n3 failed, 5 passed in 0.09s",
+  "seed_failures": [
+    {
+      "seed": 9000,
+      "event_index": 2,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 9001,
+      "event_index": 4,
+      "labels": [
+        "D1",
+        "I3"
+      ]
+    },
+    {
+      "seed": 9002,
+      "event_index": 2,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9003,
+      "event_index": 5,
+      "labels": [
+        "D1",
+        "I3"
+      ]
+    },
+    {
+      "seed": 9004,
+      "event_index": 9,
+      "labels": [
+        "D1",
+        "I2",
+        "I3"
+      ]
+    },
+    {
+      "seed": 9005,
+      "event_index": 3,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9006,
+      "event_index": 9,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9007,
+      "event_index": 6,
+      "labels": [
+        "D1",
+        "I3"
+      ]
+    },
+    {
+      "seed": 9008,
+      "event_index": 7,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 9009,
+      "event_index": 2,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9010,
+      "event_index": 1,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 9011,
+      "event_index": 2,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9012,
+      "event_index": 1,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9013,
+      "event_index": 8,
+      "labels": [
+        "D1",
+        "I3"
+      ]
+    },
+    {
+      "seed": 9014,
+      "event_index": 4,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9015,
+      "event_index": 3,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9016,
+      "event_index": 1,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 9017,
+      "event_index": 6,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9018,
+      "event_index": 5,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 9019,
+      "event_index": 1,
+      "labels": [
+        "I2"
+      ]
+    }
+  ]
+}

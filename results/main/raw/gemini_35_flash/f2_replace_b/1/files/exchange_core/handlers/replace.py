@@ -1,0 +1,61 @@
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.book import best_ask, best_bid, get_order
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import lock_cash, release_lock
+from exchange_core.types import Event, Report
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    # Step 1: Order must be resting
+    order = get_order(engine.state, event.order_id)
+    if order is None or order.leaves <= 0:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # Step 2: Price validity
+    if event.new_price <= 0 or event.new_price % engine.cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # Step 3: Quantity validity (new_qty must be > cum_qty)
+    if event.new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # Step 4: Check if new price would cross opposite side of book
+    if order.side == "BUY":
+        b_ask = best_ask(engine.state)
+        if b_ask is not None and event.new_price >= b_ask:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    elif order.side == "SELL":
+        b_bid = best_bid(engine.state)
+        if b_bid is not None and event.new_price <= b_bid:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # Step 5: Check margin requirements
+    new_leaves = event.new_qty - order.cum_qty
+    new_lock = ceil_div(new_leaves * event.new_price * order.margin_bps, 10000)
+    lock_diff = new_lock - order.lock
+    acc = engine.state.accounts[order.account]
+
+    if lock_diff > acc.free_cash:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # Apply margin lock changes
+    if lock_diff > 0:
+        lock_cash(engine.state, order.account, lock_diff)
+    elif lock_diff < 0:
+        release_lock(engine.state, order.account, -lock_diff)
+
+    # Priority update check (Rule R-P3)
+    if event.new_price != order.price or event.new_qty > order.qty:
+        order.prio_seq = engine.state.next_prio_seq
+        engine.state.next_prio_seq += 1
+
+    # Update order state
+    order.qty = event.new_qty
+    order.price = event.new_price
+    order.lock = new_lock
+
+    return [Report.replaced(event.order_id)]

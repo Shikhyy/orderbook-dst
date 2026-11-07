@@ -1,0 +1,89 @@
+### FILE: exchange_core/handlers/bankruptcy.py
+```python
+"""exchange_core/handlers/bankruptcy.py
+Bankruptcy procedure after a liquidation: insurance draw, then loss sharing.
+Rules R-L1 to R-L5. Target for task f8_adl_b.
+"""
+from exchange_core.types import Report
+
+
+def handle_bankruptcy(
+    engine: "Engine", account_id: str, pre_position: int  # type: ignore # noqa: F821
+) -> list[Report]:
+    """Cover the deficit of a just-liquidated account and return the reports in order."""
+    # 1. compute deficit
+    acc = engine.state.accounts[account_id]
+    deficit = -acc.free_cash if acc.free_cash < 0 else 0
+    if deficit == 0:
+        return []
+
+    # 2. insurance draw from fee vault
+    fee_vault = engine.state.fee_vault
+    cover = min(deficit, max(0, fee_vault))
+    reports = []
+    if cover > 0:
+        engine.state.fee_vault -= cover
+        acc.free_cash += cover
+        reports.append(Report(kind="INSURANCE_DRAWN", account=account_id, qty=cover))
+
+    remaining = deficit - cover
+    if remaining == 0:
+        return reports
+
+    # 3. find eligible accounts
+    eligible = []  # (account_id, weight)
+    for a_id, a in engine.state.accounts.items():
+        if a_id == account_id or a_id == "LIQ":
+            continue
+        if a.position == 0:
+            continue
+        # opposite sign to pre_position
+        if pre_position > 0 and a.position < 0:
+            eligible.append((a_id, abs(a.position)))
+        elif pre_position < 0 and a.position > 0:
+            eligible.append((a_id, abs(a.position)))
+
+    total_weight = sum(w for _, w in eligible)
+    if total_weight == 0:
+        # no eligible accounts => bad debt
+        reports.append(Report(kind="BAD_DEBT", account=account_id, qty=remaining))
+        return reports
+
+    # 4. compute base shares
+    base_shares = {}
+    sum_base = 0
+    for a_id, w in eligible:
+        base = remaining * w // total_weight
+        base_shares[a_id] = base
+        sum_base += base
+
+    leftover = remaining - sum_base  # 0 <= leftover < len(eligible)
+
+    # 5. sort eligible by descending weight, then ascending account_id
+    eligible_with_base = [(a_id, w, base_shares[a_id]) for a_id, w in eligible]
+    eligible_with_base.sort(key=lambda x: (-x[1], x[0]))  # weight desc, id asc
+
+    # allocate extra 1 to first leftover accounts
+    for i in range(leftover):
+        a_id, w, base = eligible_with_base[i]
+        eligible_with_base[i] = (a_id, w, base + 1)
+
+    # 6. report ADL_APPLIED in ascending account_id order
+    share_dict = {}
+    for a_id, w, base in eligible_with_base:
+        share = base
+        if share > 0:
+            # deduct from free_cash
+            a = engine.state.accounts[a_id]
+            a.free_cash -= share
+            share_dict[a_id] = share
+
+    # sort by account_id ascending for reporting order
+    for a_id, share in sorted(share_dict.items(), key=lambda x: x[0]):
+        reports.append(Report(kind="ADL_APPLIED", account=a_id, qty=share))
+
+    # 7. increase free_cash of the liquidated account by remaining
+    acc.free_cash += remaining
+
+    return reports
+```

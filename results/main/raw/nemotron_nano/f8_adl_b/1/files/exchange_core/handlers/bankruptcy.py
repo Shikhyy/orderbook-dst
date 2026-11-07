@@ -1,0 +1,81 @@
+"""exchange_core/handlers/bankruptcy.py
+Bankruptcy procedure after a liquidation: insurance draw, then loss sharing.
+Rules R-L1 to R-L5. Target for task f8_adl_b.
+"""
+from exchange_core.types import Report
+
+
+def handle_bankruptcy(
+    engine: "Engine", account_id: str, pre_position: int  # type: ignore # noqa: F821
+) -> list[Report]:
+    """Cover the deficit of a just-liquidated account and return the reports in order."""
+    # Get the account object
+    acc = engine.state.accounts[account_id]
+
+    # R-L1: deficit is max(0, -free_cash)
+    deficit = max(0, -acc.free_cash)
+    if deficit == 0:
+        return []
+
+    # R-L2: fee vault pays first
+    cover = min(deficit, engine.state.fee_vault)
+    if cover > 0:
+        engine.state.fee_vault -= cover
+        acc.free_cash += cover
+        reports = [Report(kind="INSURANCE_DRAWN", account=account_id, qty=cover)]
+    else:
+        reports = []
+
+    remaining = deficit - cover
+    if remaining == 0:
+        return reports
+
+    # R-L3: find eligible accounts (other side of the position)
+    eligible = []  # list of (account_id, weight)
+    for aid, a in engine.state.accounts.items():
+        if aid == account_id:
+            continue
+        if aid == "LIQ":
+            continue
+        if a.position == 0:
+            continue
+        # opposite sign to pre_position
+        if (pre_position > 0 and a.position < 0) or (pre_position < 0 and a.position > 0):
+            eligible.append((aid, abs(a.position)))
+
+    # R-L4: no eligible accounts -> BAD_DEBT
+    if not eligible:
+        reports.append(Report(kind="BAD_DEBT", account=account_id, qty=remaining))
+        return reports
+
+    # R-L3 continued: compute shares
+    total_weight = sum(w for _, w in eligible)
+    base_shares = {}
+    for aid, w in eligible:
+        base = remaining * w // total_weight
+        base_shares[aid] = base
+
+    leftover = remaining - sum(base_shares.values())
+
+    # sort eligible by descending weight, then ascending account id
+    eligible_sorted = sorted(eligible, key=lambda x: (-x[1], x[0]))
+    extra_accounts = set()
+    for i in range(leftover):
+        extra_accounts.add(eligible_sorted[i][0])
+
+    # collect ADL_APPLIED reports, sorted by account id ascending
+    adl_reports = []
+    for aid, base in base_shares.items():
+        share = base + (1 if aid in extra_accounts else 0)
+        if share > 0:
+            engine.state.accounts[aid].free_cash -= share
+            adl_reports.append((aid, share))
+
+    adl_reports.sort(key=lambda x: x[0])  # ascending account id
+    for aid, share in adl_reports:
+        reports.append(Report(kind="ADL_APPLIED", account=aid, qty=share))
+
+    # R-L3: X's cash increases by remaining
+    acc.free_cash += remaining
+
+    return reports

@@ -1,0 +1,228 @@
+{
+  "task_id": "f7_funding_b",
+  "t1": 1.0,
+  "t2": 0.0,
+  "t3": 0.0,
+  "score": 0.2,
+  "passed": false,
+  "first_failure": {
+    "seed": 10000,
+    "event_index": 39,
+    "invariant": "D1",
+    "plain_name": "Report mismatch",
+    "message": "event 39 report differs from reference",
+    "diff": {
+      "expected": [
+        {
+          "kind": "FUNDING_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "MARK_SET",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 100529692,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ],
+      "actual": [
+        {
+          "kind": "FUNDING_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 3,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "MARK_SET",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 100529692,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 45
+  },
+  "error": null,
+  "public_test_output": "....                                                                     [100%]\n4 passed in 0.08s",
+  "seed_failures": [
+    {
+      "seed": 10000,
+      "event_index": 39,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10001,
+      "event_index": 8,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10002,
+      "event_index": 5,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10003,
+      "event_index": 19,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10004,
+      "event_index": 23,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10005,
+      "event_index": 40,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10006,
+      "event_index": 15,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10007,
+      "event_index": 86,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10008,
+      "event_index": 5,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10009,
+      "event_index": 24,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10010,
+      "event_index": 20,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10011,
+      "event_index": 21,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10012,
+      "event_index": 31,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10013,
+      "event_index": 24,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10014,
+      "event_index": 13,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10015,
+      "event_index": 25,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10016,
+      "event_index": 11,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 10017,
+      "event_index": 7,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10018,
+      "event_index": 9,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 10019,
+      "event_index": 20,
+      "labels": [
+        "I1"
+      ]
+    }
+  ]
+}

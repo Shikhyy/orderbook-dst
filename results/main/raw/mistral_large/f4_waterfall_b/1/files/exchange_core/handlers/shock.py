@@ -1,0 +1,63 @@
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from typing import Any
+
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.types import Event, Report
+
+
+def handle_shock(engine: Any, event: Event) -> list[Report]:
+    """Process PRICE_SHOCK and run the margin waterfall for breached accounts."""
+    state = engine.state
+    cfg = engine.cfg
+
+    state.mark_price = event.mark_price
+    reports: list[Report] = [Report.mark_set(mark_price=event.mark_price)]
+
+    def is_breach(acc: Any) -> bool:
+        if acc.position == 0:
+            return False
+        avail = acc.free_cash + acc.position * state.mark_price
+        req = ceil_div(abs(acc.position) * state.mark_price * cfg.MAINT_BPS, 10000)
+        return avail < req
+
+    for acc_id in sorted(state.accounts.keys()):
+        if acc_id == "LIQ":
+            continue
+
+        acc = state.accounts[acc_id]
+        if not is_breach(acc):
+            continue
+
+        # Stage 1: cancel all resting orders in ascending prio_seq order.
+        for order in get_account_orders(state, acc_id):
+            acc.locked_margin -= order.lock
+            acc.free_cash += order.lock
+            remove_order(state, order.order_id)
+            reports.append(Report.cancelled(order_id=order.order_id, reason="RISK"))
+
+        # Stage 2: liquidate only if still in breach after stage 1.
+        if not is_breach(acc):
+            continue
+
+        orig_position = acc.position
+        notional = abs(orig_position) * state.mark_price
+        liq = state.accounts["LIQ"]
+
+        if orig_position > 0:
+            # Long account sells its position to LIQ.
+            liq.free_cash -= notional
+            acc.free_cash += notional
+        else:
+            # Short account buys back its position from LIQ.
+            acc.free_cash -= notional
+            liq.free_cash += notional
+
+        acc.position = 0
+        liq.position += orig_position
+        reports.append(Report.liquidated(account=acc_id, qty=orig_position))
+
+    return reports

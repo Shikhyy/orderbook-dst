@@ -1,0 +1,171 @@
+{
+  "task_id": "f4_waterfall_b",
+  "t1": 0.7777777777777778,
+  "t2": 0.125,
+  "t3": 0.0,
+  "score": 0.1931,
+  "passed": false,
+  "first_failure": {
+    "seed": 7000,
+    "event_index": 15,
+    "invariant": "I2",
+    "plain_name": "Margin matches resting orders",
+    "message": "account A1 locked=83880000, resting obligation=0",
+    "diff": {
+      "account": "A1",
+      "locked": 83880000,
+      "expected": 0
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 45
+  },
+  "error": null,
+  "public_test_output": "FF.......                                                                [100%]\n=================================== FAILURES ===================================\n________________________________ test_no_breach ________________________________\n\n    def test_no_breach():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # A1 has 0 position\n        reps = eng.process(Event(kind=\"PRICE_SHOCK\", mark_price=105_000_000))\n        assert reps == [Report.mark_set(105_000_000)]\n>       assert eng.state.mark_price == 105_000_000\nE       AssertionError: assert 100000000 == 105000000\nE        +  where 100000000 = EngineState(accounts={'A1': Account(free_cash=1000000000, locked_margin=0, position=0, volume=0), 'LIQ': Account(free_...ult=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=11000000000).mark_price\nE        +    where EngineState(accounts={'A1': Account(free_cash=1000000000, locked_margin=0, position=0, volume=0), 'LIQ': Account(free_...ult=0, next_order_id=1, next_prio_seq=1, margin_bps=2000, mark_price=100000000, sessions={}, initial_total=11000000000) = <exchange_core.engine.Engine object at 0x10bc68c20>.state\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_pmiael5w/tests/test_f4_waterfall_b.py:16: AssertionError\n________________________ test_breach_resolved_by_stage1 ________________________\n\n    def test_breach_resolved_by_stage1():\n        cfg = EngineConfig()\n        # A1 has 500M cash. Short 5 units at 100M -> received 500M cash -> cash = 1000M. Pos = -5.\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # Build positions: A1 SELL 5 to A2 BUY 5\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"BUY\", price=100_000_000, qty=5))\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"SELL\", price=100_000_000, qty=5))\n        # A1 places resting BUY order locking margin: 1 unit @ 90M (lock = 18M)\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=90_000_000, qty=1))\n        o_id = eng.state.next_order_id - 1\n    \n        # Price shocks up to 190M.\n        # A1 pos = -5. req = ceil(5 * 190M * 500 / 10000) = 47.5M.\n        # avail before cancel: free_cash + (-5 * 190M).\n        # Setting price so avail < req before cancel, but avail >= req after cancel releases 18M lock.\n        eng.state.accounts[\"A1\"].free_cash = 935_000_000  # avail = 935M - 950M = -15M < 47.5M (breach!)\n        # After releasing 18M: free_cash = 953M. avail = 953M - 950M = 3M... let us set exact numbers:\n        # We want: free_cash_before + (-5 * 190M) < 47.5M\n        # and: free_cash_before + 18M + (-5 * 190M) >= 47.5M\n        # -> free_cash_before - 950M < 47.5M  => free_cash_before < 997.5M\n        # -> free_cash_before + 18M - 950M >= 47.5M => free_cash_before >= 979.5M\n        eng.state.accounts[\"A1\"].free_cash = 980_000_000\n    \n        reps = eng.process(Event(kind=\"PRICE_SHOCK\", mark_price=190_000_000))\n        # Must cancel order o_id, but NOT liquidate\n        assert Report.mark_set(190_000_000) in reps\n        assert Report.cancelled(o_id, \"RISK\") in reps\n>       assert not any(r.kind == \"LIQUIDATED\" for r in reps)\nE       assert not True\nE        +  where True = any(<generator object test_breach_resolved_by_stage1.<locals>.<genexpr> at 0x10bc3a740>)\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_pmiael5w/tests/test_f4_waterfall_b.py:47: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_pmiael5w/tests/test_f4_waterfall_b.py::test_no_breach\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_pmiael5w/tests/test_f4_waterfall_b.py::test_breach_resolved_by_stage1\n2 failed, 7 passed in 0.09s",
+  "seed_failures": [
+    {
+      "seed": 7000,
+      "event_index": 15,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7001,
+      "event_index": 15,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 7002,
+      "event_index": 27,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7003,
+      "event_index": 19,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7004,
+      "event_index": 29,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 7005,
+      "event_index": 24,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7006,
+      "event_index": 38,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 7007,
+      "event_index": 5,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7008,
+      "event_index": 26,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7009,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 7010,
+      "event_index": 9,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7011,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 7012,
+      "event_index": 20,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7013,
+      "event_index": 36,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7014,
+      "event_index": 8,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7015,
+      "event_index": 76,
+      "labels": [
+        "D1",
+        "I2"
+      ]
+    },
+    {
+      "seed": 7016,
+      "event_index": 3,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7017,
+      "event_index": 45,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7018,
+      "event_index": 9,
+      "labels": [
+        "I2"
+      ]
+    },
+    {
+      "seed": 7019,
+      "event_index": 7,
+      "labels": [
+        "I2"
+      ]
+    }
+  ]
+}

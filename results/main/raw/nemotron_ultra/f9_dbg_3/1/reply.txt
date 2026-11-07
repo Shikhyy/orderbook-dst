@@ -1,0 +1,48 @@
+The defect is in the `_rollback` function. It incorrectly saves the current `next_order_id` (which has been incremented during leg processing), restores the snapshot (which correctly resets `next_order_id` to its pre-basket value), and then overwrites it with the saved incremented value. This violates R-A4 which requires both counters (`next_order_id`, `next_prio_seq`) to be restored from the snapshot.
+
+The fix is to simply call `engine.state.restore(snap)` without preserving `next_order_id`.
+
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py"""
+from exchange_core.types import Event, Report
+
+
+def _rollback(engine, snap):
+    engine.state.restore(snap)
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    snap = engine.state.snapshot()
+    all_leg_reports: list[Report] = []
+
+    for leg_index, leg in enumerate(event.legs):
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag,
+        )
+
+        leg_reports = engine.dispatch(leg_event)
+
+        if any(r.kind == "REJECTED" for r in leg_reports):
+            _rollback(engine, snap)
+            return [Report.basket_rolled_back(leg_index)]
+
+        if leg.flag == "IOC":
+            has_ioc_cancel = any(
+                r.kind == "CANCELLED" and r.reason == "IOC_REMAINDER"
+                for r in leg_reports
+            )
+            if has_ioc_cancel:
+                _rollback(engine, snap)
+                return [Report.basket_rolled_back(leg_index)]
+
+        all_leg_reports.extend(leg_reports)
+
+    all_leg_reports.append(Report.basket_committed())
+    return all_leg_reports
+```

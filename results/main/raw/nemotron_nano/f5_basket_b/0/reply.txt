@@ -1,0 +1,46 @@
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    # Take a snapshot of the whole engine state before processing any legs
+    snapshot = engine.state.snapshot()
+    all_reports: list[Report] = []
+
+    # Iterate over each leg in order
+    for leg_index, leg in enumerate(event.legs):
+        # Build a NEW_LIMIT event for this leg
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag,
+            order_id=0,  # let engine generate a new order_id
+        )
+
+        # Dispatch the NEW_LIMIT event and get the reports for this leg
+        leg_reports = engine.dispatch(leg_event)
+
+        # Check if this leg failed: if the first report is a BASKET_ROLLED_BACK,
+        # the engine indicates failure for this leg.
+        if leg_reports and leg_reports[0].kind == "BASKET_ROLLED_BACK":
+            # Roll back to the snapshot taken before processing any legs
+            engine.state.restore(snapshot)
+            # Return only the rolled-back report for the failing leg
+            return [Report.basket_rolled_back(leg_index)]
+
+        # Leg succeeded – add its reports to the cumulative list
+        all_reports.extend(leg_reports)
+
+    # If we processed all legs without failure, commit the basket
+    all_reports.append(Report.basket_committed())
+    return all_reports
+```

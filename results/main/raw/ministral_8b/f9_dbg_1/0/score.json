@@ -1,0 +1,166 @@
+{
+  "task_id": "f9_dbg_1",
+  "t1": 0.4444444444444444,
+  "t2": 0.0,
+  "t3": 0.0,
+  "score": 0.0889,
+  "passed": false,
+  "first_failure": {
+    "seed": 2000,
+    "event_index": 2,
+    "invariant": "I1",
+    "plain_name": "No money created or destroyed",
+    "message": "total money 160001247500 != initial 160000000000",
+    "diff": {
+      "expected": 160000000000,
+      "actual": 160001247500
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 96
+  },
+  "error": null,
+  "public_test_output": "F.FF..F.F                                                                [100%]\n=================================== FAILURES ===================================\n______________________________ test_cash_transfer ______________________________\n\n    def test_cash_transfer():\n        eng = _make_engine()\n        fill = Fill(\n            buy_order_id=1,\n            sell_order_id=2,\n            price=100_000_000,\n            qty=10,\n            taker_order_id=1,\n            buyer=\"A1\",\n            seller=\"A2\",\n        )\n        # notional = 1_000_000_000; fee = 2_750_000 (A1); rebate = 250_000 (A2)\n        settle_fill(eng, fill)\n>       assert eng.state.accounts[\"A1\"].free_cash == 100_000_000_000 - 1_000_000_000 - 2_750_000\nE       assert 100000000000 == ((100000000000 - 1000000000) - 2750000)\nE        +  where 100000000000 = Account(free_cash=100000000000, locked_margin=0, position=10, volume=1000000000).free_cash\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py:29: AssertionError\n___________________________ test_fee_below_threshold ___________________________\n\n    def test_fee_below_threshold():\n        eng = _make_engine()\n        fill = Fill(\n            buy_order_id=1,\n            sell_order_id=2,\n            price=100_000_000,\n            qty=20,\n            taker_order_id=1,\n            buyer=\"A1\",\n            seller=\"A2\",\n        )\n        # notional = 2B, fee = 5_500_000\n        settle_fill(eng, fill)\n>       assert eng.state.accounts[\"A1\"].free_cash == 100_000_000_000 - 2_000_000_000 - 5_500_000\nE       assert 100000000000 == ((100000000000 - 2000000000) - 5500000)\nE        +  where 100000000000 = Account(free_cash=100000000000, locked_margin=0, position=20, volume=2000000000).free_cash\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py:62: AssertionError\n_________________________________ test_rebate __________________________________\n\n    def test_rebate():\n        eng = _make_engine()\n        fill = Fill(\n            buy_order_id=1,\n            sell_order_id=2,\n            price=100_000_000,\n            qty=20,\n            taker_order_id=1,\n            buyer=\"A1\",\n            seller=\"A2\",\n        )\n        settle_fill(eng, fill)\n        # rebate = 2B * 250 ppm = 500_000\n>       assert eng.state.accounts[\"A2\"].free_cash == 100_000_000_000 + 2_000_000_000 + 500_000\nE       assert 100000000000 == ((100000000000 + 2000000000) + 500000)\nE        +  where 100000000000 = Account(free_cash=100000000000, locked_margin=0, position=-20, volume=2000000000).free_cash\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py:78: AssertionError\n______________________________ test_crossing_fill ______________________________\n\n    def test_crossing_fill():\n        eng = _make_engine()\n        eng.state.accounts[\"A1\"].volume = 4_000_010_000\n        fill = Fill(\n            buy_order_id=1,\n            sell_order_id=2,\n            price=100_000_000,\n            qty=20,\n            taker_order_id=1,\n            buyer=\"A1\",\n            seller=\"A2\",\n        )\n        # notional = 2B; below = 1B @ 2750 ppm = 2_750_000; above = 1B @ 1850 ppm = 1_850_000\n        # fee = 4_600_000\n        settle_fill(eng, fill)\n>       assert eng.state.accounts[\"A1\"].free_cash == 100_000_000_000 - 2_000_000_000 - 4_600_000\nE       assert 100000000000 == ((100000000000 - 2000000000) - 4600000)\nE        +  where 100000000000 = Account(free_cash=100000000000, locked_margin=0, position=20, volume=6000010000).free_cash\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py:128: AssertionError\n__________________________ test_fee_and_volume_order ___________________________\n\n    def test_fee_and_volume_order():\n        eng = _make_engine()\n        eng.state.accounts[\"A1\"].volume = 4_000_010_000\n        fill = Fill(\n            buy_order_id=1,\n            sell_order_id=2,\n            price=100_000_000,\n            qty=20,\n            taker_order_id=1,\n            buyer=\"A1\",\n            seller=\"A2\",\n        )\n        reps = settle_fill(eng, fill)\n        assert reps == [Report.fill(1, 2, 100_000_000, 20, 1)]\n>       assert eng.state.accounts[\"A1\"].free_cash == 100_000_000_000 - 2_000_000_000 - 4_600_000\nE       assert 100000000000 == ((100000000000 - 2000000000) - 4600000)\nE        +  where 100000000000 = Account(free_cash=100000000000, locked_margin=0, position=20, volume=6000010000).free_cash\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py:172: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py::test_cash_transfer\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py::test_fee_below_threshold\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py::test_rebate\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py::test_crossing_fill\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f9_dbg_1_aut3i_u_/tests/test_f1_fee_b.py::test_fee_and_volume_order\n5 failed, 4 passed in 0.08s",
+  "seed_failures": [
+    {
+      "seed": 2000,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2001,
+      "event_index": 3,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2002,
+      "event_index": 4,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2003,
+      "event_index": 1,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2004,
+      "event_index": 1,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2005,
+      "event_index": 6,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2006,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2007,
+      "event_index": 5,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2008,
+      "event_index": 4,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2009,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2010,
+      "event_index": 3,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2011,
+      "event_index": 1,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2012,
+      "event_index": 3,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2013,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2014,
+      "event_index": 3,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2015,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2016,
+      "event_index": 1,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2017,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2018,
+      "event_index": 2,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 2019,
+      "event_index": 9,
+      "labels": [
+        "I1"
+      ]
+    }
+  ]
+}

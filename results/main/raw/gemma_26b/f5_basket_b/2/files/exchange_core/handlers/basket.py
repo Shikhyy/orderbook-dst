@@ -1,0 +1,111 @@
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    # R-A2: Take snapshot before processing any legs
+    snapshot = engine.state.snapshot()
+    
+    all_reports = []
+    
+    for i, leg in enumerate(event.legs):
+        # R-A2: Process each leg as a NEW_LIMIT event for the account
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag
+        )
+        
+        leg_reports = engine.dispatch(leg_event)
+        
+        # Check for leg success based on R-A3
+        # An order is "accepted" if it's not rejected.
+        # However, the rule R-A3 specifies conditions for success:
+        # - IOC succeeds if it's accepted and leaves is 0 (must not have IOC_REMAINDER)
+        # - POST_ONLY succeeds if it's accepted (must not cross)
+        # - A rejected leg fails.
+        
+        # Looking at the reports returned by dispatch:
+        # If the order was rejected, there should be a REJECTED report.
+        # If the order was accepted, there should be an ACCEPTED report.
+        # For IOC, if it's not fully filled, it might result in REJECTED or 
+        # it might be accepted but have remaining quantity.
+        # But the rule says: "An IOC leg succeeds if it is accepted and leaves is 0".
+        # If the engine's dispatch for NEW_LIMIT returns any REJECTED report, the leg fails.
+        # If it returns ACCEPTED but the order's leaves > 0 for an IOC, it's a failure.
+        
+        # Actually, per rule R-A3:
+        # "An IOC leg succeeds if it is accepted and leaves is 0 after matching (it must not have an IOC_REMAINDER cancellation)."
+        # This implies we need to verify the state of the order after the event.
+        # But the engine.dispatch returns reports.
+        
+        # Let's look at the reports. If a leg is REJECTED, it fails.
+        # If it is ACCEPTED, we check if it met the specific condition.
+        
+        # For IOC: must have ACCEPTED and no remaining qty.
+        # For POST_ONLY: must have ACCEPTED.
+        
+        is_accepted = False
+        is_rejected = False
+        
+        # We need to find if there's an ACCEPTED report for this leg.
+        # Since it's a single NEW_LIMIT event, we can look at the reports.
+        # If the event was a NEW_LIMIT, the ACCEPTED report contains the order_id.
+        
+        # However, we also need to check if it's an IOC and if it left anything.
+        # The rule says "it must not have an IOC_REMAINDER cancellation".
+        # In this engine's logic, if an IOC is not fully filled, it is usually 
+        # rejected or it's an accepted order that is immediately cancelled.
+        
+        # Let's check the reports for REJECTED.
+        failed = False
+        for r in leg_reports:
+            if r.kind == "REJECTED":
+                failed = True
+                break
+        
+        # If not explicitly rejected, we check the specific R-A3 conditions.
+        # R-A3: "An IOC leg succeeds if it is accepted and leaves is 0"
+        # This is tricky because dispatch might return multiple reports (fills + accepted).
+        # We need to ensure we don't fail just because of FILL reports.
+        
+        # Let's find if there's an ACCEPTED report.
+        accepted_report = None
+        for r in leg_reports:
+            if r.kind == "ACCEPTED":
+                accepted_report = r
+                break
+        
+        if not accepted_report:
+            failed = True
+        elif leg.flag == "IOC":
+            # For IOC, we check if there's any indication of leftovers.
+            # The rule says "must not have an IOC_REMAINDER cancellation".
+            # Usually, if an IOC is not fully filled, the engine returns 
+            # REJECTED or a specific cancellation report.
+            # If it's ACCEPTED, but the rule says leaves must be 0, we check the order.
+            # But we don't have the order ID easily without the report.
+            # The ACCEPTED report has the order_id.
+            
+            order_id = accepted_report.order_id
+            order = engine.state.orders.get(order_id)
+            if not order or order.leaves > 0:
+                failed = True
+                
+        if failed:
+            # R-A4: If a leg fails, restore snapshot and report basket_rolled_back
+            engine.state.restore(snapshot)
+            return [Report.basket_rolled_back(leg_index=i)]
+        
+        all_reports.extend(leg_reports)
+
+    # R-A5: If all legs succeed, report all leg reports then basket_committed
+    all_reports.append(Report.basket_committed())
+    return all_reports

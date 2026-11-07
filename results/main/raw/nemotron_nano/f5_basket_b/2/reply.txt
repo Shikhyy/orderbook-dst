@@ -1,0 +1,30 @@
+### FILE: exchange_core/handlers/basket.py
+```python
+"""exchange_core/handlers/basket.py
+Handler for atomic multi-leg basket orders.
+Rules R-A1 to R-A5. Target for task f5_basket_b.
+"""
+from exchange_core.types import Event, Report
+
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a BASKET event with all-or-nothing rollback semantics."""
+    snap = engine.state.snapshot()
+    reports = []
+    for i, leg in enumerate(event.legs):
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag,
+        )
+        leg_reports = engine.dispatch(leg_event)
+        if any(r.kind == "REJECTED" for r in leg_reports):
+            engine.state.restore(snap)
+            return [Report.basket_rolled_back(i)]
+        reports.extend(leg_reports)
+    reports.append(Report.basket_committed())
+    return reports
+```

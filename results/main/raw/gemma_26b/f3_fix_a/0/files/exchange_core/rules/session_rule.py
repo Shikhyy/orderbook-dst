@@ -1,0 +1,53 @@
+"""exchange_core/rules/session_rule.py
+Pure function for FIX session sequence decisions.
+Rules R-S1 to R-S7. Target for task f3_fix_a.
+"""
+from exchange_core.state import SessionState
+from exchange_core.types import Event, SessionOutcome, Report
+
+
+def on_message(session: SessionState, msg: Event) -> SessionOutcome:
+    """Process an incoming FIX message according to session sequence rules."""
+    to_process = []
+    reports = []
+
+    # R-S2: Epoch mismatch
+    if msg.epoch != session.epoch:
+        reports.append(Report.discarded("EPOCH"))
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    seq = msg.seq
+
+    # R-S3: Sequence too low
+    if seq < session.next_seq:
+        if msg.poss_dup:
+            reports.append(Report.discarded("DUPLICATE"))
+        else:
+            reports.append(Report.discarded("SEQ_TOO_LOW"))
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    # R-S4: Sequence matches
+    if seq == session.next_seq:
+        # Accept the message
+        to_process.append(msg)
+        session.next_seq += 1
+
+        # Drain buffered messages
+        while session.next_seq in session.buffer:
+            next_msg = session.buffer.pop(session.next_seq)
+            to_process.append(next_msg)
+            session.next_seq += 1
+
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    # R-S5: Sequence is a gap (seq > next_seq)
+    if seq > session.next_seq:
+        if seq in session.buffer:
+            reports.append(Report.discarded("DUPLICATE_BUFFERED"))
+        else:
+            session.buffer[seq] = msg
+            reports.append(Report.buffered())
+        return SessionOutcome(to_process=to_process, reports=reports)
+
+    # This part should be unreachable given the logic above
+    return SessionOutcome(to_process=to_process, reports=reports)

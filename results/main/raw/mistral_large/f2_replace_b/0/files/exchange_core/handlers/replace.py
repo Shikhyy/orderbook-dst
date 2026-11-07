@@ -1,0 +1,69 @@
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.intmath import ceil_div
+from exchange_core.book import best_ask, best_bid
+from exchange_core.ledger import lock_cash, release_lock
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    state = engine.state
+    cfg = engine.cfg
+
+    # R-P2.1: the order must be resting
+    order = state.orders.get(event.order_id)
+    if order is None:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # R-P2.2: new price must be positive and a multiple of the tick
+    if event.new_price <= 0 or event.new_price % cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # R-P2.3: new total qty must strictly exceed cum_qty (R-P1: new_qty is total)
+    if event.new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # R-P2.4: the new price must not match the opposite side of the book
+    if order.side == "BUY":
+        ask = best_ask(state)
+        if ask is not None and event.new_price >= ask:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    else:
+        bid = best_bid(state)
+        if bid is not None and event.new_price <= bid:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # R-P4: new lock uses the rate stored in the order, not the current engine rate
+    new_leaves = event.new_qty - order.cum_qty
+    new_lock = ceil_div(new_leaves * event.new_price * order.margin_bps, 10_000)
+    old_lock = order.lock
+
+    # R-P2.5: extra lock needed must fit in free_cash
+    if new_lock > old_lock:
+        extra = new_lock - old_lock
+        if extra > state.accounts[order.account].free_cash:
+            return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # R-P3: priority handling
+    # Same price and lower (or equal) qty keeps prio_seq; anything else
+    # (price change or quantity increase) goes to the back of the queue.
+    if not (event.new_price == order.price and event.new_qty <= order.qty):
+        order.prio_seq = state.next_prio_seq
+        state.next_prio_seq += 1
+
+    # R-P4: apply the replace; order_id, cum_qty, margin_bps are kept
+    order.price = event.new_price
+    order.qty = event.new_qty
+    order.lock = new_lock
+
+    # R-P4: move the lock difference between free_cash and locked_margin
+    diff = new_lock - old_lock
+    if diff > 0:
+        lock_cash(state, order.account, diff)
+    elif diff < 0:
+        release_lock(state, order.account, -diff)
+
+    return [Report.replaced(order.order_id)]

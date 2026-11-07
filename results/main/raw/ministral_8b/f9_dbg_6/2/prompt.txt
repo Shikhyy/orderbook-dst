@@ -1,0 +1,747 @@
+# Task f9_dbg_6: Diagnose and Fix
+
+## 1. Goal
+The file `exchange_core/handlers/bankruptcy.py` (shown in the section "Buggy Target Files" below) was written for the specification in section 2. It contains **one defect**. The "Bug Report" section gives a short event trace and the first thing that goes wrong when the engine runs it.
+
+Find the defect and return the complete corrected file in the usual `### FILE:` format. Change only what the specification requires: every other behaviour must stay exactly as it is. The file is graded like an ordinary implementation: the public tests (shown in full in the "Public Tests (Visible)" section), targeted checkpoints and hidden event traces are all compared with the behaviour the specification defines.
+
+## 2. Interface
+
+```python
+from exchange_core.types import Report
+
+def handle_bankruptcy(engine: "Engine", account_id: str, pre_position: int) -> list[Report]:
+    """Cover the deficit of a just-liquidated account and return the reports in order."""
+```
+
+### How the procedure is called (this part already exists, you do not write it)
+
+A `PRICE_CRASH` event carries a `mark_price`. The engine handles it exactly like a `PRICE_SHOCK` event (the margin waterfall: it sets the mark price, examines the accounts except `LIQ` in ascending account-id order, cancels resting orders of an account in breach and, if it is still in breach, liquidates its whole position against `LIQ` at the mark price). The only difference: right after each `LIQUIDATED` report, the engine calls `handle_bankruptcy(engine, account_id, pre_position)` for the liquidated account and appends the returned reports directly after that `LIQUIDATED` report, before it examines the next account. `pre_position` is the signed position of the account before the liquidation (the `qty` of the `LIQUIDATED` report). The engine reads the live state, so the cash that your procedure takes from an account counts when that account is examined later in the same event. An account that was already examined is not examined again. `PRICE_SHOCK` never calls the procedure.
+
+When your procedure is called, the liquidated account has `position == 0` and no resting order. The procedure does not examine, cancel or liquidate any account: it only does what the rules below say.
+
+### The `engine` argument
+
+`engine` is the exchange `Engine` object. The procedure may use this member:
+
+- `engine.state`: the `EngineState` instance, described in the `exchange_core/state.py` context file below. The procedure reads it and changes it in place. `engine.state.accounts` maps each account id to an `Account` (`free_cash`, `locked_margin`, `position`, `volume`). `engine.state.fee_vault` is the fee vault.
+
+The `Engine` class itself is not part of this task. Use only the member listed here; no other attribute of `engine` is available.
+
+## 3. Rules
+
+**R-L1.** The deficit of the liquidated account X is `max(0, -free_cash)` of X at the moment the procedure is called. If the deficit is 0, nothing changes and the procedure returns no report.
+
+**R-L2.** The fee vault pays first. `cover = min(deficit, max(0, fee_vault))`. If `cover > 0`: `fee_vault` decreases by `cover`, `free_cash` of X increases by `cover`, and the procedure reports `Report(kind="INSURANCE_DRAWN", account=X, qty=cover)`. The rest is `remaining = deficit - cover`. If `remaining == 0`, the procedure ends.
+
+**R-L3.** The rest is shared by the accounts on the other side of the liquidated position. An account is **eligible** when it is neither `LIQ` nor X, its position is not 0, and its position has the opposite sign to `pre_position`. The weight of an eligible account is `abs(position)`. Let `total` be the sum of all weights. Each eligible account first gets `base = remaining * weight // total` (floor division). The units that remain, `leftover = remaining - sum(base)`, are always fewer than the number of eligible accounts. Sort the eligible accounts by descending weight; accounts with the same weight are sorted by ascending account id (string order: `"A10"` comes before `"A2"`). Each of the first `leftover` accounts in this order gets one more unit. The result is the `share` of each eligible account.
+- Each eligible account pays its `share` from `free_cash`. The cash can become negative; nothing else is done for that account (no cancel, no liquidation, no check).
+- `free_cash` of X increases by `remaining`.
+- For each eligible account with `share > 0`, in ascending account-id order (string order), the procedure reports `Report(kind="ADL_APPLIED", account=<that account>, qty=share)`.
+
+**R-L4.** If `remaining > 0` and no account is eligible, nothing else changes: X keeps its negative cash and the procedure reports `Report(kind="BAD_DEBT", account=X, qty=remaining)`.
+
+**R-L5.** The reports of the procedure are, in this order: `INSURANCE_DRAWN` (if any), then all the `ADL_APPLIED` reports, or `BAD_DEBT`; never both. Total cash plus `fee_vault` is unchanged by the procedure. Positions, locks and volumes do not change.
+
+## 4. Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+
+All other `exchange_core` imports (including `exchange_core.rules.*` and other handlers such as `exchange_core.handlers.shock` or `exchange_core.handlers.crash`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.
+
+## 5. Output format
+
+Provide the complete contents of `exchange_core/handlers/bankruptcy.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
+
+### FILE: exchange_core/handlers/bankruptcy.py
+```python
+# complete file contents here
+```
+
+
+## Bug Report
+
+The engine in the "Buggy Target Files" section violates the specification. It was run on a short fixed event trace. All numbers are integers.
+
+Initial state: A1 free_cash=600000000, A2 free_cash=600000000, A3 free_cash=600000000, A10 free_cash=600000000, A11 free_cash=600000000, A12 free_cash=600000000, A13 free_cash=600000000, LIQ free_cash=100000000000; mark_price=100000000; all positions 0; no resting orders; fee_vault=0.
+
+Events (0-based index; the engine processes them in order):
+
+0. NEW_LIMIT(account=A13, side=BUY, price=100030000, qty=5)
+1. NEW_LIMIT(account=A3, side=SELL, price=99970000, qty=7)
+2. NEW_LIMIT(account=A13, side=BUY, price=100030000, qty=1)
+3. PRICE_CRASH(mark_price=279634628)
+4. NEW_LIMIT(account=A11, side=BUY, price=100030000, qty=8)
+5. NEW_LIMIT(account=A1, side=SELL, price=99970000, qty=4)
+6. PRICE_CRASH(mark_price=299209051)
+
+Symptom: at event 6 the engine returned the wrong reports.
+
+Expected reports:
+- MARK_SET(mark_price=299209051)
+- LIQUIDATED(qty=-4, account=A1)
+- INSURANCE_DRAWN(qty=1000300, account=A1)
+- ADL_APPLIED(qty=78726493, account=A11)
+- ADL_APPLIED(qty=118089741, account=A13)
+
+Actual reports:
+- MARK_SET(mark_price=299209051)
+- LIQUIDATED(qty=-4, account=A1)
+- INSURANCE_DRAWN(qty=1000300, account=A1)
+- ADL_APPLIED(qty=78726494, account=A11)
+- ADL_APPLIED(qty=118089740, account=A13)
+
+Find the defect in the target file and return the corrected file. Change only what the specification requires; every other behaviour must stay exactly as it is.
+
+
+## Public Tests (Visible)
+```python
+"""tasks/f8_adl_b/public_tests/test_f8_adl_b.py
+Public unit tests for task f8_adl_b.
+"""
+from exchange_core.config import EngineConfig
+from exchange_core.engine import Engine
+from exchange_core.handlers.bankruptcy import handle_bankruptcy
+from exchange_core.types import Event
+
+P = 100_000_000
+IDS = ["A1", "A2", "A3", "A10", "A11", "LIQ"]
+
+
+def make(cash: dict, positions: dict, vault: int = 0) -> Engine:
+    """An engine whose accounts are set directly (no trading)."""
+    eng = Engine(EngineConfig(), {a: 0 for a in IDS}, mark_price=P)
+    for acc, value in cash.items():
+        eng.state.accounts[acc].free_cash = value
+    for acc, value in positions.items():
+        eng.state.accounts[acc].position = value
+    eng.state.fee_vault = vault
+    return eng
+
+
+def view(eng):
+    return {a: (v.free_cash, v.position) for a, v in eng.state.accounts.items()}
+
+
+def test_no_deficit_changes_nothing():
+    eng = make({"A1": 5_000}, {})
+    before = view(eng)
+    assert handle_bankruptcy(eng, "A1", 3) == []
+    assert view(eng) == before and eng.state.fee_vault == 0
+
+
+def test_vault_covers_the_whole_deficit():
+    eng = make({"A1": -50}, {}, vault=80)
+    reps = handle_bankruptcy(eng, "A1", 3)
+    assert [(r.kind, r.account, r.qty) for r in reps] == [("INSURANCE_DRAWN", "A1", 50)]
+    assert eng.state.accounts["A1"].free_cash == 0 and eng.state.fee_vault == 30
+
+
+def test_vault_first_then_loss_is_shared_pro_rata():
+    # A1 was long (pre_position 5). Eligible: the shorts A2 (weight 1) and A3 (weight 3).
+    eng = make({"A1": -110, "A2": 1_000, "A3": 1_000}, {"A2": -1, "A3": -3}, vault=30)
+    reps = handle_bankruptcy(eng, "A1", 5)
+    assert [(r.kind, r.account, r.qty) for r in reps] == [
+        ("INSURANCE_DRAWN", "A1", 30), ("ADL_APPLIED", "A2", 20), ("ADL_APPLIED", "A3", 60),
+    ]
+    cash = {a: v.free_cash for a, v in eng.state.accounts.items()}
+    assert cash["A1"] == 0 and cash["A2"] == 980 and cash["A3"] == 940
+    assert eng.state.fee_vault == 0
+
+
+def test_only_the_other_side_pays_and_liq_never_pays():
+    # A3 was short (pre_position -2). Eligible: the longs. A1 is short too and LIQ is long.
+    eng = make(
+        {"A3": -90, "A1": 500, "A2": 500, "LIQ": 500}, {"A1": -4, "A2": 6, "LIQ": 9}
+    )
+    reps = handle_bankruptcy(eng, "A3", -2)
+    assert [(r.kind, r.account, r.qty) for r in reps] == [("ADL_APPLIED", "A2", 90)]
+    assert eng.state.accounts["A1"].free_cash == 500
+    assert eng.state.accounts["LIQ"].free_cash == 500
+
+
+def test_bad_debt_when_nobody_can_share():
+    eng = make({"A1": -40, "LIQ": 500}, {"LIQ": -3})
+    reps = handle_bankruptcy(eng, "A1", 3)
+    assert [(r.kind, r.account, r.qty) for r in reps] == [("BAD_DEBT", "A1", 40)]
+    assert eng.state.accounts["A1"].free_cash == -40
+
+
+def test_price_crash_runs_it_and_price_shock_does_not():
+    def crash_engine():
+        # A1 holds 5 long with negative cash (it bought on credit); A2 is the 5 short.
+        return make({"A1": -400_000_000, "A2": 2_000_000_000}, {"A1": 5, "A2": -5},
+                    vault=100_000_000)
+
+    eng = crash_engine()
+    reps = eng.process(Event(kind="PRICE_CRASH", mark_price=20_000_000))
+    assert [(r.kind, r.account, r.qty) for r in reps] == [
+        ("MARK_SET", "", 0),
+        ("LIQUIDATED", "A1", 5),
+        ("INSURANCE_DRAWN", "A1", 100_000_000),
+        ("ADL_APPLIED", "A2", 200_000_000),
+    ]
+    assert eng.state.accounts["A1"].free_cash == 0
+
+    eng = crash_engine()
+    reps = eng.process(Event(kind="PRICE_SHOCK", mark_price=20_000_000))
+    assert [r.kind for r in reps] == ["MARK_SET", "LIQUIDATED"]
+    assert eng.state.accounts["A1"].free_cash == -300_000_000
+```
+
+
+## Buggy Target Files (return the corrected file)
+
+
+### Buggy: exchange_core/handlers/bankruptcy.py
+```python
+"""exchange_core/handlers/bankruptcy.py"""
+from exchange_core.types import Report
+
+
+def handle_bankruptcy(engine: "Engine", account_id: str, pre_position: int) -> list[Report]:  # type: ignore # noqa: F821
+    """Cover the negative cash of a just-liquidated account and return the reports."""
+    state = engine.state
+    victim = state.accounts[account_id]
+
+    # Rule R-L1: the deficit is the negative cash that remains after liquidation
+    deficit = max(0, -victim.free_cash)
+    if deficit == 0:
+        return []
+
+    reports: list[Report] = []
+
+    # Rule R-L2: the fee vault (never below zero) pays first
+    cover = min(deficit, max(0, state.fee_vault))
+    if cover > 0:
+        state.fee_vault -= cover
+        victim.free_cash += cover
+        reports.append(Report(kind="INSURANCE_DRAWN", account=account_id, qty=cover))
+
+    remaining = deficit - cover
+    if remaining == 0:
+        return reports
+
+    # Rule R-L3: the rest is shared by the accounts on the other side of the liquidated position
+    weights: dict[str, int] = {}
+    for acc_id, acc in state.accounts.items():
+        if acc_id == "LIQ" or acc_id == account_id or acc.position == 0:
+            continue
+        if (acc.position > 0) != (pre_position > 0):
+            weights[acc_id] = abs(acc.position)
+
+    # Rule R-L4: nobody to share with, the loss stays as bad debt
+    if not weights:
+        reports.append(Report(kind="BAD_DEBT", account=account_id, qty=remaining))
+        return reports
+
+    total = sum(weights.values())
+    shares = {acc_id: remaining * w // total for acc_id, w in weights.items()}
+    leftover = remaining - sum(shares.values())
+    ranked = sorted(weights, key=lambda a: (-(remaining * weights[a] % total), a))
+    for acc_id in ranked[:leftover]:
+        shares[acc_id] += 1
+
+    for acc_id in sorted(shares):
+        if shares[acc_id] > 0:
+            state.accounts[acc_id].free_cash -= shares[acc_id]
+            reports.append(Report(kind="ADL_APPLIED", account=acc_id, qty=shares[acc_id]))
+    victim.free_cash += remaining
+    return reports
+```
+
+
+## Reference Context (Read-Only)
+
+
+### Context: exchange_core/types.py
+```python
+"""exchange_core/types.py
+Data types and report structures.
+See docs/04_RULEBOOK.md and docs/05_INVARIANTS_AND_DATA.md.
+"""
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+
+@dataclass
+class Order:
+    """An order in the exchange.
+
+    Rule R-B1: An order has order_id, account, side (BUY or SELL),
+    price, qty, cum_qty, prio_seq, margin_bps, lock, flag.
+    leaves equals qty - cum_qty. Flag is NONE, IOC, or POST_ONLY.
+    """
+    order_id: int
+    account: str
+    side: str
+    price: int
+    qty: int
+    cum_qty: int
+    prio_seq: int
+    margin_bps: int
+    lock: int
+    flag: str = "NONE"
+
+    @property
+    def leaves(self) -> int:
+        return self.qty - self.cum_qty
+
+
+@dataclass(frozen=True)
+class BasketLeg:
+    """One leg of an atomic basket event.
+
+    Rule R-A1: A leg has side, price, qty, and flag (IOC or POST_ONLY).
+    """
+    side: str
+    price: int
+    qty: int
+    flag: str = "NONE"
+
+
+@dataclass(frozen=True)
+class Event:
+    """An input event to the exchange engine.
+
+    Events are frozen dataclasses with a kind field.
+    Kinds: NEW_LIMIT, CANCEL, REPLACE, SET_MARGIN_RATE, PRICE_SHOCK,
+           FIX_MSG, SESSION_RESET, BASKET.
+    """
+    kind: str
+    account: str = ""
+    side: str = ""
+    price: int = 0
+    qty: int = 0
+    flag: str = "NONE"
+    order_id: int = 0
+    new_price: int = 0
+    new_qty: int = 0
+    bps: int = 0
+    mark_price: int = 0
+    session: str = ""
+    epoch: int = 0
+    seq: int = 0
+    poss_dup: bool = False
+    body: Optional[Any] = None
+    legs: tuple[BasketLeg, ...] = field(default_factory=tuple)
+
+
+# FixMsg alias for FIX sequence handling
+FixMsg = Event
+
+
+@dataclass(frozen=True)
+class Report:
+    """An output report from the engine.
+    See docs/04_RULEBOOK.md section 11.
+    """
+    kind: str
+    order_id: int = 0
+    reason: str = ""
+    buy_order_id: int = 0
+    sell_order_id: int = 0
+    price: int = 0
+    qty: int = 0
+    taker_order_id: int = 0
+    account: str = ""
+    mark_price: int = 0
+    bps: int = 0
+    session: str = ""
+    leg_index: int = 0
+
+    @classmethod
+    def accepted(cls, order_id: int) -> "Report": return cls(kind="ACCEPTED", order_id=order_id)
+    @classmethod
+    def rejected(cls, reason: str) -> "Report": return cls(kind="REJECTED", reason=reason)
+    @classmethod
+    def fill(
+        cls, buy_order_id: int, sell_order_id: int, price: int, qty: int, taker_order_id: int
+    ) -> "Report":
+        return cls(
+            kind="FILL", buy_order_id=buy_order_id, sell_order_id=sell_order_id,
+            price=price, qty=qty, taker_order_id=taker_order_id,
+        )
+    @classmethod
+    def cancelled(cls, order_id: int, reason: str) -> "Report":
+        return cls(kind="CANCELLED", order_id=order_id, reason=reason)
+    @classmethod
+    def replaced(cls, order_id: int) -> "Report": return cls(kind="REPLACED", order_id=order_id)
+    @classmethod
+    def buffered(cls) -> "Report": return cls(kind="BUFFERED")
+    @classmethod
+    def discarded(cls, reason: str) -> "Report": return cls(kind="DISCARDED", reason=reason)
+    @classmethod
+    def liquidated(cls, account: str, qty: int) -> "Report":
+        return cls(kind="LIQUIDATED", account=account, qty=qty)
+    @classmethod
+    def mark_set(cls, mark_price: int) -> "Report":
+        return cls(kind="MARK_SET", mark_price=mark_price)
+    @classmethod
+    def margin_rate_set(cls, bps: int) -> "Report": return cls(kind="MARGIN_RATE_SET", bps=bps)
+    @classmethod
+    def session_reset_done(cls, session: str) -> "Report":
+        return cls(kind="SESSION_RESET_DONE", session=session)
+    @classmethod
+    def basket_committed(cls) -> "Report": return cls(kind="BASKET_COMMITTED")
+    @classmethod
+    def basket_rolled_back(cls, leg_index: int) -> "Report":
+        return cls(kind="BASKET_ROLLED_BACK", leg_index=leg_index)
+
+
+@dataclass(frozen=True)
+class Fill:
+    """Internal fill record passed to settle_fill."""
+    buy_order_id: int
+    sell_order_id: int
+    price: int
+    qty: int
+    taker_order_id: int
+    buyer: str = ""
+    seller: str = ""
+
+    @property
+    def notional(self) -> int:
+        return self.price * self.qty
+
+
+@dataclass
+class ReplaceDecision:
+    """Outcome of pure replace rule (Variant A target)."""
+    ok: bool
+    reason: str = ""
+    keep_priority: bool = False
+    new_leaves: int = 0
+
+
+@dataclass
+class SessionOutcome:
+    """Outcome of pure session message handling (Variant A target)."""
+    to_process: list[Any] = field(default_factory=list)
+    reports: list[Report] = field(default_factory=list)
+
+
+@dataclass
+class AccountView:
+    """Read-only view of account for waterfall planning."""
+    account_id: str
+    free_cash: int
+    locked_margin: int
+    position: int
+
+
+@dataclass
+class WaterfallPlan:
+    """Outcome of pure waterfall planning (Variant A target)."""
+    in_breach_stage1: bool
+    in_breach_stage2: bool
+    cancelled_orders: list[int] = field(default_factory=list)
+    liquidate_qty: int = 0
+```
+
+### Context: exchange_core/state.py
+```python
+"""exchange_core/state.py
+Mutable state classes for the exchange engine.
+See docs/05_INVARIANTS_AND_DATA.md.
+"""
+from dataclasses import dataclass, field
+
+from exchange_core.types import FixMsg, Order
+
+
+@dataclass
+class Account:
+    """An account on the exchange.
+    Tracks cash balance, locked margin, position, and cumulative volume.
+    """
+    free_cash: int
+    locked_margin: int
+    position: int
+    volume: int
+
+    def clone(self) -> "Account":
+        return Account(
+            free_cash=self.free_cash,
+            locked_margin=self.locked_margin,
+            position=self.position,
+            volume=self.volume,
+        )
+
+
+@dataclass
+class SessionState:
+    """FIX session state.
+    Tracks current epoch, expected next sequence number, and out-of-order buffer.
+    """
+    epoch: int
+    next_seq: int
+    buffer: dict[int, FixMsg] = field(default_factory=dict)
+
+    def clone(self) -> "SessionState":
+        return SessionState(
+            epoch=self.epoch,
+            next_seq=self.next_seq,
+            buffer=dict(self.buffer),
+        )
+
+
+@dataclass
+class EngineState:
+    """Single container for all mutable engine state.
+
+    Rule ENG-07: The engine must keep all state in one EngineState object.
+    Rule ENG-08: EngineState must support snapshot() and restore().
+    A restore must give a state with the same hash as the snapshot.
+    """
+    accounts: dict[str, Account]
+    orders: dict[int, Order]  # resting orders by order_id
+    fee_vault: int
+    next_order_id: int
+    next_prio_seq: int
+    margin_bps: int
+    mark_price: int
+    sessions: dict[str, SessionState]
+    initial_total: int
+
+    def snapshot(self) -> "EngineState":
+        """Produce an independent deep snapshot of the engine state."""
+        return EngineState(
+            accounts={k: v.clone() for k, v in self.accounts.items()},
+            orders={k: Order(**v.__dict__) for k, v in self.orders.items()},
+            fee_vault=self.fee_vault,
+            next_order_id=self.next_order_id,
+            next_prio_seq=self.next_prio_seq,
+            margin_bps=self.margin_bps,
+            mark_price=self.mark_price,
+            sessions={k: v.clone() for k, v in self.sessions.items()},
+            initial_total=self.initial_total,
+        )
+
+    def restore(self, snap: "EngineState") -> None:
+        """Restore all state in-place from an earlier snapshot (Rule R-A4, ENG-08)."""
+        self.accounts = {k: v.clone() for k, v in snap.accounts.items()}
+        self.orders = {k: Order(**v.__dict__) for k, v in snap.orders.items()}
+        self.fee_vault = snap.fee_vault
+        self.next_order_id = snap.next_order_id
+        self.next_prio_seq = snap.next_prio_seq
+        self.margin_bps = snap.margin_bps
+        self.mark_price = snap.mark_price
+        self.sessions = {k: v.clone() for k, v in snap.sessions.items()}
+        self.initial_total = snap.initial_total
+```
+
+### Context: exchange_core/intmath.py
+```python
+"""exchange_core/intmath.py
+Integer arithmetic helpers.
+
+Rule R-U1: All amounts, prices, and quantities are integers.
+No other module does rounding.
+No float is used. No bare / operator is used.
+"""
+
+
+def round_half_even(n: int, d: int) -> int:
+    """Divide n by d and round to the nearest integer.
+
+    Rule R-U2: When the result is exactly halfway, round to the even integer.
+
+    Algorithm:
+      Let q, r = divmod(n, d).
+      If 2*r > d:  return q + 1.
+      If 2*r == d: return q + (q % 2).   # q is odd -> +1, q is even -> +0
+      Otherwise:   return q.
+
+    Preconditions: n >= 0, d > 0.
+    """
+    q, r = divmod(n, d)
+    if 2 * r > d:
+        return q + 1
+    if 2 * r == d:
+        return q + (q % 2)
+    return q
+
+
+def ceil_div(n: int, d: int) -> int:
+    """Return the smallest integer that is not below n / d.
+
+    Rule R-U3: Equals -((-n) // d).
+
+    Preconditions: n >= 0, d > 0.
+    """
+    return -((-n) // d)
+```
+
+### Context: exchange_core/config.py
+```python
+"""exchange_core/config.py
+Configuration constants for the exchange engine.
+See docs/04_RULEBOOK.md section 1.
+"""
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class EngineConfig:
+    """Holds engine constants.
+
+    All amounts, prices, and quantities are integers (rule R-U1).
+    """
+    tick: int = 10_000
+    margin_bps_default: int = 2_000
+    maint_bps: int = 500
+    ppm: int = 1_000_000
+    taker_ppm_t0: int = 2_750
+    taker_ppm_t1: int = 1_850
+    maker_rebate_ppm: int = 250
+    tier_threshold: int = 5_000_010_000
+
+    # Aliases matching uppercase notation in docs/04_RULEBOOK.md
+    @property
+    def TICK(self) -> int: return self.tick
+    @property
+    def MARGIN_BPS_DEFAULT(self) -> int: return self.margin_bps_default
+    @property
+    def MAINT_BPS(self) -> int: return self.maint_bps
+    @property
+    def PPM(self) -> int: return self.ppm
+    @property
+    def TAKER_PPM_T0(self) -> int: return self.taker_ppm_t0
+    @property
+    def TAKER_PPM_T1(self) -> int: return self.taker_ppm_t1
+    @property
+    def MAKER_REBATE_PPM(self) -> int: return self.maker_rebate_ppm
+    @property
+    def TIER_THRESHOLD(self) -> int: return self.tier_threshold
+```
+
+### Context: exchange_core/book.py
+```python
+"""exchange_core/book.py
+Book primitives. Derived views of resting orders in EngineState.
+No rule logic belongs here (docs/03_ARCHITECTURE.md).
+"""
+from typing import Optional
+
+from exchange_core.state import EngineState
+from exchange_core.types import Order
+
+
+def add_order(state: EngineState, order: Order) -> None:
+    """Add a resting order to the state."""
+    state.orders[order.order_id] = order
+
+
+def remove_order(state: EngineState, order_id: int) -> Optional[Order]:
+    """Remove and return a resting order by order_id."""
+    return state.orders.pop(order_id, None)
+
+
+def get_order(state: EngineState, order_id: int) -> Optional[Order]:
+    """Retrieve a resting order by order_id."""
+    return state.orders.get(order_id)
+
+
+def get_bids(state: EngineState) -> list[Order]:
+    """Return all resting BUY orders in priority order (Rule R-B2)."""
+    bids = [o for o in state.orders.values() if o.side == "BUY" and o.leaves > 0]
+    bids.sort(key=lambda o: (-o.price, o.prio_seq))
+    return bids
+
+
+def get_asks(state: EngineState) -> list[Order]:
+    """Return all resting SELL orders in priority order (Rule R-B2)."""
+    asks = [o for o in state.orders.values() if o.side == "SELL" and o.leaves > 0]
+    asks.sort(key=lambda o: (o.price, o.prio_seq))
+    return asks
+
+
+def best_bid(state: EngineState) -> Optional[int]:
+    """Return highest bid price, or None if no bids exist."""
+    bids = get_bids(state)
+    return bids[0].price if bids else None
+
+
+def best_ask(state: EngineState) -> Optional[int]:
+    """Return lowest ask price, or None if no asks exist."""
+    asks = get_asks(state)
+    return asks[0].price if asks else None
+
+
+def get_account_orders(state: EngineState, account: str) -> list[Order]:
+    """Return all resting orders for an account, sorted by prio_seq ascending (Rule R-W3)."""
+    orders = [o for o in state.orders.values() if o.account == account and o.leaves > 0]
+    orders.sort(key=lambda o: o.prio_seq)
+    return orders
+```
+
+### Context: exchange_core/ledger.py
+```python
+"""exchange_core/ledger.py
+Cash and lock primitives.
+No rule logic belongs here (docs/03_ARCHITECTURE.md).
+"""
+from typing import Optional
+
+from exchange_core.state import Account, EngineState
+
+
+def get_account(state: EngineState, account_id: str) -> Optional[Account]:
+    """Retrieve an account by ID."""
+    return state.accounts.get(account_id)
+
+
+def has_account(state: EngineState, account_id: str) -> bool:
+    """Return True if the account exists."""
+    return account_id in state.accounts
+
+
+def lock_cash(state: EngineState, account_id: str, amount: int) -> None:
+    """Move amount from free_cash to locked_margin."""
+    acc = state.accounts[account_id]
+    acc.free_cash -= amount
+    acc.locked_margin += amount
+
+
+def release_lock(state: EngineState, account_id: str, amount: int) -> None:
+    """Move amount from locked_margin to free_cash."""
+    acc = state.accounts[account_id]
+    acc.locked_margin -= amount
+    acc.free_cash += amount
+
+
+def transfer_cash(state: EngineState, from_id: str, to_id: str, amount: int) -> None:
+    """Transfer free_cash from one account to another."""
+    state.accounts[from_id].free_cash -= amount
+    state.accounts[to_id].free_cash += amount
+
+
+def adjust_position(state: EngineState, account_id: str, delta: int) -> None:
+    """Adjust position by delta (positive = increase, negative = decrease)."""
+    state.accounts[account_id].position += delta
+
+
+def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+    """Deduct fee from account free_cash and deposit to fee_vault."""
+    state.accounts[account_id].free_cash -= fee
+    state.fee_vault += fee
+
+
+def pay_rebate(state: EngineState, account_id: str, rebate: int) -> None:
+    """Credit rebate from fee_vault to account free_cash."""
+    state.fee_vault -= rebate
+    state.accounts[account_id].free_cash += rebate
+
+
+def add_volume(state: EngineState, account_id: str, notional: int) -> None:
+    """Add notional to an account's trading volume."""
+    state.accounts[account_id].volume += notional
+```

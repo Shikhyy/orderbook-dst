@@ -1,0 +1,58 @@
+### FILE: exchange_core/handlers/settle.py
+```python
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.types import Fill, Report
+from exchange_core.intmath import round_half_even
+from exchange_core.ledger import transfer_cash, adjust_position, pay_fee, pay_rebate, add_volume
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    notional = fill.notional
+    taker_id = fill.buyer if fill.taker_order_id == fill.buy_order_id else fill.seller
+    maker_id = fill.seller if fill.taker_order_id == fill.buy_order_id else fill.buyer
+
+    # R-M4.1 & R-M4.2: Transfer cash and update positions
+    transfer_cash(engine.state, fill.buyer, fill.seller, notional)
+    adjust_position(engine.state, fill.buyer, fill.qty)
+    adjust_position(engine.state, fill.seller, -fill.qty)
+
+    # R-F2: Compute taker fee
+    volume_before = engine.state.accounts[taker_id].volume
+    ppm = engine.cfg.PPM
+    threshold = engine.cfg.TIER_THRESHOLD
+    t0 = engine.cfg.TAKER_PPM_T0
+    t1 = engine.cfg.TAKER_PPM_T1
+
+    if volume_before >= threshold:
+        fee = round_half_even(notional * t1, ppm)
+    elif volume_before + notional <= threshold:
+        fee = round_half_even(notional * t0, ppm)
+    else:
+        below = threshold - volume_before
+        above = notional - below
+        fee = round_half_even(below * t0, ppm) + round_half_even(above * t1, ppm)
+
+    # R-F3: Compute maker rebate
+    rebate = round_half_even(notional * engine.cfg.MAKER_REBATE_PPM, ppm)
+
+    # R-M4.5: Taker pays fee, Maker receives rebate
+    pay_fee(engine.state, taker_id, fee)
+    pay_rebate(engine.state, maker_id, rebate)
+
+    # R-M4.6: Update volumes
+    add_volume(engine.state, fill.buyer, notional)
+    add_volume(engine.state, fill.seller, notional)
+
+    # R-M4.7: Return report
+    return [Report.fill(
+        buy_order_id=fill.buy_order_id,
+        sell_order_id=fill.sell_order_id,
+        price=fill.price,
+        qty=fill.qty,
+        taker_order_id=fill.taker_order_id,
+    )]
+```

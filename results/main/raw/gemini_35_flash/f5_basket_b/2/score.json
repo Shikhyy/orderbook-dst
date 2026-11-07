@@ -1,0 +1,303 @@
+{
+  "task_id": "f5_basket_b",
+  "t1": 1.0,
+  "t2": 1.0,
+  "t3": 0.0,
+  "score": 0.5,
+  "passed": false,
+  "first_failure": {
+    "seed": 8000,
+    "event_index": 5,
+    "invariant": "D1",
+    "plain_name": "Report mismatch",
+    "message": "event 5 report differs from reference",
+    "diff": {
+      "expected": [
+        {
+          "kind": "ACCEPTED",
+          "order_id": 4,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ACCEPTED",
+          "order_id": 5,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ACCEPTED",
+          "order_id": 6,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 2,
+          "reason": "STP",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 5,
+          "reason": "STP",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 4,
+          "reason": "STP",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "FILL",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 6,
+          "sell_order_id": 1,
+          "price": 99990000,
+          "qty": 2,
+          "taker_order_id": 6,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "BASKET_COMMITTED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ],
+      "actual": [
+        {
+          "kind": "BASKET_ROLLED_BACK",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 2
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 66
+  },
+  "error": null,
+  "public_test_output": ".........                                                                [100%]\n9 passed in 0.07s",
+  "seed_failures": [
+    {
+      "seed": 8000,
+      "event_index": 5,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8001,
+      "event_index": 5,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8002,
+      "event_index": 28,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8003,
+      "event_index": 44,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8004,
+      "event_index": 18,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8005,
+      "event_index": 42,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8006,
+      "event_index": 74,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8007,
+      "event_index": 20,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8008,
+      "event_index": 20,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8009,
+      "event_index": 66,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8010,
+      "event_index": 44,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8011,
+      "event_index": 62,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8012,
+      "event_index": 49,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8013,
+      "event_index": 19,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8014,
+      "event_index": 24,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8015,
+      "event_index": 91,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8016,
+      "event_index": 21,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8017,
+      "event_index": 65,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8018,
+      "event_index": 88,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 8019,
+      "event_index": 44,
+      "labels": [
+        "D1"
+      ]
+    }
+  ]
+}

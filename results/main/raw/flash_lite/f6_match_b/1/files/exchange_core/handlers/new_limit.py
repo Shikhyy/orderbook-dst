@@ -1,0 +1,107 @@
+"""exchange_core/handlers/new_limit.py
+Handler for NEW_LIMIT events: validation, margin, matching and fill settlement.
+Rules R-B4, R-B5, R-M1 to R-M5. Target for task f6_match_b.
+"""
+from exchange_core.handlers.settle import settle_fill
+from exchange_core.types import Event, Report, Order, Fill
+from exchange_core.state import EngineState
+from exchange_core.book import get_asks, get_bids, best_ask, best_bid, add_order, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import lock_cash, release_lock
+
+
+def handle_new_limit(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    state = engine.state
+    # 1. Validation
+    if event.account not in state.accounts:
+        return [Report.rejected("UNKNOWN_ACCOUNT")]
+    if event.qty <= 0 or event.price <= 0 or event.price % engine.cfg.tick != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # Check POST_ONLY cross
+    if event.flag == "POST_ONLY":
+        if event.side == "BUY":
+            ba = best_ask(state)
+            if ba is not None and ba <= event.price:
+                return [Report.rejected("POST_ONLY_WOULD_CROSS")]
+        else:
+            bb = best_bid(state)
+            if bb is not None and bb >= event.price:
+                return [Report.rejected("POST_ONLY_WOULD_CROSS")]
+
+    # Margin check
+    lock = ceil_div(event.qty * event.price * state.margin_bps, 10000)
+    if state.accounts[event.account].free_cash < lock:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # 2. Setup
+    order_id = state.next_order_id
+    prio_seq = state.next_prio_seq
+    state.next_order_id += 1
+    state.next_prio_seq += 1
+
+    incoming_order = Order(
+        order_id=order_id,
+        account=event.account,
+        side=event.side,
+        price=event.price,
+        qty=event.qty,
+        cum_qty=0,
+        prio_seq=prio_seq,
+        margin_bps=state.margin_bps,
+        lock=lock,
+        flag=event.flag
+    )
+    lock_cash(state, event.account, lock)
+    reports = [Report.accepted(order_id)]
+
+    # 3. Matching
+    leaves = event.qty
+    while leaves > 0:
+        candidates = get_asks(state) if event.side == "BUY" else get_bids(state)
+        if not candidates:
+            break
+        best = candidates[0]
+        if (event.side == "BUY" and best.price > event.price) or (event.side == "SELL" and best.price < event.price):
+            break
+
+        # STP
+        if best.account == event.account:
+            remove_order(state, best.order_id)
+            release_lock(state, best.account, best.lock)
+            reports.append(Report.cancelled(best.order_id, "STP"))
+            continue
+
+        # Fill
+        fill_qty = min(leaves, best.leaves)
+        fill = Fill(
+            buy_order_id=order_id if event.side == "BUY" else best.order_id,
+            sell_order_id=best.order_id if event.side == "BUY" else order_id,
+            price=best.price,
+            qty=fill_qty,
+            taker_order_id=order_id,
+            buyer=event.account if event.side == "BUY" else best.account,
+            seller=best.account if event.side == "BUY" else event.account
+        )
+        reports.extend(settle_fill(engine, fill))
+
+        # Update locks
+        for o, o_id in [(incoming_order, order_id), (best, best.order_id)]:
+            o.cum_qty += fill_qty
+            new_l = ceil_div(o.leaves * o.price * o.margin_bps, 10000)
+            delta = o.lock - new_l
+            release_lock(state, o.account, delta)
+            o.lock = new_l
+        
+        leaves = incoming_order.leaves
+        if best.leaves == 0:
+            remove_order(state, best.order_id)
+
+    # 4. Finalize
+    if leaves > 0:
+        if event.flag == "IOC":
+            release_lock(state, event.account, incoming_order.lock)
+            reports.append(Report.cancelled(order_id, "IOC_REMAINDER"))
+        else:
+            add_order(state, incoming_order)
+    return reports

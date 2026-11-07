@@ -1,0 +1,150 @@
+### FILE: exchange_core/handlers/new_limit.py
+```python
+"""exchange_core/handlers/new_limit.py
+Handler for NEW_LIMIT events: validation, margin, matching and fill settlement.
+Rules R-B4, R-B5, R-M1 to R-M5. Target for task f6_match_b.
+"""
+from typing import Any
+
+from exchange_core.book import add_order, best_ask, best_bid, get_asks, get_bids, remove_order
+from exchange_core.handlers.settle import settle_fill
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import has_account, lock_cash, release_lock
+from exchange_core.types import Event, Fill, Order, Report
+
+
+def handle_new_limit(engine: Any, event: Event) -> list[Report]:
+    """Process a NEW_LIMIT event and return the reports in order."""
+    state = engine.state
+    cfg = engine.cfg
+
+    # R-B4 Step 1: Check account existence
+    if not has_account(state, event.account):
+        return [Report.rejected("UNKNOWN_ACCOUNT")]
+
+    # R-B4 Step 2: Validate qty, price, tick alignment
+    if event.qty <= 0 or event.price <= 0 or event.price % cfg.tick != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # R-B4 Step 3: POST_ONLY crossing check
+    if event.flag == "POST_ONLY":
+        if event.side == "BUY":
+            ba = best_ask(state)
+            if ba is not None and ba <= event.price:
+                return [Report.rejected("POST_ONLY_WOULD_CROSS")]
+        elif event.side == "SELL":
+            bb = best_bid(state)
+            if bb is not None and bb >= event.price:
+                return [Report.rejected("POST_ONLY_WOULD_CROSS")]
+
+    # R-B4 Step 4: Margin check
+    lock = ceil_div(event.qty * event.price * state.margin_bps, 10000)
+    acc = state.accounts[event.account]
+    if acc.free_cash < lock:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # R-B5 Step 1-4: Valid order setup and margin lock
+    order_id = state.next_order_id
+    prio_seq = state.next_prio_seq
+    state.next_order_id += 1
+    state.next_prio_seq += 1
+
+    lock_cash(state, event.account, lock)
+
+    order = Order(
+        order_id=order_id,
+        account=event.account,
+        side=event.side,
+        price=event.price,
+        qty=event.qty,
+        cum_qty=0,
+        prio_seq=prio_seq,
+        margin_bps=state.margin_bps,
+        lock=lock,
+        flag=event.flag,
+    )
+
+    reports: list[Report] = [Report.accepted(order_id)]
+
+    # R-B5 Step 5: Matching loop (R-M1 to R-M4)
+    while order.leaves > 0:
+        if order.side == "BUY":
+            opp_orders = get_asks(state)
+        else:
+            opp_orders = get_bids(state)
+
+        if not opp_orders:
+            break
+
+        maker = opp_orders[0]
+
+        # Check limit price cross
+        if order.side == "BUY" and maker.price > order.price:
+            break
+        if order.side == "SELL" and maker.price < order.price:
+            break
+
+        # R-M3: Self-trade prevention (STP)
+        if maker.account == order.account:
+            remove_order(state, maker.order_id)
+            release_lock(state, maker.account, maker.lock)
+            reports.append(Report.cancelled(maker.order_id, "STP"))
+            continue
+
+        # R-M2 & R-M4: Calculate fill price and qty
+        fill_price = maker.price
+        fill_qty = min(order.leaves, maker.leaves)
+
+        # R-M4 step 3: Update cum_qty
+        order.cum_qty += fill_qty
+        maker.cum_qty += fill_qty
+
+        # R-M4 step 4: Recalculate locks
+        new_lock_order = ceil_div(order.leaves * order.price * order.margin_bps, 10000)
+        delta_order = order.lock - new_lock_order
+        release_lock(state, order.account, delta_order)
+        order.lock = new_lock_order
+
+        new_lock_maker = ceil_div(maker.leaves * maker.price * maker.margin_bps, 10000)
+        delta_maker = maker.lock - new_lock_maker
+        release_lock(state, maker.account, delta_maker)
+        maker.lock = new_lock_maker
+
+        if maker.leaves == 0:
+            remove_order(state, maker.order_id)
+
+        # Build fill object
+        if order.side == "BUY":
+            buy_order_id = order.order_id
+            sell_order_id = maker.order_id
+            buyer = order.account
+            seller = maker.account
+        else:
+            buy_order_id = maker.order_id
+            sell_order_id = order.order_id
+            buyer = maker.account
+            seller = order.account
+
+        fill = Fill(
+            buy_order_id=buy_order_id,
+            sell_order_id=sell_order_id,
+            price=fill_price,
+            qty=fill_qty,
+            taker_order_id=order.order_id,
+            buyer=buyer,
+            seller=seller,
+        )
+
+        fill_reports = settle_fill(engine, fill)
+        reports.extend(fill_reports)
+
+    # R-B5 Step 6 & 7: Post-matching logic for incoming order
+    if order.leaves > 0:
+        if order.flag == "IOC":
+            release_lock(state, order.account, order.lock)
+            reports.append(Report.cancelled(order.order_id, "IOC_REMAINDER"))
+        else:
+            add_order(state, order)
+
+    return reports
+```

@@ -1,0 +1,2561 @@
+{
+  "models": [
+    {
+      "model": "nemotron_ultra",
+      "model_id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "tier": "frontier",
+      "served_model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "settings": {
+        "max_tokens": 16000,
+        "base_url": "https://openrouter.ai/api/v1",
+        "api_key_env": "OPENROUTER_API_KEY"
+      },
+      "trials_count": 33,
+      "tasks_count": 11,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 1.0,
+      "pass_rate_ci95": [
+        1.0,
+        1.0
+      ],
+      "pass_at_1": 1.0,
+      "pass_at_3": 1.0,
+      "pass_pow_3": 1.0,
+      "mean_score": 1.0,
+      "mean_score_ci95": [
+        1.0,
+        1.0
+      ],
+      "mean_t1": 1.0,
+      "mean_t2": 1.0,
+      "mean_t3": 1.0,
+      "mttif": null,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 46.76,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f7_funding_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f8_adl_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 33,
+        "mean_gap": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.0,
+        "p_value": 1.0
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.0,
+        "p_value": 1.0
+      },
+      "seed_stats": {
+        "evaluated_seeds": 660,
+        "failing_seed_labels": {},
+        "invariant_survival": {
+          "I1": 1.0,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 1.0,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 0,
+          "conservation_breach": 0,
+          "report_or_state_mismatch_only": 0,
+          "crash": 0,
+          "conservation_share": null
+        }
+      }
+    },
+    {
+      "model": "mistral_large",
+      "model_id": "mistral-large-4",
+      "tier": "frontier",
+      "served_model": "mistral-large-4",
+      "settings": {
+        "max_tokens": 8000,
+        "base_url": "https://api.mistral.ai/v1",
+        "api_key_env": "MISTRAL_API_KEY"
+      },
+      "trials_count": 33,
+      "tasks_count": 11,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 1,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.9394,
+      "pass_rate_ci95": [
+        0.8182,
+        1.0
+      ],
+      "pass_at_1": 0.9394,
+      "pass_at_3": 1.0,
+      "pass_pow_3": 0.8182,
+      "mean_score": 0.9599,
+      "mean_score_ci95": [
+        0.869,
+        1.0
+      ],
+      "mean_t1": 0.9663,
+      "mean_t2": 0.9697,
+      "mean_t3": 0.9515,
+      "mttif": 200.0,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 29.14,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.8926,
+          "mean_t1": 0.963,
+          "mean_t2": 1.0,
+          "mean_t3": 0.8,
+          "outcomes": {
+            "D1": 1,
+            "pass": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6667,
+          "mean_t1": 0.6667,
+          "mean_t2": 0.6667,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "pass": 2,
+            "OUTPUT_TRUNCATED": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f7_funding_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f8_adl_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 32,
+        "mean_gap": 0.0148,
+        "ci95": [
+          0.0,
+          0.0593
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 0.6667,
+            "mean_b": 1.0,
+            "diff": -0.3333
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": -0.1111,
+        "p_value": 1.0
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 0.8926,
+            "mean_b": 1.0,
+            "diff": -0.1074
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": -0.0358,
+        "p_value": 1.0
+      },
+      "seed_stats": {
+        "evaluated_seeds": 640,
+        "failing_seed_labels": {
+          "D1_STATE": 11,
+          "D1": 1
+        },
+        "invariant_survival": {
+          "I1": 1.0,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 0.9984,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 0,
+          "conservation_breach": 0,
+          "report_or_state_mismatch_only": 0,
+          "crash": 0,
+          "conservation_share": null
+        }
+      }
+    },
+    {
+      "model": "gemma_26b",
+      "model_id": "gemma-4-26b-a4b-it",
+      "tier": "small",
+      "served_model": "gemma-4-26b-a4b-it",
+      "settings": {
+        "max_tokens": 8000,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "api_key_env": "GEMINI_API_KEY"
+      },
+      "trials_count": 33,
+      "tasks_count": 11,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.8182,
+      "pass_rate_ci95": [
+        0.5758,
+        1.0
+      ],
+      "pass_at_1": 0.8182,
+      "pass_at_3": 0.9091,
+      "pass_pow_3": 0.7273,
+      "mean_score": 0.8455,
+      "mean_score_ci95": [
+        0.6333,
+        1.0
+      ],
+      "mean_t1": 0.9057,
+      "mean_t2": 0.851,
+      "mean_t3": 0.8182,
+      "mttif": 6.33,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 27.99,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.0,
+          "mean_t1": 0.0,
+          "mean_t2": 0.0,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "T2_ERROR": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.7259,
+          "mean_t1": 0.963,
+          "mean_t2": 0.6667,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "pass": 2,
+            "D1": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.575,
+          "mean_t1": 1.0,
+          "mean_t2": 0.6944,
+          "mean_t3": 0.3333,
+          "outcomes": {
+            "pass": 1,
+            "D1": 1,
+            "I3": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f7_funding_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f8_adl_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 30,
+        "mean_gap": 0.0963,
+        "ci95": [
+          0.0,
+          0.2667
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0,
+            "diff": 1.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.3333,
+        "p_value": 0.0532
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0,
+            "diff": 1.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.3333,
+        "p_value": 0.0532
+      },
+      "seed_stats": {
+        "evaluated_seeds": 600,
+        "failing_seed_labels": {
+          "D1": 40,
+          "I3": 20
+        },
+        "invariant_survival": {
+          "I1": 1.0,
+          "I2": 1.0,
+          "I3": 0.9667,
+          "I4": 1.0,
+          "D1": 0.9333,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 60,
+          "conservation_breach": 20,
+          "report_or_state_mismatch_only": 40,
+          "crash": 0,
+          "conservation_share": 0.3333
+        }
+      }
+    },
+    {
+      "model": "flash_lite",
+      "model_id": "gemini-3.1-flash-lite",
+      "tier": "small",
+      "served_model": "gemini-3.1-flash-lite",
+      "settings": {
+        "max_tokens": 8000,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "api_key_env": "GEMINI_API_KEY"
+      },
+      "trials_count": 33,
+      "tasks_count": 11,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.7879,
+      "pass_rate_ci95": [
+        0.5758,
+        0.9697
+      ],
+      "pass_at_1": 0.7879,
+      "pass_at_3": 1.0,
+      "pass_pow_3": 0.6364,
+      "mean_score": 0.8607,
+      "mean_score_ci95": [
+        0.7124,
+        0.9787
+      ],
+      "mean_t1": 0.9606,
+      "mean_t2": 0.8674,
+      "mean_t3": 0.8167,
+      "mttif": 84.0,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 7.43,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.4342,
+          "mean_t1": 0.7333,
+          "mean_t2": 0.375,
+          "mean_t3": 0.35,
+          "outcomes": {
+            "D1": 1,
+            "T2_ERROR": 1,
+            "pass": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6819,
+          "mean_t1": 0.8889,
+          "mean_t2": 0.625,
+          "mean_t3": 0.6333,
+          "outcomes": {
+            "pass": 1,
+            "D1": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6292,
+          "mean_t1": 1.0,
+          "mean_t2": 0.875,
+          "mean_t3": 0.3333,
+          "outcomes": {
+            "D1": 2,
+            "pass": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f7_funding_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f8_adl_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.7222,
+          "mean_t1": 0.9444,
+          "mean_t2": 0.6667,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "pass": 2,
+            "I1": 1
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 32,
+        "mean_gap": 0.1432,
+        "ci95": [
+          0.0212,
+          0.3101
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.3333,
+            "diff": 0.6667
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.2222,
+        "p_value": 0.2067
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.4342,
+            "diff": 0.5658
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.1886,
+        "p_value": 0.2067
+      },
+      "seed_stats": {
+        "evaluated_seeds": 640,
+        "failing_seed_labels": {
+          "D1_STATE": 13,
+          "D1": 60,
+          "D1_FINAL": 8,
+          "I1": 20
+        },
+        "invariant_survival": {
+          "I1": 0.9688,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 0.9062,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 101,
+          "conservation_breach": 20,
+          "report_or_state_mismatch_only": 81,
+          "crash": 0,
+          "conservation_share": 0.198
+        }
+      }
+    },
+    {
+      "model": "nemotron_nano",
+      "model_id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "tier": "small",
+      "served_model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "settings": {
+        "max_tokens": 16000,
+        "base_url": "https://openrouter.ai/api/v1",
+        "api_key_env": "OPENROUTER_API_KEY"
+      },
+      "trials_count": 33,
+      "tasks_count": 11,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 11,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.3636,
+      "pass_rate_ci95": [
+        0.1212,
+        0.6061
+      ],
+      "pass_at_1": 0.3636,
+      "pass_at_3": 0.5455,
+      "pass_pow_3": 0.1818,
+      "mean_score": 0.4202,
+      "mean_score_ci95": [
+        0.1903,
+        0.6667
+      ],
+      "mean_t1": 0.4949,
+      "mean_t2": 0.4116,
+      "mean_t3": 0.3955,
+      "mttif": 25.0,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 97.88,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.0,
+          "mean_t1": 0.0,
+          "mean_t2": 0.0,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "OUTPUT_TRUNCATED": 1,
+            "T2_ERROR": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.0667,
+          "mean_t1": 0.3333,
+          "mean_t2": 0.0,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "T2_ERROR": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6667,
+          "mean_t1": 0.6667,
+          "mean_t2": 0.6667,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "pass": 2,
+            "OUTPUT_TRUNCATED": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6667,
+          "mean_t1": 0.6667,
+          "mean_t2": 0.6667,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "T2_ERROR": 1,
+            "pass": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.3333,
+          "mean_t1": 0.3333,
+          "mean_t2": 0.3333,
+          "mean_t3": 0.3333,
+          "outcomes": {
+            "pass": 1,
+            "OUTPUT_TRUNCATED": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.1639,
+          "mean_t1": 0.4444,
+          "mean_t2": 0.25,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "D1": 2,
+            "OUTPUT_TRUNCATED": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.0,
+          "mean_t1": 0.0,
+          "mean_t2": 0.0,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "OUTPUT_TRUNCATED": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f7_funding_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.075,
+          "mean_t1": 0.3333,
+          "mean_t2": 0.0,
+          "mean_t3": 0.0167,
+          "outcomes": {
+            "I1": 1,
+            "OUTPUT_TRUNCATED": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f8_adl_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.65,
+          "mean_t1": 0.6667,
+          "mean_t2": 0.6111,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "OUTPUT_TRUNCATED": 1,
+            "T2_FAIL": 1,
+            "pass": 1
+          },
+          "near_miss_trials": [
+            1
+          ]
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 16,
+        "mean_gap": 0.2021,
+        "ci95": [
+          0.0,
+          0.4812
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0,
+            "diff": 1.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0,
+            "diff": 1.0
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 0.6667,
+            "mean_b": 0.6667,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.6667,
+        "p_value": 0.0086
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0,
+            "diff": 1.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0667,
+            "diff": 0.9333
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 0.6667,
+            "mean_b": 0.6667,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.6444,
+        "p_value": 0.0086
+      },
+      "seed_stats": {
+        "evaluated_seeds": 320,
+        "failing_seed_labels": {
+          "D1": 40,
+          "I1": 19
+        },
+        "invariant_survival": {
+          "I1": 0.9406,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 0.875,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 59,
+          "conservation_breach": 19,
+          "report_or_state_mismatch_only": 40,
+          "crash": 0,
+          "conservation_share": 0.322
+        }
+      }
+    },
+    {
+      "model": "ministral_8b",
+      "model_id": "ministral-8b-latest",
+      "tier": "small",
+      "served_model": "ministral-8b-latest",
+      "settings": {
+        "max_tokens": 8000,
+        "base_url": "https://api.mistral.ai/v1",
+        "api_key_env": "MISTRAL_API_KEY"
+      },
+      "trials_count": 33,
+      "tasks_count": 11,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.3636,
+      "pass_rate_ci95": [
+        0.0909,
+        0.6364
+      ],
+      "pass_at_1": 0.3636,
+      "pass_at_3": 0.4545,
+      "pass_pow_3": 0.2727,
+      "mean_score": 0.5083,
+      "mean_score_ci95": [
+        0.2982,
+        0.7258
+      ],
+      "mean_t1": 0.7951,
+      "mean_t2": 0.5556,
+      "mean_t3": 0.3652,
+      "mttif": 43.0,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 12.25,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 2,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6667,
+          "mean_t1": 0.6667,
+          "mean_t2": 0.6667,
+          "mean_t3": 0.6667,
+          "outcomes": {
+            "pass": 2,
+            "T2_ERROR": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.3025,
+          "mean_t1": 0.7,
+          "mean_t2": 0.5417,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "T2_ERROR": 1,
+            "I2": 1,
+            "D1": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 1,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.6269,
+          "mean_t1": 0.9259,
+          "mean_t2": 0.9167,
+          "mean_t3": 0.3333,
+          "outcomes": {
+            "pass": 1,
+            "I4": 2
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.0866,
+          "mean_t1": 0.3704,
+          "mean_t2": 0.0417,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "T2_ERROR": 2,
+            "I2": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.425,
+          "mean_t1": 1.0,
+          "mean_t2": 0.75,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "D1": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.0917,
+          "mean_t1": 0.4167,
+          "mean_t2": 0.0278,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "T2_ERROR": 2,
+            "I2": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f7_funding_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.2083,
+          "mean_t1": 1.0,
+          "mean_t2": 0.0,
+          "mean_t3": 0.0167,
+          "outcomes": {
+            "D1": 2,
+            "I1": 1
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f8_adl_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.1833,
+          "mean_t1": 0.6667,
+          "mean_t2": 0.1667,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "D1": 3
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 27,
+        "mean_gap": 0.5041,
+        "ci95": [
+          0.2622,
+          0.7432
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.6667,
+            "diff": 0.3333
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.0,
+            "diff": 1.0
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.3333,
+            "diff": 0.6667
+          }
+        ],
+        "mean_diff": 0.6667,
+        "p_value": 0.0047
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.6667,
+            "diff": 0.3333
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.3025,
+            "diff": 0.6975
+          },
+          {
+            "family": "F3",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 0.6269,
+            "diff": 0.3731
+          }
+        ],
+        "mean_diff": 0.468,
+        "p_value": 0.0047
+      },
+      "seed_stats": {
+        "evaluated_seeds": 540,
+        "failing_seed_labels": {
+          "I2": 54,
+          "D1": 147,
+          "D1_STATE": 2,
+          "I3": 5,
+          "I1": 103,
+          "I4": 40
+        },
+        "invariant_survival": {
+          "I1": 0.8093,
+          "I2": 0.9,
+          "I3": 0.9907,
+          "I4": 0.9259,
+          "D1": 0.7278,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 299,
+          "conservation_breach": 201,
+          "report_or_state_mismatch_only": 98,
+          "crash": 0,
+          "conservation_share": 0.6722
+        }
+      }
+    },
+    {
+      "model": "gemini_35_flash",
+      "model_id": "gemini-3.5-flash",
+      "tier": "frontier",
+      "served_model": "gemini-3.5-flash",
+      "settings": {
+        "max_tokens": 16000,
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "api_key_env": "GEMINI_API_KEY"
+      },
+      "trials_count": 23,
+      "tasks_count": 8,
+      "trials_per_task": 3,
+      "format_errors": 0,
+      "forbidden_imports": 0,
+      "missing_files": 0,
+      "output_truncated": 0,
+      "prompt_truncated_suspected": 0,
+      "pass_rate": 0.875,
+      "pass_rate_ci95": [
+        0.625,
+        1.0
+      ],
+      "pass_at_1": 0.875,
+      "pass_at_3": 0.875,
+      "pass_pow_3": 0.875,
+      "mean_score": 0.9348,
+      "mean_score_ci95": [
+        0.8125,
+        1.0
+      ],
+      "mean_t1": 1.0,
+      "mean_t2": 1.0,
+      "mean_t3": 0.8696,
+      "mttif": 5.0,
+      "total_cost_usd": 0.0,
+      "mean_latency_s": 34.08,
+      "per_task": [
+        {
+          "task_id": "f1_fee_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f1_fee_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f2_replace_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f3_fix_a",
+          "variant": "A",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f4_waterfall_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 3,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f5_basket_b",
+          "variant": "B",
+          "trials": 3,
+          "passes": 0,
+          "pass_pow_3": 0.0,
+          "mean_score": 0.5,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 0.0,
+          "outcomes": {
+            "D1": 3
+          },
+          "near_miss_trials": []
+        },
+        {
+          "task_id": "f6_match_b",
+          "variant": "B",
+          "trials": 2,
+          "passes": 2,
+          "pass_pow_3": 1.0,
+          "mean_score": 1.0,
+          "mean_t1": 1.0,
+          "mean_t2": 1.0,
+          "mean_t3": 1.0,
+          "outcomes": {
+            "pass": 2
+          },
+          "near_miss_trials": []
+        }
+      ],
+      "h1_t1_minus_t3": {
+        "n": 23,
+        "mean_gap": 0.125,
+        "ci95": [
+          0.0,
+          0.375
+        ]
+      },
+      "h2_a_vs_b_pass": {
+        "metric": "passed",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.0,
+        "p_value": 1.0
+      },
+      "h2_a_vs_b_score": {
+        "metric": "score",
+        "test": "stratified permutation (one-sided, A > B)",
+        "families": [
+          {
+            "family": "F1",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          },
+          {
+            "family": "F2",
+            "n_a": 3,
+            "n_b": 3,
+            "mean_a": 1.0,
+            "mean_b": 1.0,
+            "diff": 0.0
+          }
+        ],
+        "mean_diff": 0.0,
+        "p_value": 1.0
+      },
+      "seed_stats": {
+        "evaluated_seeds": 460,
+        "failing_seed_labels": {
+          "D1": 60
+        },
+        "invariant_survival": {
+          "I1": 1.0,
+          "I2": 1.0,
+          "I3": 1.0,
+          "I4": 1.0,
+          "D1": 0.8696,
+          "CRASH": 1.0
+        },
+        "h5_variant_b": {
+          "failing_seeds": 60,
+          "conservation_breach": 0,
+          "report_or_state_mismatch_only": 60,
+          "crash": 0,
+          "conservation_share": 0.0
+        }
+      }
+    }
+  ],
+  "feedback": [],
+  "total_trials": 329,
+  "debug": [
+    {
+      "model": "nemotron_ultra",
+      "tasks": [
+        {
+          "task_id": "f9_dbg_1",
+          "graded_as": "f1_fee_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_2",
+          "graded_as": "f4_waterfall_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_3",
+          "graded_as": "f5_basket_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_4",
+          "graded_as": "f6_match_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_5",
+          "graded_as": "f7_funding_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_6",
+          "graded_as": "f8_adl_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        }
+      ]
+    },
+    {
+      "model": "mistral_large",
+      "tasks": [
+        {
+          "task_id": "f9_dbg_1",
+          "graded_as": "f1_fee_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_2",
+          "graded_as": "f4_waterfall_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_3",
+          "graded_as": "f5_basket_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_4",
+          "graded_as": "f6_match_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 2
+        },
+        {
+          "task_id": "f9_dbg_5",
+          "graded_as": "f7_funding_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_6",
+          "graded_as": "f8_adl_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        }
+      ]
+    },
+    {
+      "model": "gemma_26b",
+      "tasks": [
+        {
+          "task_id": "f9_dbg_1",
+          "graded_as": "f1_fee_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_2",
+          "graded_as": "f4_waterfall_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_3",
+          "graded_as": "f5_basket_b",
+          "trials": 3,
+          "passes": 0,
+          "mean_score": 0.3806,
+          "outcomes": {
+            "I1": 3
+          },
+          "base_trials": 3,
+          "base_passes": 2
+        },
+        {
+          "task_id": "f9_dbg_4",
+          "graded_as": "f6_match_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 1
+        },
+        {
+          "task_id": "f9_dbg_5",
+          "graded_as": "f7_funding_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_6",
+          "graded_as": "f8_adl_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        }
+      ]
+    },
+    {
+      "model": "flash_lite",
+      "tasks": [
+        {
+          "task_id": "f9_dbg_1",
+          "graded_as": "f1_fee_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_2",
+          "graded_as": "f4_waterfall_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 1
+        },
+        {
+          "task_id": "f9_dbg_3",
+          "graded_as": "f5_basket_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 1
+        },
+        {
+          "task_id": "f9_dbg_4",
+          "graded_as": "f6_match_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_5",
+          "graded_as": "f7_funding_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 3
+        },
+        {
+          "task_id": "f9_dbg_6",
+          "graded_as": "f8_adl_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 2
+        }
+      ]
+    },
+    {
+      "model": "ministral_8b",
+      "tasks": [
+        {
+          "task_id": "f9_dbg_1",
+          "graded_as": "f1_fee_b",
+          "trials": 3,
+          "passes": 0,
+          "mean_score": 0.0815,
+          "outcomes": {
+            "I1": 2,
+            "D1": 1
+          },
+          "base_trials": 3,
+          "base_passes": 2
+        },
+        {
+          "task_id": "f9_dbg_2",
+          "graded_as": "f4_waterfall_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_3",
+          "graded_as": "f5_basket_b",
+          "trials": 3,
+          "passes": 0,
+          "mean_score": 0.3806,
+          "outcomes": {
+            "I1": 3
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_4",
+          "graded_as": "f6_match_b",
+          "trials": 3,
+          "passes": 2,
+          "mean_score": 0.7417,
+          "outcomes": {
+            "pass": 2,
+            "I2": 1
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_5",
+          "graded_as": "f7_funding_b",
+          "trials": 3,
+          "passes": 2,
+          "mean_score": 0.6833,
+          "outcomes": {
+            "pass": 2,
+            "I1": 1
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_6",
+          "graded_as": "f8_adl_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        }
+      ]
+    },
+    {
+      "model": "nemotron_nano",
+      "tasks": [
+        {
+          "task_id": "f9_dbg_1",
+          "graded_as": "f1_fee_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_2",
+          "graded_as": "f4_waterfall_b",
+          "trials": 3,
+          "passes": 0,
+          "mean_score": 0.0,
+          "outcomes": {
+            "OUTPUT_TRUNCATED": 3
+          },
+          "base_trials": 3,
+          "base_passes": 1
+        },
+        {
+          "task_id": "f9_dbg_3",
+          "graded_as": "f5_basket_b",
+          "trials": 3,
+          "passes": 1,
+          "mean_score": 0.3333,
+          "outcomes": {
+            "pass": 1,
+            "OUTPUT_TRUNCATED": 2
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_4",
+          "graded_as": "f6_match_b",
+          "trials": 3,
+          "passes": 1,
+          "mean_score": 0.3333,
+          "outcomes": {
+            "pass": 1,
+            "OUTPUT_TRUNCATED": 2
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_5",
+          "graded_as": "f7_funding_b",
+          "trials": 3,
+          "passes": 2,
+          "mean_score": 0.6667,
+          "outcomes": {
+            "OUTPUT_TRUNCATED": 1,
+            "pass": 2
+          },
+          "base_trials": 3,
+          "base_passes": 0
+        },
+        {
+          "task_id": "f9_dbg_6",
+          "graded_as": "f8_adl_b",
+          "trials": 3,
+          "passes": 3,
+          "mean_score": 1.0,
+          "outcomes": {
+            "pass": 3
+          },
+          "base_trials": 3,
+          "base_passes": 1
+        }
+      ]
+    }
+  ],
+  "run_meta": {
+    "date": "2026-11-06T07:09:39.741130+00:00",
+    "git_sha": "c07d5a4ca1124aa3bdcaa68380382226f39ef4db",
+    "models": [
+      {
+        "label": "nemotron_nano",
+        "tier": "small",
+        "adapter": "openai_compat",
+        "model_id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "settings": {
+          "max_tokens": 16000
+        },
+        "price_in_per_mtok": null,
+        "price_out_per_mtok": null
+      }
+    ]
+  },
+  "sanity_checks": [
+    "Little headroom: nemotron_ultra passes 100% of trials. The eval may no longer show a limitation for this model.",
+    "`f1_fee_a` is passed by every trial of every model: it does not separate models.",
+    "mistral_large: 1 trials ran out of output tokens before giving an answer (reasoning models can spend the whole budget thinking). Raise max_tokens in models.toml if the provider allows it, then re-run those trials; report the remaining ones as a token-budget limit.",
+    "nemotron_nano: 11 trials ran out of output tokens before giving an answer (reasoning models can spend the whole budget thinking). Raise max_tokens in models.toml if the provider allows it, then re-run those trials; report the remaining ones as a token-budget limit.",
+    "gemini_35_flash: 23 of 24 trials recorded; the run is incomplete (resume it)."
+  ]
+}

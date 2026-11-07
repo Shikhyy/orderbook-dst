@@ -1,0 +1,58 @@
+### FILE: exchange_core/handlers/funding.py
+```python
+"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from typing import Any
+
+from exchange_core.intmath import round_half_even
+from exchange_core.types import Event, Report
+
+
+def handle_funding(engine: Any, event: Event) -> list[Report]:
+    """Process a FUNDING event."""
+    state = engine.state
+    cfg = engine.cfg
+
+    rate = event.bps
+    if rate < -3000:
+        rate = -3000
+    elif rate > 3000:
+        rate = 3000
+
+    net_funding = 0
+    processed = 0
+
+    if rate != 0:
+        ppm = cfg.ppm
+        mark_price = state.mark_price
+
+        for account_id in sorted(state.accounts):
+            account = state.accounts[account_id]
+            position = account.position
+            if position == 0:
+                continue
+
+            processed += 1
+            notional = abs(position) * mark_price
+            amount = round_half_even(notional * abs(rate), ppm)
+
+            is_long = position > 0
+            pays = (is_long and rate > 0) or (not is_long and rate < 0)
+
+            if pays:
+                account.free_cash -= amount
+                net_funding += amount
+            else:
+                account.free_cash += amount
+                net_funding -= amount
+
+    state.fee_vault += net_funding
+
+    reports = [Report(kind="FUNDING_APPLIED", bps=rate, qty=processed)]
+    reports.extend(
+        engine.dispatch(Event(kind="PRICE_SHOCK", mark_price=state.mark_price))
+    )
+    return reports
+```

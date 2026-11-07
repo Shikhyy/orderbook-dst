@@ -1,0 +1,629 @@
+{
+  "task_id": "f8_adl_b",
+  "t1": 0.6666666666666666,
+  "t2": 0.16666666666666666,
+  "t3": 0.0,
+  "score": 0.1833,
+  "passed": false,
+  "first_failure": {
+    "seed": 11000,
+    "event_index": 23,
+    "invariant": "D1",
+    "plain_name": "Report mismatch",
+    "message": "event 23 report differs from reference",
+    "diff": {
+      "expected": [
+        {
+          "kind": "MARK_SET",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 246330826,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "LIQUIDATED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": -4,
+          "taker_order_id": 0,
+          "account": "A10",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "LIQUIDATED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": -7,
+          "taker_order_id": 0,
+          "account": "A11",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 4998650,
+          "taker_order_id": 0,
+          "account": "A11",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 52449032,
+          "taker_order_id": 0,
+          "account": "A1",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 183571614,
+          "taker_order_id": 0,
+          "account": "A12",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 78673548,
+          "taker_order_id": 0,
+          "account": "A2",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 104898065,
+          "taker_order_id": 0,
+          "account": "A3",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 13,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 14,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "LIQUIDATED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": -5,
+          "taker_order_id": 0,
+          "account": "A13",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 16459896,
+          "taker_order_id": 0,
+          "account": "A1",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 57609636,
+          "taker_order_id": 0,
+          "account": "A12",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 24689844,
+          "taker_order_id": 0,
+          "account": "A2",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 32919792,
+          "taker_order_id": 0,
+          "account": "A3",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ],
+      "actual": [
+        {
+          "kind": "MARK_SET",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 246330826,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "LIQUIDATED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": -4,
+          "taker_order_id": 0,
+          "account": "A10",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "LIQUIDATED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": -7,
+          "taker_order_id": 0,
+          "account": "A11",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "INSURANCE_DRAWN",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 4998650,
+          "taker_order_id": 0,
+          "account": "A11",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 183571614,
+          "taker_order_id": 0,
+          "account": "A12",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 104898065,
+          "taker_order_id": 0,
+          "account": "A3",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 78673548,
+          "taker_order_id": 0,
+          "account": "A2",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 52449032,
+          "taker_order_id": 0,
+          "account": "A1",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 13,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "CANCELLED",
+          "order_id": 14,
+          "reason": "RISK",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 0,
+          "taker_order_id": 0,
+          "account": "",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "LIQUIDATED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": -5,
+          "taker_order_id": 0,
+          "account": "A13",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 57609636,
+          "taker_order_id": 0,
+          "account": "A12",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 32919792,
+          "taker_order_id": 0,
+          "account": "A3",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 24689844,
+          "taker_order_id": 0,
+          "account": "A2",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        },
+        {
+          "kind": "ADL_APPLIED",
+          "order_id": 0,
+          "reason": "",
+          "buy_order_id": 0,
+          "sell_order_id": 0,
+          "price": 0,
+          "qty": 16459896,
+          "taker_order_id": 0,
+          "account": "A1",
+          "mark_price": 0,
+          "bps": 0,
+          "session": "",
+          "leg_index": 0
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "min_trigger_events": 29
+  },
+  "error": null,
+  "public_test_output": "..F..F                                                                   [100%]\n=================================== FAILURES ===================================\n________________ test_vault_first_then_loss_is_shared_pro_rata _________________\n\n    def test_vault_first_then_loss_is_shared_pro_rata():\n        # A1 was long (pre_position 5). Eligible: the shorts A2 (weight 1) and A3 (weight 3).\n        eng = make({\"A1\": -110, \"A2\": 1_000, \"A3\": 1_000}, {\"A2\": -1, \"A3\": -3}, vault=30)\n        reps = handle_bankruptcy(eng, \"A1\", 5)\n>       assert [(r.kind, r.account, r.qty) for r in reps] == [\n            (\"INSURANCE_DRAWN\", \"A1\", 30), (\"ADL_APPLIED\", \"A2\", 20), (\"ADL_APPLIED\", \"A3\", 60),\n        ]\nE       AssertionError: assert [('INSURANCE_...D', 'A2', 20)] == [('INSURANCE_...D', 'A3', 60)]\nE         \nE         At index 1 diff: ('ADL_APPLIED', 'A3', 60) != ('ADL_APPLIED', 'A2', 20)\nE         Use -v to get more diff\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f8_adl_b_v4bfga03/tests/test_f8_adl_b.py:46: AssertionError\n______________ test_price_crash_runs_it_and_price_shock_does_not _______________\n\n    def test_price_crash_runs_it_and_price_shock_does_not():\n        def crash_engine():\n            # A1 holds 5 long with negative cash (it bought on credit); A2 is the 5 short.\n            return make({\"A1\": -400_000_000, \"A2\": 2_000_000_000}, {\"A1\": 5, \"A2\": -5},\n                        vault=100_000_000)\n    \n        eng = crash_engine()\n        reps = eng.process(Event(kind=\"PRICE_CRASH\", mark_price=20_000_000))\n        assert [(r.kind, r.account, r.qty) for r in reps] == [\n            (\"MARK_SET\", \"\", 0),\n            (\"LIQUIDATED\", \"A1\", 5),\n            (\"INSURANCE_DRAWN\", \"A1\", 100_000_000),\n            (\"ADL_APPLIED\", \"A2\", 200_000_000),\n        ]\n>       assert eng.state.accounts[\"A1\"].free_cash == 0\nE       assert 200000000 == 0\nE        +  where 200000000 = Account(free_cash=200000000, locked_margin=0, position=0, volume=0).free_cash\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f8_adl_b_v4bfga03/tests/test_f8_adl_b.py:86: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f8_adl_b_v4bfga03/tests/test_f8_adl_b.py::test_vault_first_then_loss_is_shared_pro_rata\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f8_adl_b_v4bfga03/tests/test_f8_adl_b.py::test_price_crash_runs_it_and_price_shock_does_not\n2 failed, 4 passed in 0.08s",
+  "seed_failures": [
+    {
+      "seed": 11000,
+      "event_index": 23,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11001,
+      "event_index": 5,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11002,
+      "event_index": 18,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11003,
+      "event_index": 10,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11004,
+      "event_index": 21,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11005,
+      "event_index": 22,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11006,
+      "event_index": 29,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11007,
+      "event_index": 15,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11008,
+      "event_index": 6,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11009,
+      "event_index": 28,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11010,
+      "event_index": 33,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11011,
+      "event_index": 59,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11012,
+      "event_index": 56,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11013,
+      "event_index": 41,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11014,
+      "event_index": 19,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11015,
+      "event_index": 4,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11016,
+      "event_index": 28,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11017,
+      "event_index": 15,
+      "labels": [
+        "I1"
+      ]
+    },
+    {
+      "seed": 11018,
+      "event_index": 16,
+      "labels": [
+        "D1",
+        "I1"
+      ]
+    },
+    {
+      "seed": 11019,
+      "event_index": 24,
+      "labels": [
+        "I1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+"""exchange_core/handlers/bankruptcy.py
+Bankruptcy procedure after a liquidation: insurance draw, then loss sharing.
+Rules R-L1 to R-L5. Target for task f8_adl_b.
+"""
+from exchange_core.types import Report
+
+
+def handle_bankruptcy(
+    engine: "Engine", account_id: str, pre_position: int  # type: ignore # noqa: F821
+) -> list[Report]:
+    """Cover the deficit of a just-liquidated account and return the reports in order."""
+    state = engine.state
+    x_acc = state.accounts[account_id]
+    deficit = max(0, -x_acc.free_cash)
+
+    if deficit == 0:
+        return []
+
+    reports: list[Report] = []
+
+    # R-L2: Insurance Draw
+    cover = min(deficit, max(0, state.fee_vault))
+    if cover > 0:
+        state.fee_vault -= cover
+        x_acc.free_cash += cover
+        reports.append(Report(kind="INSURANCE_DRAWN", account=account_id, qty=cover))
+
+    remaining = deficit - cover
+    if remaining == 0:
+        return reports
+
+    # R-L3: Loss Sharing
+    # Eligible: neither LIQ nor X, position != 0, position has opposite sign to pre_position.
+    eligible_ids = []
+    total_weight = 0
+    for aid, acc in state.accounts.items():
+        if aid == "LIQ" or aid == account_id:
+            continue
+        if acc.position != 0:
+            # Opposite sign check: (a * b < 0)
+            if (acc.position > 0 and pre_position < 0) or (acc.position < 0 and pre_position > 0):
+                weight = abs(acc.position)
+                eligible_ids.append((aid, weight))
+                total_weight += weight
+
+    if not eligible_ids:
+        # R-L4: Bad Debt
+        reports.append(Report(kind="BAD_DEBT", account=account_id, qty=remaining))
+        return reports
+
+    # Calculate shares
+    # Sort eligible accounts for distribution of leftovers:
+    # descending weight, then ascending account id.
+    # We use a sort key that achieves this.
+    # Python sort is stable, but we can just use a tuple.
+    # Weight is descending (negate), ID is ascending.
+    eligible_ids.sort(key=lambda item: (-item[1], item[0]))
+
+    shares = {}
+    sum_base = 0
+    for aid, weight in eligible_ids:
+        base = (remaining * weight) // total_weight
+        shares[aid] = base
+        sum_base += base
+
+    leftover = remaining - sum_base
+    for i in range(leftover):
+        aid, _ = eligible_ids[i]
+        shares[aid] += 1
+
+    # Apply shares
+    # For each eligible account, pay share from free_cash.
+    # Report ADL_APPLIED in ascending account-id order.
+    adl_reports_ids = []
+    for aid, share in shares.items():
+        if share > 0:
+            state.accounts[aid].free_cash -= share
+            adl_reports_ids.append(aid)
+
+    x_acc.free_cash += remaining
+
+    adl_reports_ids.sort()
+    for aid in adl_reports_ids:
+        reports.append(Report(kind="ADL_APPLIED", account=aid, qty=shares[aid]))
+
+    return reports

@@ -1,0 +1,50 @@
+"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import EngineState
+from exchange_core.intmath import round_half_even
+from exchange_core.config import EngineConfig
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:
+    """Process a FUNDING event."""
+    state = engine.state
+    cfg = engine.cfg
+    rate = max(min(event.bps, 3000), -3000)  # Clamp rate to [-3000, 3000]
+
+    # Count accounts with non-zero positions
+    accounts_with_positions = [
+        acc_id for acc_id in sorted(state.accounts.keys())
+        if state.accounts[acc_id].position != 0
+    ]
+    n = len(accounts_with_positions)
+
+    # Process funding payments
+    net_transfer = 0
+    for acc_id in accounts_with_positions:
+        position = state.accounts[acc_id].position
+        notional = abs(position) * state.mark_price
+        amount = round_half_even(notional * abs(rate), cfg.ppm)
+
+        if (position > 0 and rate > 0) or (position < 0 and rate < 0):
+            # Account pays
+            state.accounts[acc_id].free_cash -= amount
+            net_transfer -= amount
+        else:
+            # Account receives
+            state.accounts[acc_id].free_cash += amount
+            net_transfer += amount
+
+    # Update fee vault with net transfer
+    state.fee_vault += net_transfer
+
+    # Create FUNDING_APPLIED report
+    funding_report = Report(kind="FUNDING_APPLIED", bps=rate, qty=n)
+
+    # Run margin waterfall
+    shock_report = engine.dispatch(Event(kind="PRICE_SHOCK", mark_price=state.mark_price))
+
+    # Combine reports
+    reports = [funding_report] + shock_report
+    return reports

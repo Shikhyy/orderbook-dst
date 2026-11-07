@@ -1,0 +1,75 @@
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import EngineState
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.intmath import ceil_div
+from exchange_core.config import EngineConfig
+
+def handle_shock(engine: EngineState, event: Event) -> list[Report]:
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    reports = []
+    mark_price = event.mark_price
+    accounts = engine.accounts
+    cfg = engine.cfg
+
+    # Rule R-W1: Set mark_price and process waterfall for each account except LIQ
+    engine.mark_price = mark_price
+    reports.append(Report.mark_set(mark_price))
+
+    # Sort accounts by account-id in ascending order, excluding LIQ
+    account_ids = sorted([acc_id for acc_id in accounts if acc_id != "LIQ"])
+
+    for acc_id in account_ids:
+        account = accounts[acc_id]
+        position = account.position
+        free_cash = account.free_cash
+        locked_margin = account.locked_margin
+
+        # Rule R-W2: Check if account is in breach
+        if position != 0:
+            avail = free_cash + position * mark_price
+            req = ceil_div(abs(position) * mark_price * cfg.MAINT_BPS, 10000)
+            in_breach = avail < req
+
+            if in_breach:
+                # Rule R-W3: Stage 1 - Cancel all resting orders in ascending prio_seq order
+                account_orders = get_account_orders(engine, acc_id)
+                account_orders_sorted = sorted(account_orders, key=lambda o: o.prio_seq)
+
+                for order in account_orders_sorted:
+                    order_id = order.order_id
+                    remove_order(engine, order_id)
+                    reports.append(Report.cancelled(order_id=order_id, reason="RISK"))
+
+                # Rule R-W4: Recompute breach after cancelling orders
+                account = accounts[acc_id]
+                free_cash = account.free_cash
+                avail = free_cash + position * mark_price
+                req = ceil_div(abs(position) * mark_price * cfg.MAINT_BPS, 10000)
+                in_breach_after_stage1 = avail < req
+
+                if in_breach_after_stage1:
+                    # Rule R-W5: Stage 2 - Liquidate the whole position
+                    liq_account = accounts["LIQ"]
+                    qty = position
+
+                    # Update positions
+                    accounts[acc_id].position = 0
+                    liq_account.position += qty
+
+                    # Transfer cash
+                    if qty > 0:
+                        # Account sells to LIQ
+                        accounts[acc_id].free_cash += qty * mark_price
+                        liq_account.free_cash -= qty * mark_price
+                    else:
+                        # Account buys from LIQ
+                        accounts[acc_id].free_cash -= abs(qty) * mark_price
+                        liq_account.free_cash += abs(qty) * mark_price
+
+                    reports.append(Report.liquidated(account=acc_id, qty=qty))
+
+    return reports

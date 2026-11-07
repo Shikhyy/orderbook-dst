@@ -1,0 +1,128 @@
+{
+  "task_id": "f4_waterfall_b",
+  "t1": 0.6666666666666666,
+  "t2": 0.125,
+  "t3": 0.25,
+  "score": 0.2958,
+  "passed": false,
+  "first_failure": {
+    "seed": 7000,
+    "event_index": 200,
+    "invariant": "D1",
+    "plain_name": "Final account state mismatch",
+    "message": "account LIQ final balance differs",
+    "diff": {}
+  },
+  "coverage": {
+    "min_trigger_events": 45
+  },
+  "error": null,
+  "public_test_output": "..FFF....                                                                [100%]\n=================================== FAILURES ===================================\n___________________________ test_breach_needs_stage2 ___________________________\n\n    def test_breach_needs_stage2():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # A1 short 5 units\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"BUY\", price=100_000_000, qty=5))\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"SELL\", price=100_000_000, qty=5))\n        # Severe shock up to 300M\n        reps = eng.process(Event(kind=\"PRICE_SHOCK\", mark_price=300_000_000))\n        assert Report.mark_set(300_000_000) in reps\n        assert Report.liquidated(\"A1\", -5) in reps\n        assert eng.state.accounts[\"A1\"].position == 0\n>       assert eng.state.accounts[\"LIQ\"].position == -5\nE       assert 5 == -5\nE        +  where 5 = Account(free_cash=11500000000, locked_margin=0, position=5, volume=0).position\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_vddy5gj1/tests/test_f4_waterfall_b.py:64: AssertionError\n________________________ test_long_position_liquidated _________________________\n\n    def test_long_position_liquidated():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 200_000_000, \"A2\": 2_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # A1 buys 10 @ 100M\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"SELL\", price=100_000_000, qty=10))\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"BUY\", price=100_000_000, qty=10))\n        # A1 cash went down by 1000M. Let free_cash = 10_000_000, pos = 10.\n        # Price crashes to 10_000_000.\n        # avail = 10M + 10 * 10M = 110M. req = ceil(10 * 10M * 500 / 10000) = 5M.\n        # Let crash to 1_000_000: avail = -790M + 10M = negative.\n        liq_cash_before = eng.state.accounts[\"LIQ\"].free_cash\n        reps = eng.process(Event(kind=\"PRICE_SHOCK\", mark_price=10_000_000))\n        # Long liquidated: sells 10 to LIQ at 10M = 100M cash transfer from LIQ to A1\n        assert Report.liquidated(\"A1\", 10) in reps\n        assert eng.state.accounts[\"A1\"].position == 0\n>       assert eng.state.accounts[\"LIQ\"].position == 10\nE       assert -10 == 10\nE        +  where -10 = Account(free_cash=9900000000, locked_margin=0, position=-10, volume=0).position\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_vddy5gj1/tests/test_f4_waterfall_b.py:83: AssertionError\n________________________ test_short_position_liquidated ________________________\n\n    def test_short_position_liquidated():\n        cfg = EngineConfig()\n        accounts = {\"A1\": 1_000_000_000, \"A2\": 1_000_000_000, \"LIQ\": 10_000_000_000}\n        eng = Engine(cfg, accounts, mark_price=100_000_000)\n        # A1 sells 5 @ 100M to A2\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A2\", side=\"BUY\", price=100_000_000, qty=5))\n        eng.process(Event(kind=\"NEW_LIMIT\", account=\"A1\", side=\"SELL\", price=100_000_000, qty=5))\n        liq_cash_before = eng.state.accounts[\"LIQ\"].free_cash\n        reps = eng.process(Event(kind=\"PRICE_SHOCK\", mark_price=400_000_000))\n        # Short liquidated: buys 5 from LIQ at 400M = 2000M cash transfer from A1 to LIQ\n        assert Report.liquidated(\"A1\", -5) in reps\n        assert eng.state.accounts[\"A1\"].position == 0\n>       assert eng.state.accounts[\"LIQ\"].position == -5\nE       assert 5 == -5\nE        +  where 5 = Account(free_cash=12000000000, locked_margin=0, position=5, volume=0).position\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_vddy5gj1/tests/test_f4_waterfall_b.py:99: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_vddy5gj1/tests/test_f4_waterfall_b.py::test_breach_needs_stage2\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_vddy5gj1/tests/test_f4_waterfall_b.py::test_long_position_liquidated\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f4_waterfall_b_vddy5gj1/tests/test_f4_waterfall_b.py::test_short_position_liquidated\n3 failed, 6 passed in 0.12s",
+  "seed_failures": [
+    {
+      "seed": 7000,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7001,
+      "event_index": 48,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7002,
+      "event_index": 39,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7003,
+      "event_index": 55,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7004,
+      "event_index": 29,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7006,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7008,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7009,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7011,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7012,
+      "event_index": 67,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7013,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7015,
+      "event_index": 76,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7016,
+      "event_index": 50,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 7017,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    },
+    {
+      "seed": 7018,
+      "event_index": 200,
+      "labels": [
+        "D1_FINAL"
+      ]
+    }
+  ]
+}

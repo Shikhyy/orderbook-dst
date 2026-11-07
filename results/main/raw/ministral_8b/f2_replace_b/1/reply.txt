@@ -1,0 +1,77 @@
+### FILE: exchange_core/handlers/replace.py
+```python
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import EngineState
+from exchange_core.intmath import ceil_div
+from exchange_core.config import EngineConfig
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    state = engine.state
+    cfg = engine.cfg
+    order_id = event.order_id
+    new_price = event.new_price
+    new_qty = event.new_qty
+
+    # Rule R-P2: Check if order exists
+    if order_id not in state.orders:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    order = state.orders[order_id]
+
+    # Rule R-P2: Check if order is resting (leaves > 0)
+    if order.leaves <= 0:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # Rule R-P2: Check new_price validity
+    if new_price <= 0 or new_price % cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # Rule R-P2: Check new_qty validity
+    if new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # Rule R-P2: Check if new price would cross the opposite side of the book
+    opposite_side = "SELL" if order.side == "BUY" else "BUY"
+    opposite_orders = [o for o in state.orders.values() if o.side == opposite_side and o.leaves > 0]
+    if opposite_orders:
+        opposite_price = min(o.price for o in opposite_orders if o.side == opposite_side) if opposite_side == "SELL" else max(o.price for o in opposite_orders if o.side == opposite_side)
+        if (order.side == "BUY" and new_price >= opposite_price) or (order.side == "SELL" and new_price <= opposite_price):
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # Calculate new lock
+    new_leaves = new_qty - order.cum_qty
+    new_lock = ceil_div(new_leaves * new_price * order.margin_bps, 10000)
+
+    # Rule R-P2: Check if new lock exceeds free cash
+    account = state.accounts[order.account]
+    if new_lock > account.locked_margin and (new_lock - account.locked_margin) > account.free_cash:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # Rule R-P3: Determine if priority should be kept
+    keep_priority = (new_price == order.price) and (new_qty <= order.qty)
+
+    # Update order fields
+    order.qty = new_qty
+    order.price = new_price
+    order.lock = new_lock
+
+    # Adjust cash and lock
+    old_lock = order.lock
+    delta_lock = new_lock - old_lock
+    if delta_lock > 0:
+        lock_cash(state, order.account, delta_lock)
+    elif delta_lock < 0:
+        release_lock(state, order.account, -delta_lock)
+
+    # Rule R-P3: Update prio_seq if priority should not be kept
+    if not keep_priority:
+        order.prio_seq = state.next_prio_seq
+        state.next_prio_seq += 1
+
+    return [Report.replaced(order_id)]
+```

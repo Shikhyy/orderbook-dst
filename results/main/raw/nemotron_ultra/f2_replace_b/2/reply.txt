@@ -1,0 +1,82 @@
+### FILE: exchange_core/handlers/replace.py
+```python
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.intmath import ceil_div
+from exchange_core.book import best_bid, best_ask
+from exchange_core.ledger import lock_cash, release_lock
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    state = engine.state
+    cfg = engine.cfg
+    order_id = event.order_id
+    new_price = event.new_price
+    new_qty = event.new_qty
+
+    # R-P2.1: Order must be resting
+    order = state.orders.get(order_id)
+    if order is None:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # R-P2.2: Price validation
+    if new_price <= 0 or new_price % cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # R-P2.3: new_qty must be > cum_qty
+    if new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # R-P2.4: Check if new price would cross the book
+    if order.side == "BUY":
+        best_ask_price = best_ask(state)
+        if best_ask_price is not None and new_price >= best_ask_price:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    else:  # SELL
+        best_bid_price = best_bid(state)
+        if best_bid_price is not None and new_price <= best_bid_price:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # Calculate new lock for margin check (R-P2.5)
+    new_leaves = new_qty - order.cum_qty
+    new_lock = ceil_div(new_leaves * new_price * order.margin_bps, 10000)
+    old_lock = order.lock
+
+    # R-P2.5: Check margin if new lock exceeds old lock
+    if new_lock > old_lock:
+        account = state.accounts[order.account]
+        additional_margin = new_lock - old_lock
+        if additional_margin > account.free_cash:
+            return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # All checks passed - process the replace (R-P3, R-P4)
+    old_price = order.price
+    old_qty = order.qty
+
+    # R-P3: Priority handling
+    keep_priority = False
+    if new_price == old_price and new_qty <= old_qty:
+        keep_priority = True
+    else:
+        # Price change or quantity increase - new priority
+        order.prio_seq = state.next_prio_seq
+        state.next_prio_seq += 1
+
+    # R-P4: Update order fields
+    order.qty = new_qty
+    order.price = new_price
+    order.lock = new_lock
+
+    # Adjust account margin (move difference between old and new lock)
+    account = state.accounts[order.account]
+    if new_lock > old_lock:
+        lock_cash(state, order.account, new_lock - old_lock)
+    elif new_lock < old_lock:
+        release_lock(state, order.account, old_lock - new_lock)
+
+    return [Report.replaced(order_id)]
+```

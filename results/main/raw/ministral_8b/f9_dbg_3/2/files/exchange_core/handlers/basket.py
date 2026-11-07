@@ -1,0 +1,56 @@
+"""exchange_core/handlers/basket.py"""
+from exchange_core.types import Event, Report
+
+def _rollback(engine, snap):
+    next_id = engine.state.next_order_id
+    engine.state.restore(snap)
+    engine.state.next_order_id = next_id
+
+def handle_basket(engine: "Engine", event: Event) -> list[Report]:
+    snap = engine.state.snapshot()
+    all_leg_reports: list[Report] = []
+
+    for leg_index, leg in enumerate(event.legs):
+        leg_event = Event(
+            kind="NEW_LIMIT",
+            account=event.account,
+            side=leg.side,
+            price=leg.price,
+            qty=leg.qty,
+            flag=leg.flag,
+        )
+
+        leg_reports = engine.dispatch(leg_event)
+
+        if any(r.kind == "REJECTED" for r in leg_reports):
+            _rollback(engine, snap)
+            return [Report.basket_rolled_back(leg_index)]
+
+        if leg.flag == "IOC":
+            has_ioc_cancel = any(
+                r.kind == "CANCELLED" and r.reason == "IOC_REMAINDER"
+                for r in leg_reports
+            )
+            if has_ioc_cancel:
+                _rollback(engine, snap)
+                return [Report.basket_rolled_back(leg_index)]
+
+        # Check if IOC leg has leaves == 0 after matching
+        if leg.flag == "IOC":
+            # Find the order_id of the IOC leg
+            ioc_order_id = None
+            for report in leg_reports:
+                if report.kind == "ACCEPTED":
+                    ioc_order_id = report.order_id
+                    break
+
+            if ioc_order_id is not None:
+                order = engine.state.orders.get(ioc_order_id)
+                if order and order.leaves > 0:
+                    _rollback(engine, snap)
+                    return [Report.basket_rolled_back(leg_index)]
+
+        all_leg_reports.extend(leg_reports)
+
+    all_leg_reports.append(Report.basket_committed())
+    return all_leg_reports

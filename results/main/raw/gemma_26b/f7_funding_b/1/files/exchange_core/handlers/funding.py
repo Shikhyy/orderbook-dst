@@ -1,0 +1,64 @@
+"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report
+from exchange_core.intmath import round_half_even
+
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a FUNDING event."""
+    state = engine.state
+    cfg = engine.cfg
+    mark_price = state.mark_price
+
+    # R-Y1: Clamp the rate to [-3000, 3000]
+    rate = event.bps
+    if rate > 3000:
+        rate = 3000
+    elif rate < -3000:
+        rate = -3000
+
+    reports: list[Report] = []
+
+    if rate != 0:
+        # R-Y2: Process every account with position != 0 in ascending order
+        # (the LIQ account is included if its position != 0)
+        account_ids = sorted([acc_id for acc_id, acc in state.accounts.items() if acc.position != 0])
+        n = len(account_ids)
+
+        net_payment = 0  # sum of (payments - receipts)
+        for acc_id in account_ids:
+            acc = state.accounts[acc_id]
+            # notional = abs(position) * mark_price
+            notional = abs(acc.position) * mark_price
+            # amount = round_half_even(notional * abs(rate), ppm)
+            amount = round_half_even(notional * abs(rate), cfg.ppm)
+
+            # Account pays when (long and rate > 0) or (short and rate < 0).
+            # In other words, pay if (position * rate) > 0.
+            # Account receives when (position * rate) < 0.
+            if (acc.position > 0 and rate > 0) or (acc.position < 0 and rate < 0):
+                # Pay amount
+                acc.free_cash -= amount
+                net_payment += amount
+            else:
+                # Receive amount
+                acc.free_cash += amount
+                net_payment -= amount
+
+        # R-Y3: Add net of all payments (payments minus receipts) to fee_vault
+        state.fee_vault += net_payment
+        
+        # R-Y4: Report FUNDING_APPLIED with clamped rate and n
+        reports.append(Report(kind="FUNDING_APPLIED", bps=rate, qty=n))
+    else:
+        # R-Y4: If rate == 0, n = 0
+        reports.append(Report(kind="FUNDING_APPLIED", bps=0, qty=0))
+
+    # R-Y5: Always run margin waterfall at current mark price
+    shock_event = Event(kind="PRICE_SHOCK", mark_price=mark_price)
+    reports.extend(engine.dispatch(shock_event))
+
+    return reports

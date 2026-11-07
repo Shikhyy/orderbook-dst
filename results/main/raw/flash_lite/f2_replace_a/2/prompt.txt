@@ -1,0 +1,736 @@
+# Task f2_replace_a: Replace Decision Rule
+
+## 1. Goal
+
+Implement the pure decision function for replace events in `exchange_core/rules/replace_rule.py`.
+The function decides whether a replace request is valid and whether the order keeps its place in the priority queue.
+
+## 2. Files
+
+Target file to write:
+- `exchange_core/rules/replace_rule.py`
+
+The public tests for this task are shown in full in the "Public Tests (Visible)" section of the prompt.
+
+## 3. Interface
+
+```python
+from exchange_core.config import EngineConfig
+from exchange_core.types import Order, ReplaceDecision
+
+def decide_replace(
+    order: Order,
+    new_price: int,
+    new_qty: int,
+    cfg: EngineConfig,
+) -> ReplaceDecision:
+    """Decide whether a replace request is valid and whether it keeps priority."""
+```
+
+The function returns a `ReplaceDecision` instance:
+- `ok`: boolean flag (`True` if valid, `False` if rejected).
+- `reason`: string rejection reason (`""` if valid, `"INVALID_ORDER"` or `"INVALID_REPLACE"` if rejected).
+- `keep_priority`: boolean flag (`True` if the order keeps priority, `False` if it loses priority).
+- `new_leaves`: integer new remaining quantity (`new_qty - order.cum_qty` if valid, `0` if rejected).
+
+## 4. Rules
+
+### R-P1 [Common, FIX semantics]
+A REPLACE event carries `order_id`, `new_price`, and `new_qty`. The value `new_qty` is the new total order quantity (the FIX field OrderQty). It is not the new leaves.
+
+### R-P2 [Declared]
+The engine rejects a REPLACE event in this order:
+1. If the order is not resting: `REJECTED(UNKNOWN_ORDER)`. (Checked by handler)
+2. If `new_price <= 0` or `new_price % TICK != 0`: `REJECTED(INVALID_ORDER)`.
+3. If `new_qty <= cum_qty`: `REJECTED(INVALID_REPLACE)`.
+4. If the new price would match the opposite side of the book: `REJECTED(REPLACE_WOULD_CROSS)`. (Checked by handler)
+5. If the new lock is more than the old lock and the difference is more than `free_cash`: `REJECTED(INSUFFICIENT_MARGIN)`. (Checked by handler)
+
+A rejected REPLACE changes no state.
+
+### R-P3 [Common, FIX semantics]
+Priority after a valid REPLACE:
+- If `new_price` equals the old price and `new_qty` is less than the old `qty`, the order keeps its `prio_seq` and its place in the queue.
+- If `new_price` equals the old price and `new_qty` equals the old `qty`, nothing changes.
+- In all other cases (price change, or quantity increase), the order gets a new `prio_seq` from the counter and goes to the back of the queue at its price.
+
+## 5. Output format
+
+Provide the complete contents of `exchange_core/rules/replace_rule.py` in exactly this layout, with the `### FILE:` line above one markdown code block:
+
+### FILE: exchange_core/rules/replace_rule.py
+```python
+...
+```
+
+Do not edit or return other files.
+
+## 6. What the grader checks
+
+The grader checks:
+1. **Tier 1 (T1)**: Public unit tests shown in the prompt.
+2. **Tier 2 (T2)**: Targeted replacement trace checkpoints.
+3. **Tier 3 (T3)**: 20 hidden traces evaluated against invariants:
+   - I1: Cash conservation.
+   - I2: Margin matches resting orders.
+   - I3: Position sum is zero.
+   - D1: Differential equivalence with reference outputs.
+
+## 7. Constraints
+
+- Use integer arithmetic only. Never use floating-point numbers or operations.
+- Do not modify any other file in the repository.
+
+## Allowed imports
+
+You may import standard library modules and the following `exchange_core` modules only:
+- `exchange_core.types`
+- `exchange_core.state`
+- `exchange_core.intmath`
+- `exchange_core.config`
+- `exchange_core.book`
+- `exchange_core.ledger`
+- `exchange_core.engine`
+- `exchange_core.handlers.new_limit`
+
+All other `exchange_core` imports (including `exchange_core.rules.*`, other handlers like `exchange_core.handlers.shock`, and `exchange_core.rules.waterfall_rule`) are forbidden. Dynamic import calls (`importlib`, `__import__`, `eval`, `exec`) are strictly forbidden. Any violation immediately fails grading with `FORBIDDEN_IMPORT` and a score of 0.
+
+
+## Public Tests (Visible)
+```python
+"""tasks/f2_replace_a/public_tests/test_f2_replace_a.py
+Public unit tests for decide_replace (Rule R-P1, R-P2 steps 2-3, R-P3).
+"""
+import pytest
+
+from exchange_core.config import EngineConfig
+from exchange_core.rules.replace_rule import decide_replace
+from exchange_core.types import Order
+
+
+@pytest.fixture
+def cfg() -> EngineConfig:
+    return EngineConfig()
+
+
+def make_order(
+    order_id: int = 1,
+    account: str = "A1",
+    side: str = "BUY",
+    price: int = 100_000_000,
+    qty: int = 10,
+    cum_qty: int = 0,
+    prio_seq: int = 1,
+) -> Order:
+    return Order(
+        order_id=order_id,
+        account=account,
+        side=side,
+        price=price,
+        qty=qty,
+        cum_qty=cum_qty,
+        prio_seq=prio_seq,
+        margin_bps=2000,
+        lock=200_000_000,
+    )
+
+
+def test_1_decrease_keeps_priority(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=0)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=8, cfg=cfg)
+    assert decision.ok is True
+    assert decision.reason == ""
+    assert decision.keep_priority is True
+    assert decision.new_leaves == 8
+
+
+def test_2_increase_loses_priority(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=0)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=12, cfg=cfg)
+    assert decision.ok is True
+    assert decision.reason == ""
+    assert decision.keep_priority is False
+    assert decision.new_leaves == 12
+
+
+def test_3_price_change_loses_priority(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=0)
+    decision = decide_replace(order, new_price=101_000_000, new_qty=8, cfg=cfg)
+    assert decision.ok is True
+    assert decision.reason == ""
+    assert decision.keep_priority is False
+    assert decision.new_leaves == 8
+
+
+def test_4_same_qty_and_price_noop(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=0)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=10, cfg=cfg)
+    assert decision.ok is True
+    assert decision.reason == ""
+    assert decision.keep_priority is True
+    assert decision.new_leaves == 10
+
+
+def test_5_new_qty_equal_to_cum_qty_rejected(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=4)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=4, cfg=cfg)
+    assert decision.ok is False
+    assert decision.reason == "INVALID_REPLACE"
+    assert decision.new_leaves == 0
+
+
+def test_6_new_qty_below_cum_qty_rejected(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=4)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=3, cfg=cfg)
+    assert decision.ok is False
+    assert decision.reason == "INVALID_REPLACE"
+    assert decision.new_leaves == 0
+
+
+def test_7_invalid_price(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=0)
+    # Zero price
+    d1 = decide_replace(order, new_price=0, new_qty=8, cfg=cfg)
+    assert d1.ok is False
+    assert d1.reason == "INVALID_ORDER"
+
+    # Non-tick price (tick is 10,000)
+    d2 = decide_replace(order, new_price=100_005_000, new_qty=8, cfg=cfg)
+    assert d2.ok is False
+    assert d2.reason == "INVALID_ORDER"
+
+
+def test_8_partial_fill_case(cfg: EngineConfig) -> None:
+    order = make_order(qty=10, cum_qty=4)
+    # Decrease from 10 to 7 (leaves goes from 6 to 3)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=7, cfg=cfg)
+    assert decision.ok is True
+    assert decision.reason == ""
+    assert decision.keep_priority is True
+    assert decision.new_leaves == 3
+
+
+def test_9_large_quantity(cfg: EngineConfig) -> None:
+    order = make_order(qty=1_000_000, cum_qty=500_000)
+    decision = decide_replace(order, new_price=100_000_000, new_qty=2_000_000, cfg=cfg)
+    assert decision.ok is True
+    assert decision.reason == ""
+    assert decision.keep_priority is False
+    assert decision.new_leaves == 1_500_000
+```
+
+
+## Target Files to Implement
+
+
+### Stub: exchange_core/rules/replace_rule.py
+```python
+"""exchange_core/rules/replace_rule.py
+Pure function for replace decisions.
+Rules R-P1, R-P2 (steps 2, 3), and R-P3. Target for task f2_replace_a.
+"""
+from exchange_core.config import EngineConfig
+from exchange_core.types import Order, ReplaceDecision
+
+
+def decide_replace(
+    order: Order,
+    new_price: int,
+    new_qty: int,
+    cfg: EngineConfig,
+) -> ReplaceDecision:
+    """Decide whether a replace request is valid and whether it keeps priority.
+
+    Rules R-P1, R-P2 (steps 2 and 3), R-P3.
+    """
+    raise NotImplementedError("Implement decide_replace")
+```
+
+
+## Reference Context (Read-Only)
+
+
+### Context: exchange_core/types.py
+```python
+"""exchange_core/types.py
+Data types and report structures.
+See docs/04_RULEBOOK.md and docs/05_INVARIANTS_AND_DATA.md.
+"""
+from dataclasses import dataclass, field
+from typing import Any, Optional
+
+
+@dataclass
+class Order:
+    """An order in the exchange.
+
+    Rule R-B1: An order has order_id, account, side (BUY or SELL),
+    price, qty, cum_qty, prio_seq, margin_bps, lock, flag.
+    leaves equals qty - cum_qty. Flag is NONE, IOC, or POST_ONLY.
+    """
+    order_id: int
+    account: str
+    side: str
+    price: int
+    qty: int
+    cum_qty: int
+    prio_seq: int
+    margin_bps: int
+    lock: int
+    flag: str = "NONE"
+
+    @property
+    def leaves(self) -> int:
+        return self.qty - self.cum_qty
+
+
+@dataclass(frozen=True)
+class BasketLeg:
+    """One leg of an atomic basket event.
+
+    Rule R-A1: A leg has side, price, qty, and flag (IOC or POST_ONLY).
+    """
+    side: str
+    price: int
+    qty: int
+    flag: str = "NONE"
+
+
+@dataclass(frozen=True)
+class Event:
+    """An input event to the exchange engine.
+
+    Events are frozen dataclasses with a kind field.
+    Kinds: NEW_LIMIT, CANCEL, REPLACE, SET_MARGIN_RATE, PRICE_SHOCK,
+           FIX_MSG, SESSION_RESET, BASKET.
+    """
+    kind: str
+    account: str = ""
+    side: str = ""
+    price: int = 0
+    qty: int = 0
+    flag: str = "NONE"
+    order_id: int = 0
+    new_price: int = 0
+    new_qty: int = 0
+    bps: int = 0
+    mark_price: int = 0
+    session: str = ""
+    epoch: int = 0
+    seq: int = 0
+    poss_dup: bool = False
+    body: Optional[Any] = None
+    legs: tuple[BasketLeg, ...] = field(default_factory=tuple)
+
+
+# FixMsg alias for FIX sequence handling
+FixMsg = Event
+
+
+@dataclass(frozen=True)
+class Report:
+    """An output report from the engine.
+    See docs/04_RULEBOOK.md section 11.
+    """
+    kind: str
+    order_id: int = 0
+    reason: str = ""
+    buy_order_id: int = 0
+    sell_order_id: int = 0
+    price: int = 0
+    qty: int = 0
+    taker_order_id: int = 0
+    account: str = ""
+    mark_price: int = 0
+    bps: int = 0
+    session: str = ""
+    leg_index: int = 0
+
+    @classmethod
+    def accepted(cls, order_id: int) -> "Report": return cls(kind="ACCEPTED", order_id=order_id)
+    @classmethod
+    def rejected(cls, reason: str) -> "Report": return cls(kind="REJECTED", reason=reason)
+    @classmethod
+    def fill(
+        cls, buy_order_id: int, sell_order_id: int, price: int, qty: int, taker_order_id: int
+    ) -> "Report":
+        return cls(
+            kind="FILL", buy_order_id=buy_order_id, sell_order_id=sell_order_id,
+            price=price, qty=qty, taker_order_id=taker_order_id,
+        )
+    @classmethod
+    def cancelled(cls, order_id: int, reason: str) -> "Report":
+        return cls(kind="CANCELLED", order_id=order_id, reason=reason)
+    @classmethod
+    def replaced(cls, order_id: int) -> "Report": return cls(kind="REPLACED", order_id=order_id)
+    @classmethod
+    def buffered(cls) -> "Report": return cls(kind="BUFFERED")
+    @classmethod
+    def discarded(cls, reason: str) -> "Report": return cls(kind="DISCARDED", reason=reason)
+    @classmethod
+    def liquidated(cls, account: str, qty: int) -> "Report":
+        return cls(kind="LIQUIDATED", account=account, qty=qty)
+    @classmethod
+    def mark_set(cls, mark_price: int) -> "Report":
+        return cls(kind="MARK_SET", mark_price=mark_price)
+    @classmethod
+    def margin_rate_set(cls, bps: int) -> "Report": return cls(kind="MARGIN_RATE_SET", bps=bps)
+    @classmethod
+    def session_reset_done(cls, session: str) -> "Report":
+        return cls(kind="SESSION_RESET_DONE", session=session)
+    @classmethod
+    def basket_committed(cls) -> "Report": return cls(kind="BASKET_COMMITTED")
+    @classmethod
+    def basket_rolled_back(cls, leg_index: int) -> "Report":
+        return cls(kind="BASKET_ROLLED_BACK", leg_index=leg_index)
+
+
+@dataclass(frozen=True)
+class Fill:
+    """Internal fill record passed to settle_fill."""
+    buy_order_id: int
+    sell_order_id: int
+    price: int
+    qty: int
+    taker_order_id: int
+    buyer: str = ""
+    seller: str = ""
+
+    @property
+    def notional(self) -> int:
+        return self.price * self.qty
+
+
+@dataclass
+class ReplaceDecision:
+    """Outcome of pure replace rule (Variant A target)."""
+    ok: bool
+    reason: str = ""
+    keep_priority: bool = False
+    new_leaves: int = 0
+
+
+@dataclass
+class SessionOutcome:
+    """Outcome of pure session message handling (Variant A target)."""
+    to_process: list[Any] = field(default_factory=list)
+    reports: list[Report] = field(default_factory=list)
+
+
+@dataclass
+class AccountView:
+    """Read-only view of account for waterfall planning."""
+    account_id: str
+    free_cash: int
+    locked_margin: int
+    position: int
+
+
+@dataclass
+class WaterfallPlan:
+    """Outcome of pure waterfall planning (Variant A target)."""
+    in_breach_stage1: bool
+    in_breach_stage2: bool
+    cancelled_orders: list[int] = field(default_factory=list)
+    liquidate_qty: int = 0
+```
+
+### Context: exchange_core/state.py
+```python
+"""exchange_core/state.py
+Mutable state classes for the exchange engine.
+See docs/05_INVARIANTS_AND_DATA.md.
+"""
+from dataclasses import dataclass, field
+
+from exchange_core.types import FixMsg, Order
+
+
+@dataclass
+class Account:
+    """An account on the exchange.
+    Tracks cash balance, locked margin, position, and cumulative volume.
+    """
+    free_cash: int
+    locked_margin: int
+    position: int
+    volume: int
+
+    def clone(self) -> "Account":
+        return Account(
+            free_cash=self.free_cash,
+            locked_margin=self.locked_margin,
+            position=self.position,
+            volume=self.volume,
+        )
+
+
+@dataclass
+class SessionState:
+    """FIX session state.
+    Tracks current epoch, expected next sequence number, and out-of-order buffer.
+    """
+    epoch: int
+    next_seq: int
+    buffer: dict[int, FixMsg] = field(default_factory=dict)
+
+    def clone(self) -> "SessionState":
+        return SessionState(
+            epoch=self.epoch,
+            next_seq=self.next_seq,
+            buffer=dict(self.buffer),
+        )
+
+
+@dataclass
+class EngineState:
+    """Single container for all mutable engine state.
+
+    Rule ENG-07: The engine must keep all state in one EngineState object.
+    Rule ENG-08: EngineState must support snapshot() and restore().
+    A restore must give a state with the same hash as the snapshot.
+    """
+    accounts: dict[str, Account]
+    orders: dict[int, Order]  # resting orders by order_id
+    fee_vault: int
+    next_order_id: int
+    next_prio_seq: int
+    margin_bps: int
+    mark_price: int
+    sessions: dict[str, SessionState]
+    initial_total: int
+
+    def snapshot(self) -> "EngineState":
+        """Produce an independent deep snapshot of the engine state."""
+        return EngineState(
+            accounts={k: v.clone() for k, v in self.accounts.items()},
+            orders={k: Order(**v.__dict__) for k, v in self.orders.items()},
+            fee_vault=self.fee_vault,
+            next_order_id=self.next_order_id,
+            next_prio_seq=self.next_prio_seq,
+            margin_bps=self.margin_bps,
+            mark_price=self.mark_price,
+            sessions={k: v.clone() for k, v in self.sessions.items()},
+            initial_total=self.initial_total,
+        )
+
+    def restore(self, snap: "EngineState") -> None:
+        """Restore all state in-place from an earlier snapshot (Rule R-A4, ENG-08)."""
+        self.accounts = {k: v.clone() for k, v in snap.accounts.items()}
+        self.orders = {k: Order(**v.__dict__) for k, v in snap.orders.items()}
+        self.fee_vault = snap.fee_vault
+        self.next_order_id = snap.next_order_id
+        self.next_prio_seq = snap.next_prio_seq
+        self.margin_bps = snap.margin_bps
+        self.mark_price = snap.mark_price
+        self.sessions = {k: v.clone() for k, v in snap.sessions.items()}
+        self.initial_total = snap.initial_total
+```
+
+### Context: exchange_core/intmath.py
+```python
+"""exchange_core/intmath.py
+Integer arithmetic helpers.
+
+Rule R-U1: All amounts, prices, and quantities are integers.
+No other module does rounding.
+No float is used. No bare / operator is used.
+"""
+
+
+def round_half_even(n: int, d: int) -> int:
+    """Divide n by d and round to the nearest integer.
+
+    Rule R-U2: When the result is exactly halfway, round to the even integer.
+
+    Algorithm:
+      Let q, r = divmod(n, d).
+      If 2*r > d:  return q + 1.
+      If 2*r == d: return q + (q % 2).   # q is odd -> +1, q is even -> +0
+      Otherwise:   return q.
+
+    Preconditions: n >= 0, d > 0.
+    """
+    q, r = divmod(n, d)
+    if 2 * r > d:
+        return q + 1
+    if 2 * r == d:
+        return q + (q % 2)
+    return q
+
+
+def ceil_div(n: int, d: int) -> int:
+    """Return the smallest integer that is not below n / d.
+
+    Rule R-U3: Equals -((-n) // d).
+
+    Preconditions: n >= 0, d > 0.
+    """
+    return -((-n) // d)
+```
+
+### Context: exchange_core/config.py
+```python
+"""exchange_core/config.py
+Configuration constants for the exchange engine.
+See docs/04_RULEBOOK.md section 1.
+"""
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class EngineConfig:
+    """Holds engine constants.
+
+    All amounts, prices, and quantities are integers (rule R-U1).
+    """
+    tick: int = 10_000
+    margin_bps_default: int = 2_000
+    maint_bps: int = 500
+    ppm: int = 1_000_000
+    taker_ppm_t0: int = 2_750
+    taker_ppm_t1: int = 1_850
+    maker_rebate_ppm: int = 250
+    tier_threshold: int = 5_000_010_000
+
+    # Aliases matching uppercase notation in docs/04_RULEBOOK.md
+    @property
+    def TICK(self) -> int: return self.tick
+    @property
+    def MARGIN_BPS_DEFAULT(self) -> int: return self.margin_bps_default
+    @property
+    def MAINT_BPS(self) -> int: return self.maint_bps
+    @property
+    def PPM(self) -> int: return self.ppm
+    @property
+    def TAKER_PPM_T0(self) -> int: return self.taker_ppm_t0
+    @property
+    def TAKER_PPM_T1(self) -> int: return self.taker_ppm_t1
+    @property
+    def MAKER_REBATE_PPM(self) -> int: return self.maker_rebate_ppm
+    @property
+    def TIER_THRESHOLD(self) -> int: return self.tier_threshold
+```
+
+### Context: exchange_core/book.py
+```python
+"""exchange_core/book.py
+Book primitives. Derived views of resting orders in EngineState.
+No rule logic belongs here (docs/03_ARCHITECTURE.md).
+"""
+from typing import Optional
+
+from exchange_core.state import EngineState
+from exchange_core.types import Order
+
+
+def add_order(state: EngineState, order: Order) -> None:
+    """Add a resting order to the state."""
+    state.orders[order.order_id] = order
+
+
+def remove_order(state: EngineState, order_id: int) -> Optional[Order]:
+    """Remove and return a resting order by order_id."""
+    return state.orders.pop(order_id, None)
+
+
+def get_order(state: EngineState, order_id: int) -> Optional[Order]:
+    """Retrieve a resting order by order_id."""
+    return state.orders.get(order_id)
+
+
+def get_bids(state: EngineState) -> list[Order]:
+    """Return all resting BUY orders in priority order (Rule R-B2)."""
+    bids = [o for o in state.orders.values() if o.side == "BUY" and o.leaves > 0]
+    bids.sort(key=lambda o: (-o.price, o.prio_seq))
+    return bids
+
+
+def get_asks(state: EngineState) -> list[Order]:
+    """Return all resting SELL orders in priority order (Rule R-B2)."""
+    asks = [o for o in state.orders.values() if o.side == "SELL" and o.leaves > 0]
+    asks.sort(key=lambda o: (o.price, o.prio_seq))
+    return asks
+
+
+def best_bid(state: EngineState) -> Optional[int]:
+    """Return highest bid price, or None if no bids exist."""
+    bids = get_bids(state)
+    return bids[0].price if bids else None
+
+
+def best_ask(state: EngineState) -> Optional[int]:
+    """Return lowest ask price, or None if no asks exist."""
+    asks = get_asks(state)
+    return asks[0].price if asks else None
+
+
+def get_account_orders(state: EngineState, account: str) -> list[Order]:
+    """Return all resting orders for an account, sorted by prio_seq ascending (Rule R-W3)."""
+    orders = [o for o in state.orders.values() if o.account == account and o.leaves > 0]
+    orders.sort(key=lambda o: o.prio_seq)
+    return orders
+```
+
+### Context: exchange_core/ledger.py
+```python
+"""exchange_core/ledger.py
+Cash and lock primitives.
+No rule logic belongs here (docs/03_ARCHITECTURE.md).
+"""
+from typing import Optional
+
+from exchange_core.state import Account, EngineState
+
+
+def get_account(state: EngineState, account_id: str) -> Optional[Account]:
+    """Retrieve an account by ID."""
+    return state.accounts.get(account_id)
+
+
+def has_account(state: EngineState, account_id: str) -> bool:
+    """Return True if the account exists."""
+    return account_id in state.accounts
+
+
+def lock_cash(state: EngineState, account_id: str, amount: int) -> None:
+    """Move amount from free_cash to locked_margin."""
+    acc = state.accounts[account_id]
+    acc.free_cash -= amount
+    acc.locked_margin += amount
+
+
+def release_lock(state: EngineState, account_id: str, amount: int) -> None:
+    """Move amount from locked_margin to free_cash."""
+    acc = state.accounts[account_id]
+    acc.locked_margin -= amount
+    acc.free_cash += amount
+
+
+def transfer_cash(state: EngineState, from_id: str, to_id: str, amount: int) -> None:
+    """Transfer free_cash from one account to another."""
+    state.accounts[from_id].free_cash -= amount
+    state.accounts[to_id].free_cash += amount
+
+
+def adjust_position(state: EngineState, account_id: str, delta: int) -> None:
+    """Adjust position by delta (positive = increase, negative = decrease)."""
+    state.accounts[account_id].position += delta
+
+
+def pay_fee(state: EngineState, account_id: str, fee: int) -> None:
+    """Deduct fee from account free_cash and deposit to fee_vault."""
+    state.accounts[account_id].free_cash -= fee
+    state.fee_vault += fee
+
+
+def pay_rebate(state: EngineState, account_id: str, rebate: int) -> None:
+    """Credit rebate from fee_vault to account free_cash."""
+    state.fee_vault -= rebate
+    state.accounts[account_id].free_cash += rebate
+
+
+def add_volume(state: EngineState, account_id: str, notional: int) -> None:
+    """Add notional to an account's trading volume."""
+    state.accounts[account_id].volume += notional
+```

@@ -1,0 +1,55 @@
+"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.intmath import round_half_even
+
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a FUNDING event."""
+    # R-Y1: clamp rate to [-3000, 3000]
+    rate = event.bps
+    if rate > 3000:
+        rate = 3000
+    elif rate < -3000:
+        rate = -3000
+
+    # Initialize counters
+    n = 0
+    net_total = 0
+
+    # R-Y2: if rate != 0, process every account with position != 0 in ascending account-id order
+    if rate != 0:
+        for acc_id in sorted(engine.state.accounts):
+            acc = engine.state.accounts[acc_id]
+            if acc.position != 0:
+                n += 1
+                # notional = |position| * mark_price
+                notional = abs(acc.position) * engine.state.mark_price
+                # amount = round_half_even(notional * |rate|, ppm)
+                amount = round_half_even(notional * abs(rate), engine.cfg.ppm)
+
+                # Determine if the account pays or receives
+                pays = (acc.position > 0 and rate > 0) or (acc.position < 0 and rate < 0)
+                if pays:
+                    # account pays amount: subtract from free_cash
+                    acc.free_cash -= amount
+                    net_total -= amount
+                else:
+                    # account receives amount: add to free_cash
+                    acc.free_cash += amount
+                    net_total += amount
+
+    # R-Y4: first report
+    funding_report = Report(kind="FUNDING_APPLIED", bps=rate, qty=n)
+
+    # R-Y5: run margin waterfall at current mark price
+    price_shock_event = Event(kind="PRICE_SHOCK", mark_price=engine.state.mark_price)
+    shock_reports = engine.dispatch(price_shock_event)
+
+    # Add net to fee_vault
+    engine.state.fee_vault += net_total
+
+    # Return reports: funding report followed by waterfall reports
+    return [funding_report] + shock_reports

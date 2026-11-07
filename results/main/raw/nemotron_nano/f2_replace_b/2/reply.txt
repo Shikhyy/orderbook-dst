@@ -1,0 +1,84 @@
+### FILE: exchange_core/handlers/replace.py
+```python
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.intmath import ceil_div
+from exchange_core.ledger import lock_cash, release_lock
+from exchange_core.types import Event, Report
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    # Extract fields
+    order_id = event.order_id
+    new_price = event.new_price
+    new_qty = event.new_qty
+
+    # 1. Order must be resting
+    order = engine.state.orders.get(order_id)
+    if order is None or order.leaves == 0:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # 2. Validate new_price
+    if new_price <= 0 or new_price % engine.cfg.tick != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # 3. Validate new_qty > cum_qty
+    if new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # 4. Check for crossing
+    best_bid = engine.book.best_bid(engine.state)
+    best_ask = engine.book.best_ask(engine.state)
+
+    if order.side == "BUY":
+        if best_ask is not None and new_price <= best_ask:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    else:  # SELL
+        if best_bid is not None and new_price >= best_bid:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # Capture old values before modifications
+    old_price = order.price
+    old_qty = order.qty
+    old_cum_qty = order.cum_qty
+    old_lock = order.lock
+    old_prio_seq = order.prio_seq
+
+    # Compute new leaves
+    new_leaves = new_qty - old_cum_qty
+    # Compute new lock
+    new_lock = ceil_div(new_leaves * new_price * order.margin_bps, 10000)
+
+    # Insufficient margin check
+    acc = engine.state.accounts[order.account]
+    if new_lock > old_lock and (new_lock - old_lock) > acc.free_cash:
+        return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # All checks passed: perform replacement
+
+    # Update order fields
+    order.price = new_price
+    order.qty = new_qty
+    order.leaves = new_leaves
+    order.lock = new_lock
+
+    # Adjust cash based on lock difference
+    diff = new_lock - old_lock
+    if diff > 0:
+        lock_cash(engine, order.account, diff)
+    elif diff < 0:
+        release_lock(engine, order.account, -diff)
+
+    # Priority handling
+    if new_price != old_price or new_qty > old_qty:
+        # Assign new prio_seq
+        new_prio_seq = engine.state.next_prio_seq
+        engine.state.next_prio_seq += 1
+        order.prio_seq = new_prio_seq
+
+    # Return success report
+    return [Report.replaced(order_id)]
+```

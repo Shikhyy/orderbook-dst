@@ -1,0 +1,79 @@
+### FILE: exchange_core/handlers/shock.py
+```python
+"""exchange_core/handlers/shock.py
+Handler for PRICE_SHOCK and liquidation waterfall.
+Rules R-W1 to R-W6. Target for task f4_waterfall_b.
+"""
+from typing import Any
+from exchange_core.types import Event, Report
+from exchange_core.intmath import ceil_div
+from exchange_core.book import get_account_orders, remove_order
+from exchange_core.ledger import release_lock, transfer_cash, adjust_position
+
+
+def handle_shock(engine: Any, event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process PRICE_SHOCK and run the margin waterfall for all breached accounts."""
+    # R-W1: Set mark price
+    engine.state.mark_price = event.mark_price
+    reports: list[Report] = [Report.mark_set(mark_price=event.mark_price)]
+
+    # R-W1: Run waterfall for each account except LIQ, in ascending account-id order.
+    sorted_account_ids = sorted(engine.state.accounts.keys())
+    if "LIQ" in sorted_account_ids:
+        sorted_account_ids.remove("LIQ")
+
+    for acc_id in sorted_account_ids:
+        acc = engine.state.accounts[acc_id]
+        pos = acc.position
+
+        # R-W2: An account with position == 0 is never in breach.
+        if pos == 0:
+            continue
+
+        # R-W2: Check breach
+        # avail = free_cash + position * mark_price
+        # req = ceil_div(abs(position) * mark_price * MAINT_BPS, 10000)
+        mark_price = engine.state.mark_price
+        avail = acc.free_cash + (pos * mark_price)
+        req = ceil_div(abs(pos) * mark_price * engine.cfg.MAINT_BPS, 10000)
+
+        if avail < req:
+            # Stage 1: Cancel resting orders (R-W3)
+            # ascending prio_seq order
+            orders = get_account_orders(engine.state, acc_id)
+            for o in orders:
+                # Each cancel releases the lock to free_cash and reports CANCELLED(order_id, RISK)
+                release_lock(engine.state, acc_id, o.lock)
+                remove_order(engine.state, o.order_id)
+                reports.append(Report.cancelled(order_id=o.order_id, reason="RISK"))
+
+            # R-W4: Re-compute breach test with new free_cash
+            # Note: free_cash increased by sum of locks released
+            new_avail = acc.free_cash + (pos * mark_price)
+            if new_avail < req:
+                # Stage 2: Liquidation (R-W5)
+                # If position > 0: account sells position units to LIQ. 
+                # Account receives position * mark_price. LIQ pays same amount.
+                # If position < 0: account buys abs(position) units from LIQ.
+                # Account pays abs(position) * mark_price. LIQ receives same amount.
+                
+                liq_acc = engine.state.accounts["LIQ"]
+                notional = abs(pos) * mark_price
+                
+                if pos > 0:
+                    # Account sells to LIQ
+                    transfer_cash(engine.state, "LIQ", acc_id, notional)
+                else:
+                    # Account buys from LIQ
+                    transfer_cash(engine.state, acc_id, "LIQ", notional)
+                
+                # The position of the account becomes 0.
+                # The position of LIQ changes by the opposite amount (liq.position += orig_position).
+                adjust_position(engine.state, acc_id, -pos)
+                adjust_position(engine.state, "LIQ", pos)
+                
+                # Reports LIQUIDATED(account, qty) where qty is signed position before liquidation
+                reports.append(Report.liquidated(account=acc_id, qty=pos))
+
+    return reports
+```

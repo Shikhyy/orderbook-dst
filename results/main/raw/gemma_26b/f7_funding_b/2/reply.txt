@@ -1,0 +1,81 @@
+### FILE: exchange_core/handlers/funding.py
+```python
+"""exchange_core/handlers/funding.py
+Handler for FUNDING events: funding payments, fee-vault residual and waterfall.
+Rules R-Y1 to R-Y5. Target for task f7_funding_b.
+"""
+from typing import Any
+
+from exchange_core.intmath import round_half_even
+from exchange_core.types import Event, Report
+
+
+def handle_funding(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a FUNDING event."""
+    # R-Y1: Clamp the rate to [-3000, 3000]
+    rate = event.bps
+    if rate > 3000:
+        rate = 3000
+    elif rate < -3000:
+        rate = -3000
+
+    state = engine.state
+    ppm = engine.cfg.ppm
+    mark_price = state.mark_price
+
+    processed_count = 0
+    net_funding_flow = 0
+
+    # R-Y2: If rate != 0, process accounts with position != 0 in ascending account-id order
+    if rate != 0:
+        # Get accounts with position != 0 and sort by account_id
+        eligible_accounts = []
+        for acc_id, acc in state.accounts.items():
+            if acc.position != 0:
+                eligible_accounts.append(acc_id)
+        eligible_accounts.sort()
+
+        for acc_id in eligible_accounts:
+            acc = state.accounts[acc_id]
+            processed_count += 1
+
+            # R-Y2: notional = abs(position) * mark_price
+            notional = abs(acc.position) * mark_price
+            # R-Y2: amount = round_half_even(notional * abs(rate), ppm)
+            amount = round_half_even(notional * abs(rate), ppm)
+
+            # R-Y2: The account pays 'amount' when (long and rate > 0) or (short and rate < 0).
+            # Otherwise it receives 'amount'.
+            # A payment is subtracted from free_cash. A receipt is added to free_cash.
+            # Let's determine if the account is paying or receiving.
+            # If rate > 0: long (pos > 0) pays, short (pos < 0) receives.
+            # If rate < 0: short (pos < 0) pays, long (pos > 0) receives.
+            
+            is_paying = False
+            if rate > 0:
+                if acc.position > 0:
+                    is_paying = True
+            else: # rate < 0
+                if acc.position < 0:
+                    is_paying = True
+
+            if is_paying:
+                acc.free_cash -= amount
+                net_funding_flow += amount
+            else:
+                acc.free_cash += amount
+                net_funding_flow -= amount
+
+    # R-Y3: Net of all payments (payments minus receipts) added to state.fee_vault.
+    # net_funding_flow = sum(payments) - sum(receipts)
+    state.fee_vault += net_funding_flow
+
+    # R-Y4: First report
+    reports = [Report(kind="FUNDING_APPLIED", bps=rate, qty=processed_count)]
+
+    # R-Y5: Run margin waterfall via PRICE_SHOCK
+    shock_event = Event(kind="PRICE_SHOCK", mark_price=state.mark_price)
+    reports.extend(engine.dispatch(shock_event))
+
+    return reports
+```

@@ -1,0 +1,62 @@
+"""exchange_core/handlers/fix.py
+Handler for FIX session messages and session reset.
+Rules R-S1 to R-S9. Target for task f3_fix_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import SessionState
+
+
+def handle_fix(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process FIX_MSG and SESSION_RESET events according to rules R-S1 to R-S9."""
+    if event.kind == "SESSION_RESET":
+        session_id = event.session
+        if session_id not in engine.state.sessions:
+            engine.state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+        
+        s = engine.state.sessions[session_id]
+        s.epoch += 1
+        s.next_seq = 1
+        s.buffer.clear()
+        return [Report.session_reset_done(session_id)]
+
+    # Handle FIX_MSG
+    session_id = event.session
+    if session_id not in engine.state.sessions:
+        engine.state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+    
+    s = engine.state.sessions[session_id]
+    
+    # R-S2: Epoch check
+    if event.epoch != s.epoch:
+        return [Report.discarded("EPOCH")]
+    
+    # R-S3: Sequence low check
+    if event.seq < s.next_seq:
+        if event.poss_dup:
+            return [Report.discarded("DUPLICATE")]
+        return [Report.discarded("SEQ_TOO_LOW")]
+    
+    # R-S5: Sequence gap check
+    if event.seq > s.next_seq:
+        if event.seq in s.buffer:
+            return [Report.discarded("DUPLICATE_BUFFERED")]
+        s.buffer[event.seq] = event
+        return [Report.buffered()]
+    
+    # R-S4: Sequence match
+    reports = []
+    
+    def process_msg(msg: Event) -> None:
+        if msg.body is not None:
+            res = engine.dispatch(msg.body)
+            reports.extend(res)
+        s.next_seq += 1
+        
+    process_msg(event)
+    
+    # R-S4, R-S9: Drain buffer
+    while s.next_seq in s.buffer:
+        next_msg = s.buffer.pop(s.next_seq)
+        process_msg(next_msg)
+        
+    return reports

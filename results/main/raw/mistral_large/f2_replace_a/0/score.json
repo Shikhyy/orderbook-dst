@@ -1,0 +1,107 @@
+{
+  "task_id": "f2_replace_a",
+  "t1": 0.8888888888888888,
+  "t2": 1.0,
+  "t3": 0.4,
+  "score": 0.6778,
+  "passed": false,
+  "first_failure": {
+    "seed": 3000,
+    "event_index": 200,
+    "invariant": "D1",
+    "plain_name": "Final state mismatch",
+    "message": "final engine state differs from the reference",
+    "diff": {}
+  },
+  "coverage": {
+    "min_trigger_events": 68
+  },
+  "error": null,
+  "public_test_output": "...F.....                                                                [100%]\n=================================== FAILURES ===================================\n________________________ test_4_same_qty_and_price_noop ________________________\n\ncfg = EngineConfig(tick=10000, margin_bps_default=2000, maint_bps=500, ppm=1000000, taker_ppm_t0=2750, taker_ppm_t1=1850, maker_rebate_ppm=250, tier_threshold=5000010000)\n\n    def test_4_same_qty_and_price_noop(cfg: EngineConfig) -> None:\n        order = make_order(qty=10, cum_qty=0)\n        decision = decide_replace(order, new_price=100_000_000, new_qty=10, cfg=cfg)\n        assert decision.ok is True\n        assert decision.reason == \"\"\n>       assert decision.keep_priority is True\nE       AssertionError: assert False is True\nE        +  where False = ReplaceDecision(ok=True, reason='', keep_priority=False, new_leaves=10).keep_priority\n\n/var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_a_dyfwpi70/tests/test_f2_replace_a.py:70: AssertionError\n=========================== short test summary info ============================\nFAILED ../../../../../../../var/folders/kh/hdvgr1vj2_7_69zykspww7pr0000gn/T/grade_f2_replace_a_dyfwpi70/tests/test_f2_replace_a.py::test_4_same_qty_and_price_noop\n1 failed, 8 passed in 0.08s",
+  "seed_failures": [
+    {
+      "seed": 3000,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3007,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3009,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3010,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3011,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3012,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3013,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3015,
+      "event_index": 107,
+      "labels": [
+        "D1"
+      ]
+    },
+    {
+      "seed": 3016,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3017,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3018,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    },
+    {
+      "seed": 3019,
+      "event_index": 200,
+      "labels": [
+        "D1_STATE"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+"""exchange_core/handlers/fix.py
+Handler for FIX session messages and session reset.
+Rules R-S1 to R-S9. Target for task f3_fix_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.state import SessionState
+
+def handle_fix(engine: "Engine", event: Event) -> list[Report]:
+    """Process FIX_MSG and SESSION_RESET events according to rules R-S1 to R-S9."""
+    reports = []
+    session_id = event.session
+
+    # Initialize session if it doesn't exist
+    if session_id not in engine.state.sessions:
+        engine.state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+
+    session = engine.state.sessions[session_id]
+
+    if event.kind == "SESSION_RESET":
+        # Rule R-S8: Handle session reset
+        session.epoch += 1
+        session.next_seq = 1
+        session.buffer.clear()
+        reports.append(Report.session_reset_done(session_id))
+    else:
+        # Rule R-S1: Initialize session if not present
+        if session_id not in engine.state.sessions:
+            engine.state.sessions[session_id] = SessionState(epoch=0, next_seq=1, buffer={})
+            session = engine.state.sessions[session_id]
+
+        # Rule R-S2: Check epoch mismatch
+        if event.epoch != session.epoch:
+            reports.append(Report.discarded("EPOCH"))
+            return reports
+
+        # Rule R-S3: Handle seq < next_seq
+        if event.seq < session.next_seq:
+            if event.poss_dup:
+                reports.append(Report.discarded("DUPLICATE"))
+            else:
+                reports.append(Report.discarded("SEQ_TOO_LOW"))
+            return reports
+
+        # Rule R-S4: Handle seq == next_seq
+        if event.seq == session.next_seq:
+            # Accept the message
+            if event.body is not None:
+                # Dispatch the body and collect reports
+                body_reports = engine.dispatch(event.body)
+                reports.extend(body_reports)
+
+            # Increment next_seq
+            session.next_seq += 1
+
+            # Drain buffered messages in ascending order
+            while session.next_seq in session.buffer:
+                buffered_msg = session.buffer[session.next_seq]
+                if buffered_msg.body is not None:
+                    buffered_reports = engine.dispatch(buffered_msg.body)
+                    reports.extend(buffered_reports)
+                session.next_seq += 1
+                del session.buffer[session.next_seq - 1]
+
+        # Rule R-S5: Handle seq > next_seq
+        else:
+            if event.seq in session.buffer:
+                reports.append(Report.discarded("DUPLICATE_BUFFERED"))
+            else:
+                session.buffer[event.seq] = event
+                reports.append(Report.buffered())
+
+    return reports

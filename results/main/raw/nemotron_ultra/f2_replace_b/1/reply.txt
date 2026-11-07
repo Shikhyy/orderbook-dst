@@ -1,0 +1,80 @@
+### FILE: exchange_core/handlers/replace.py
+```python
+"""exchange_core/handlers/replace.py
+Handle REPLACE event.
+Rules R-P1 to R-P4. Target for task f2_replace_b.
+"""
+from exchange_core.types import Event, Report
+from exchange_core.intmath import ceil_div
+from exchange_core.book import best_bid, best_ask
+
+
+def handle_replace(engine: "Engine", event: Event) -> list[Report]:  # type: ignore # noqa: F821
+    """Process a REPLACE event according to rules R-P1 to R-P4."""
+    order_id = event.order_id
+    new_price = event.new_price
+    new_qty = event.new_qty
+
+    state = engine.state
+    cfg = engine.cfg
+
+    # R-P2.1: Order must be resting
+    order = state.orders.get(order_id)
+    if order is None:
+        return [Report.rejected("UNKNOWN_ORDER")]
+
+    # R-P2.2: Validate new_price
+    if new_price <= 0 or new_price % cfg.TICK != 0:
+        return [Report.rejected("INVALID_ORDER")]
+
+    # R-P2.3: new_qty must exceed cum_qty
+    if new_qty <= order.cum_qty:
+        return [Report.rejected("INVALID_REPLACE")]
+
+    # R-P2.4: New price must not cross the opposite side
+    if order.side == "BUY":
+        best_ask_price = best_ask(state)
+        if best_ask_price is not None and new_price >= best_ask_price:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+    else:  # SELL
+        best_bid_price = best_bid(state)
+        if best_bid_price is not None and new_price <= best_bid_price:
+            return [Report.rejected("REPLACE_WOULD_CROSS")]
+
+    # Calculate new lock
+    new_leaves = new_qty - order.cum_qty
+    new_lock = ceil_div(new_leaves * new_price * order.margin_bps, 10000)
+
+    # R-P2.5: Check margin if lock increases
+    old_lock = order.lock
+    if new_lock > old_lock:
+        diff = new_lock - old_lock
+        account = state.accounts[order.account]
+        if account.free_cash < diff:
+            return [Report.rejected("INSUFFICIENT_MARGIN")]
+
+    # All validations passed - apply the replace
+
+    # R-P3: Priority handling
+    # Keep priority if same price and qty not increased
+    if not (new_price == order.price and new_qty <= order.qty):
+        order.prio_seq = state.next_prio_seq
+        state.next_prio_seq += 1
+
+    # R-P4: Update order fields and adjust locks
+    account = state.accounts[order.account]
+    if new_lock > old_lock:
+        diff = new_lock - old_lock
+        account.free_cash -= diff
+        account.locked_margin += diff
+    elif new_lock < old_lock:
+        diff = old_lock - new_lock
+        account.locked_margin -= diff
+        account.free_cash += diff
+
+    order.price = new_price
+    order.qty = new_qty
+    order.lock = new_lock
+
+    return [Report.replaced(order_id)]
+```

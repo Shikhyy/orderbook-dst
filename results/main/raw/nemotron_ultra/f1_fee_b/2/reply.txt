@@ -1,0 +1,81 @@
+### FILE: exchange_core/handlers/settle.py
+```python
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.intmath import round_half_even
+from exchange_core.ledger import (
+    transfer_cash,
+    adjust_position,
+    pay_fee,
+    pay_rebate,
+    add_volume,
+)
+from exchange_core.types import Fill, Report
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    cfg = engine.cfg
+    state = engine.state
+
+    notional = fill.notional
+    buyer = fill.buyer
+    seller = fill.seller
+    taker_order_id = fill.taker_order_id
+    buy_order_id = fill.buy_order_id
+    sell_order_id = fill.sell_order_id
+
+    # Determine taker and maker
+    if taker_order_id == buy_order_id:
+        taker = buyer
+        maker = seller
+    else:
+        taker = seller
+        maker = buyer
+
+    # 1. Buyer pays notional, seller receives notional
+    transfer_cash(state, buyer, seller, notional)
+
+    # 2. Update positions
+    adjust_position(state, buyer, fill.qty)
+    adjust_position(state, seller, -fill.qty)
+
+    # 3. Compute taker fee based on taker's volume BEFORE this fill
+    taker_volume_before = state.accounts[taker].volume
+    fee = _compute_taker_fee(cfg, taker_volume_before, notional)
+
+    # 4. Compute maker rebate
+    rebate = round_half_even(notional * cfg.MAKER_REBATE_PPM, cfg.PPM)
+
+    # 5. Taker pays fee, maker receives rebate, vault nets fee - rebate
+    pay_fee(state, taker, fee)
+    pay_rebate(state, maker, rebate)
+
+    # 6. Update volume for both buyer and seller (after fee computation)
+    add_volume(state, buyer, notional)
+    add_volume(state, seller, notional)
+
+    # 7. Return FILL report
+    return [Report.fill(buy_order_id, sell_order_id, fill.price, fill.qty, taker_order_id)]
+
+
+def _compute_taker_fee(cfg, volume_before: int, notional: int) -> int:
+    """Compute tiered taker fee per R-F2."""
+    threshold = cfg.TIER_THRESHOLD
+    ppm = cfg.PPM
+    t0 = cfg.TAKER_PPM_T0
+    t1 = cfg.TAKER_PPM_T1
+
+    if volume_before >= threshold:
+        return round_half_even(notional * t1, ppm)
+    elif volume_before + notional <= threshold:
+        return round_half_even(notional * t0, ppm)
+    else:
+        below = threshold - volume_before
+        above = notional - below
+        fee_below = round_half_even(below * t0, ppm)
+        fee_above = round_half_even(above * t1, ppm)
+        return fee_below + fee_above
+```

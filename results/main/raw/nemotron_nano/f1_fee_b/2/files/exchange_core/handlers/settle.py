@@ -1,0 +1,62 @@
+"""exchange_core/handlers/settle.py
+Settle trades, fees, and volume.
+Rules R-M4, R-F1, R-F2, R-F3. Target for task f1_fee_b.
+"""
+from exchange_core.types import Fill, Report
+from exchange_core.intmath import round_half_even
+
+
+def settle_fill(engine: "Engine", fill: Fill) -> list[Report]:  # type: ignore # noqa: F821
+    """Settle cash, locks, position, volume, and fees for a fill."""
+    cfg = engine.cfg
+    state = engine.state
+
+    notional = fill.price * fill.qty
+
+    # 1. cash transfer notional: buyer pays, seller receives
+    state.accounts[fill.buyer].free_cash -= notional
+    state.accounts[fill.seller].free_cash += notional
+
+    # 2. position updates
+    state.adjust_position(fill.buyer, fill.qty)
+    state.adjust_position(fill.seller, -fill.qty)
+
+    # 3. compute taker fee based on taker volume before fill
+    order_taker = state.orders[fill.taker_order_id]
+    taker_account = order_taker.account
+    vol_before = state.accounts[taker_account].volume
+
+    if vol_before >= cfg.TIER_THRESHOLD:
+        fee = int(round_half_even(notional * cfg.TAKER_PPM_T1, cfg.PPM))
+    elif vol_before + notional <= cfg.TIER_THRESHOLD:
+        fee = int(round_half_even(notional * cfg.TAKER_PPM_T0, cfg.PPM))
+    else:
+        below = cfg.TIER_THRESHOLD - vol_before
+        above = notional - below
+        fee = int(round_half_even(below * cfg.TAKER_PPM_T0, cfg.PPM)) + int(round_half_even(above * cfg.TAKER_PPM_T1, cfg.PPM))
+
+    # 4. compute maker rebate
+    rebate = int(round_half_even(notional * cfg.MAKER_REBATE_PPM, cfg.PPM))
+
+    # 5. fee payment and rebate
+    # taker pays fee
+    state.pay_fee(taker_account, fee)
+    # determine maker account
+    if order_taker.account == fill.buyer:
+        maker_account = fill.seller
+    else:
+        maker_account = fill.buyer
+    state.pay_rebate(maker_account, rebate)
+
+    # 6. volume update
+    state.add_volume(fill.buyer, notional)
+    state.add_volume(fill.seller, notional)
+
+    # 7. return report
+    return [Report.fill(
+        buy_order_id=fill.buy_order_id,
+        sell_order_id=fill.sell_order_id,
+        price=fill.price,
+        qty=fill.qty,
+        taker_order_id=fill.taker_order_id,
+    )]

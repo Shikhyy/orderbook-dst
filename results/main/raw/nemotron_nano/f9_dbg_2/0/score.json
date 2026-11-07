@@ -1,0 +1,13 @@
+{
+  "task_id": "f9_dbg_2",
+  "t1": 0.0,
+  "t2": 0.0,
+  "t3": 0.0,
+  "score": 0.0,
+  "passed": false,
+  "first_failure": null,
+  "coverage": null,
+  "error": "OUTPUT_TRUNCATED",
+  "public_test_output": null,
+  "seed_failures": null
+}

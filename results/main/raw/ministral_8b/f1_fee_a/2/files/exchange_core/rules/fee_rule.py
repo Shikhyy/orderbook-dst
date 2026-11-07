@@ -1,0 +1,30 @@
+"""exchange_core/rules/fee_rule.py
+Pure functions for taker fee and maker rebate calculation.
+Rules R-F2 and R-F3. Target for task f1_fee_a.
+"""
+from exchange_core.config import EngineConfig
+from exchange_core.intmath import round_half_even
+
+def compute_taker_fee(volume_before: int, notional: int, cfg: EngineConfig) -> int:
+    """Compute the taker fee for a fill using tier threshold logic (Rule R-F2)."""
+    tier_threshold = cfg.TIER_THRESHOLD
+    taker_ppm_t0 = cfg.TAKER_PPM_T0
+    taker_ppm_t1 = cfg.TAKER_PPM_T1
+    ppm = cfg.PPM
+
+    if volume_before >= tier_threshold:
+        return round_half_even(notional * taker_ppm_t1, ppm)
+    elif volume_before + notional <= tier_threshold:
+        return round_half_even(notional * taker_ppm_t0, ppm)
+    else:
+        below = tier_threshold - volume_before
+        above = notional - below
+        fee_below = round_half_even(below * taker_ppm_t0, ppm)
+        fee_above = round_half_even(above * taker_ppm_t1, ppm)
+        return fee_below + fee_above
+
+def compute_maker_rebate(notional: int, cfg: EngineConfig) -> int:
+    """Compute the maker rebate for a fill (Rule R-F3)."""
+    maker_rebate_ppm = cfg.MAKER_REBATE_PPM
+    ppm = cfg.PPM
+    return round_half_even(notional * maker_rebate_ppm, ppm)
