@@ -67,4 +67,3 @@ results/**
 transcripts/**
 
 # CI
-.github/workflows/*.yml
