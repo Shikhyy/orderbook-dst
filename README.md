@@ -6,7 +6,7 @@
 
 ![tasks](https://img.shields.io/badge/tasks-17-2f81f7) ![families](https://img.shields.io/badge/families-9-2f81f7) ![trials](https://img.shields.io/badge/real%20model%20trials-329-3fb950) ![bugs](https://img.shields.io/badge/hand--written%20bugs-81-f85149) ![tests](https://img.shields.io/badge/tests-549%20passing-3fb950) ![python](https://img.shields.io/badge/python-3.12%2B-blue)
 
-**[Video walkthrough](VIDEO_LINK_HERE)** · [Results](#results) · [How it is graded](#how-it-is-graded) · [Failure analysis](#failure-analysis) · [Run it](#run-it)
+**[Video walkthrough](https://youtu.be/kGFsc9mu4KM)** · [Results](#results) · [How it is graded](#how-it-is-graded) · [Failure analysis](#failure-analysis) · [Run it](#run-it)
 
 </div>
 
